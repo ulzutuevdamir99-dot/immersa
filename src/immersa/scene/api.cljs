@@ -1,4 +1,5 @@
 (ns immersa.scene.api
+  (:refer-clojure :exclude [clone])
   (:require
     ["@babylonjs/core/Actions/actionManager" :refer [ActionManager]]
     ["@babylonjs/core/Actions/directActions" :refer [ExecuteCodeAction]]
@@ -28,8 +29,10 @@
     ["@babylonjs/gui/2D/controls" :refer [Button Image]]
     ["@babylonjs/inspector"]
     ["@babylonjs/materials/grid/gridMaterial" :refer [GridMaterial]]
+    ["earcut" :as earcut]
     [applied-science.js-interop :as j]
-    [cljs.core.async :as a :refer [go <!]])
+    [cljs.core.async :as a :refer [go <!]]
+    [immersa.scene.font :as font])
   (:require-macros
     [immersa.scene.macros :as m]))
 
@@ -50,6 +53,9 @@
   (let [s (Scene. engine)]
     (j/assoc! db :scene s)
     s))
+
+(defn canvas []
+  (j/get db :canvas))
 
 (defn v2
   ([]
@@ -74,6 +80,9 @@
    (Vector4. n n n n))
   ([x y z w]
    (Vector4. x y z w)))
+
+(defn clone [obj]
+  (j/call obj :clone))
 
 (defn set-v3 [v x y z]
   (j/call v :set x y z))
@@ -158,6 +167,29 @@
     (add-node-to-db name c opts)
     (cond-> c
       visibility (j/assoc! :visibility visibility))))
+
+(defn text [name & {:keys [text
+                           size
+                           resolution
+                           depth
+                           visibility
+                           position]
+                    :or {size 1
+                         resolution 64
+                         depth 0.5}
+                    :as opts}]
+  (let [text (j/call MeshBuilder :CreateText name
+                     text
+                     font/droid
+                     #js {:size size
+                          :resolution resolution
+                          :depth depth}
+                     nil
+                     earcut)]
+    (add-node-to-db name text (assoc opts :type :text))
+    (cond-> text
+      visibility (j/assoc! :visibility visibility)
+      position (j/assoc! :position position))))
 
 (defn get-pos [obj]
   (j/call obj :getAbsolutePosition))
@@ -319,12 +351,16 @@
 (defn add-shadow-caster [shadow-generator mesh]
   (j/call shadow-generator :addShadowCaster mesh))
 
-(defn create-free-camera [name & {:keys [pos speed]
-                                  :or {pos (v3 0 2 -10)
+(defn create-free-camera [name & {:keys [position speed]
+                                  :or {position (v3 0 2 -10)
                                        speed 0.5}
                                   :as opts}]
-  (let [camera (FreeCamera. name pos)]
-    (add-node-to-db name camera (assoc opts :type :free))
+  (let [camera (FreeCamera. name position)
+        init-rotation (clone (j/get camera :rotation))
+        init-position (clone (j/get camera :position))]
+    (add-node-to-db name camera (assoc opts :type :free
+                                       :init-rotation init-rotation
+                                       :init-position init-position))
     (j/call-in camera [:keysUpward :push] 69)
     (j/call-in camera [:keysDownward :push] 81)
     (j/call-in camera [:keysUp :push] 87)
@@ -333,12 +369,14 @@
     (j/call-in camera [:keysRight :push] 68)
     (j/assoc! camera
               :speed speed
-              :type :free)
+              :type :free
+              :init-rotation init-rotation
+              :init-position init-position)
     camera))
 
 (defn create-arc-camera [name & {:keys [canvas
                                         target
-                                        pos
+                                        position
                                         radius
                                         target-screen-offset
                                         use-bouncing-behavior?
@@ -347,12 +385,16 @@
                                         lower-radius-limit
                                         upper-radius-limit]
                                  :as opts}]
-  (let [camera (ArcRotateCamera. name 0 0 0 (v3))]
-    (add-node-to-db name camera (assoc opts :type :arc))
-    (doto camera
-      (j/call :setPosition pos)
-      (j/call :attachControl canvas true)
-      (j/call :setTarget target))
+  (let [camera (ArcRotateCamera. name 0 0 0 (v3))
+        init-rotation (clone (j/get camera :rotation))
+        init-position (clone (j/get camera :position))]
+    (add-node-to-db name camera (assoc opts :type :arc
+                                       :init-rotation init-rotation
+                                       :init-position init-position))
+    (m/cond-doto camera
+      position (j/call :setPosition position)
+      target (j/call :setTarget target))
+    (j/call camera :attachControl canvas true)
     (j/assoc! camera
               :radius radius
               :targetScreenOffset target-screen-offset
@@ -361,6 +403,8 @@
               :collisionRadius collision-radius
               :lowerRadiusLimit lower-radius-limit
               :upperRadiusLimit upper-radius-limit
+              :init-rotation init-rotation
+              :init-position init-position
               :type :arc)
     camera))
 
@@ -449,7 +493,7 @@
   (let [p (a/promise-chan)
         on-animation-end (fn []
                            (when on-animation-end
-                             (on-animation-end))
+                             (on-animation-end target))
                            (a/put! p true))
         f #(j/call-in db [:scene :beginDirectAnimation]
                       target
