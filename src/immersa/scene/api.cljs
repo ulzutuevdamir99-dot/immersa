@@ -2,8 +2,12 @@
   (:require
     ["@babylonjs/core/Actions/actionManager" :refer [ActionManager]]
     ["@babylonjs/core/Actions/directActions" :refer [ExecuteCodeAction]]
+    ["@babylonjs/core/Animations/animatable"]
+    ["@babylonjs/core/Animations/animation" :refer [Animation]]
+    ["@babylonjs/core/Animations/easing" :refer [CubicEase EasingFunction]]
     ["@babylonjs/core/Cameras/arcRotateCamera" :refer [ArcRotateCamera]]
     ["@babylonjs/core/Cameras/freeCamera" :refer [FreeCamera]]
+    ["@babylonjs/core/Debug/debugLayer"]
     ["@babylonjs/core/Engines/engine" :refer [Engine]]
     ["@babylonjs/core/Lights/Shadows/shadowGenerator" :refer [ShadowGenerator]]
     ["@babylonjs/core/Lights/directionalLight" :refer [DirectionalLight]]
@@ -12,7 +16,7 @@
     ["@babylonjs/core/Materials/Textures/cubeTexture" :refer [CubeTexture]]
     ["@babylonjs/core/Materials/Textures/texture" :refer [Texture]]
     ["@babylonjs/core/Materials/standardMaterial" :refer [StandardMaterial]]
-    ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3]]
+    ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3 Vector4]]
     ["@babylonjs/core/Maths/math.color" :refer [Color3]]
     ["@babylonjs/core/Meshes/meshBuilder" :refer [MeshBuilder]]
     ["@babylonjs/core/Misc/tools" :refer [Tools]]
@@ -22,8 +26,10 @@
     ["@babylonjs/core/scene" :refer [Scene]]
     ["@babylonjs/gui/2D" :refer [AdvancedDynamicTexture]]
     ["@babylonjs/gui/2D/controls" :refer [Button Image]]
+    ["@babylonjs/inspector"]
     ["@babylonjs/materials/grid/gridMaterial" :refer [GridMaterial]]
-    [applied-science.js-interop :as j])
+    [applied-science.js-interop :as j]
+    [cljs.core.async :as a :refer [go <!]])
   (:require-macros
     [immersa.scene.macros :as m]))
 
@@ -45,14 +51,6 @@
     (j/assoc! db :scene s)
     s))
 
-(defn v3
-  ([]
-   (Vector3.))
-  ([n]
-   (Vector3. n n n))
-  ([x y z]
-   (Vector3. x y z)))
-
 (defn v2
   ([]
    (Vector2.))
@@ -61,8 +59,27 @@
   ([x z]
    (Vector2. x z)))
 
+(defn v3
+  ([]
+   (Vector3.))
+  ([n]
+   (Vector3. n n n))
+  ([x y z]
+   (Vector3. x y z)))
+
+(defn v4
+  ([]
+   (Vector4.))
+  ([n]
+   (Vector4. n n n n))
+  ([x y z w]
+   (Vector4. x y z w)))
+
 (defn set-v3 [v x y z]
   (j/call v :set x y z))
+
+(defn equals? [v1 v2]
+  (j/call v1 :equals v2))
 
 (defn get-delta-time []
   (/ (j/call-in db [:engine :getDeltaTime]) 1000))
@@ -79,15 +96,67 @@
   ([r g b]
    (j/call Color3 :FromInts r g b)))
 
-(defn box [name & {:keys [size]}]
-  (j/call MeshBuilder :CreateBox name #js {:size size}))
+(defn get-node-by-name [name]
+  (j/get-in db [:nodes name]))
 
-(defn capsule [name & {:keys [height radius]}]
-  (j/call MeshBuilder :CreateCapsule name #js {:height height
-                                               :radius radius}))
+(defn get-object-by-name [name]
+  (j/get-in db [:nodes name :obj]))
 
-(defn get-pos [mesh]
-  (j/call mesh :getAbsolutePosition))
+(defn dispose [name-or-obj]
+  (when-let [obj (if (string? name-or-obj)
+                   (get-object-by-name name-or-obj)
+                   name-or-obj)]
+    (j/call obj :dispose)
+    (js-delete (j/get db :nodes) (j/get obj :name))))
+
+(defn- check-name-exists [name obj]
+  (when (j/get-in db [:nodes name])
+    (dispose obj)
+    (throw (js/Error. (str "Node with name " name " already exists")))))
+
+(defn add-node-to-db [name obj opts]
+  (check-name-exists name obj)
+  (j/assoc-in! db [:nodes name] (clj->js (assoc opts :obj obj)))
+  obj)
+
+(defn box [name & {:keys [size
+                          width
+                          height
+                          depth
+                          face-uv
+                          wrap?
+                          visibility
+                          position
+                          mat]
+                   :as opts}]
+  (let [b (j/call MeshBuilder :CreateBox name #js {:size size
+                                                   :faceUV face-uv
+                                                   :wrap wrap?
+                                                   :width width
+                                                   :height height
+                                                   :depth depth})]
+    (add-node-to-db name b opts)
+    (cond-> b
+            mat (j/assoc! :material mat)
+            position (j/assoc! :position position)
+            visibility (j/assoc! :visibility visibility))))
+
+(defn capsule [name & {:keys [height radius visibility]
+                       :as opts}]
+  (let [c (j/call MeshBuilder :CreateCapsule name #js {:height height
+                                                       :radius radius})]
+    (add-node-to-db name c opts)
+    (cond-> c
+            visibility (j/assoc! :visibility visibility))))
+
+(defn get-pos [obj]
+  (j/call obj :getAbsolutePosition))
+
+(defn set-pos [obj v3]
+  (j/call obj :setPosition v3))
+
+(defn update-pos [obj v3]
+  (j/assoc! obj :position v3))
 
 (defn create-action-manager [obj]
   (let [am (ActionManager.)]
@@ -101,18 +170,25 @@
                                              (clj->js (update params :trigger #(j/get ActionManager (name %)))))
                                            callback)))
 
-(defn create-ground [name & {:keys [width height mat]}]
-  (cond-> (j/call MeshBuilder :CreateGround name #js {:width width
-                                                      :height height})
-    mat (j/assoc! :material mat)))
+(defn create-ground [name & {:keys [width height mat]
+                             :as opts}]
+  (let [ground (j/call MeshBuilder :CreateGround name #js {:width width
+                                                           :height height})]
+    (add-node-to-db name ground opts)
+    (cond-> ground
+            mat (j/assoc! :material mat))))
 
-(defn create-ground-from-hm [name & {:keys [texture subdivisions width height max-height min-height on-ready]}]
-  (j/call MeshBuilder :CreateGroundFromHeightMap name texture #js {:subdivisions subdivisions
-                                                                   :width width
-                                                                   :height height
-                                                                   :maxHeight max-height
-                                                                   :minHeight min-height
-                                                                   :onReady on-ready}))
+(defn create-ground-from-hm [name & {:keys [texture subdivisions width height max-height min-height on-ready mat]
+                                     :as opts}]
+  (let [ground (j/call MeshBuilder :CreateGroundFromHeightMap name texture #js {:subdivisions subdivisions
+                                                                                :width width
+                                                                                :height height
+                                                                                :maxHeight max-height
+                                                                                :minHeight min-height
+                                                                                :onReady on-ready})]
+    (add-node-to-db name ground opts)
+    (cond-> ground
+            mat (j/assoc! :material mat))))
 
 (defn physics-agg [mesh & {:keys [type
                                   mass
@@ -127,11 +203,11 @@
                                                                               :friction friction
                                                                               :restitution restitution})]
     (m/cond-doto agg
-      gravity-factor (j/call-in [:body :setGravityFactor] gravity-factor)
-      linear-damping (j/call-in [:body :setLinearDamping] linear-damping)
-      angular-damping (j/call-in [:body :setAngularDamping] angular-damping)
-      mass-props (j/call-in [:body :setMassProperties] (clj->js mass-props))
-      motion-type (j/call-in [:body :setMotionType] (j/get PhysicsMotionType (name motion-type))))))
+                 gravity-factor (j/call-in [:body :setGravityFactor] gravity-factor)
+                 linear-damping (j/call-in [:body :setLinearDamping] linear-damping)
+                 angular-damping (j/call-in [:body :setAngularDamping] angular-damping)
+                 mass-props (j/call-in [:body :setMassProperties] (clj->js mass-props))
+                 motion-type (j/call-in [:body :setMotionType] (j/get PhysicsMotionType (name motion-type))))))
 
 (defn standard-mat [name & {:keys [diffuse-texture
                                    diffuse-color
@@ -142,14 +218,14 @@
                                    disable-lighting?
                                    emissive-color]}]
   (cond-> (StandardMaterial. name)
-    diffuse-texture (j/assoc! :diffuseTexture diffuse-texture)
-    specular-color (j/assoc! :specularColor specular-color)
-    (some? back-face-culling?) (j/assoc! :backFaceCulling back-face-culling?)
-    reflection-texture (j/assoc! :reflectionTexture reflection-texture)
-    coordinates-mode (j/assoc-in! [:reflectionTexture :coordinatesMode] (j/get Texture coordinates-mode))
-    (some? disable-lighting?) (j/assoc! :disableLighting disable-lighting?)
-    diffuse-color (j/assoc! :diffuseColor diffuse-color)
-    emissive-color (j/assoc! :emissiveColor emissive-color)))
+          diffuse-texture (j/assoc! :diffuseTexture diffuse-texture)
+          specular-color (j/assoc! :specularColor specular-color)
+          (some? back-face-culling?) (j/assoc! :backFaceCulling back-face-culling?)
+          reflection-texture (j/assoc! :reflectionTexture reflection-texture)
+          coordinates-mode (j/assoc-in! [:reflectionTexture :coordinatesMode] (j/get Texture coordinates-mode))
+          (some? disable-lighting?) (j/assoc! :disableLighting disable-lighting?)
+          diffuse-color (j/assoc! :diffuseColor diffuse-color)
+          emissive-color (j/assoc! :emissiveColor emissive-color)))
 
 (defn grid-mat [name & {:keys [major-unit-frequency
                                minor-unit-visibility
@@ -157,16 +233,16 @@
                                back-face-culling?
                                main-color
                                line-color
-                               opacity]}]
-  (let [mat (GridMaterial. name)]
-    (m/cond-doto mat
-      major-unit-frequency (j/assoc! :majorUnitFrequency major-unit-frequency)
-      minor-unit-visibility (j/assoc! :minorUnitVisibility minor-unit-visibility)
-      grid-ratio (j/assoc! :gridRatio grid-ratio)
-      (some? back-face-culling?) (j/assoc! :backFaceCulling back-face-culling?)
-      main-color (j/assoc! :mainColor main-color)
-      line-color (j/assoc! :lineColor line-color)
-      opacity (j/assoc! :opacity opacity))))
+                               opacity]
+                        :as opts}]
+  (m/cond-doto (GridMaterial. name)
+               major-unit-frequency (j/assoc! :majorUnitFrequency major-unit-frequency)
+               minor-unit-visibility (j/assoc! :minorUnitVisibility minor-unit-visibility)
+               grid-ratio (j/assoc! :gridRatio grid-ratio)
+               (some? back-face-culling?) (j/assoc! :backFaceCulling back-face-culling?)
+               main-color (j/assoc! :mainColor main-color)
+               line-color (j/assoc! :lineColor line-color)
+               opacity (j/assoc! :opacity opacity)))
 
 (defn create-sky-box []
   (let [skybox (box "skyBox" :size 5000.0)
@@ -185,11 +261,12 @@
     (j/assoc! skybox :material mat)
     skybox))
 
-(defn texture [path & {:keys [u-scale v-scale]}]
+(defn texture [path & {:keys [u-scale v-scale]
+                       :as opts}]
   (let [tex (Texture. path)]
     (m/cond-doto tex
-      u-scale (j/assoc! :uScale u-scale)
-      v-scale (j/assoc! :vScale v-scale))))
+                 u-scale (j/assoc! :uScale u-scale)
+                 v-scale (j/assoc! :vScale v-scale))))
 
 (defn key-pressed? [key]
   (j/get-in db [:input-map key] false))
@@ -210,34 +287,43 @@
   (j/call-in mesh [:physicsBody :getObjectCenterWorld]))
 
 (defn directional-light [name & {:keys [dir pos]
-                                 :or {dir (v3 0 -1 0)}}]
+                                 :or {dir (v3 0 -1 0)}
+                                 :as opts}]
   (let [light (DirectionalLight. name dir)]
+    (add-node-to-db name light opts)
     (j/assoc! light :position pos)))
 
 (defn hemispheric-light [name & {:keys [dir pos]
-                                 :or {dir (v3 0 1 0)}}]
+                                 :or {dir (v3 0 1 0)}
+                                 :as opts}]
   (let [light (HemisphericLight. name dir)]
+    (add-node-to-db name light opts)
     (j/assoc! light :position pos)))
 
-(defn shadow-generator [& {:keys [map-size light]
-                           :or {map-size 1024}}]
-  (ShadowGenerator. map-size light))
+(defn shadow-generator [name & {:keys [map-size light]
+                                :or {map-size 1024}
+                                :as opts}]
+  ;; TODO there is no name so be careful on disposing
+  (add-node-to-db name (ShadowGenerator. map-size light) opts))
 
 (defn add-shadow-caster [shadow-generator mesh]
   (j/call shadow-generator :addShadowCaster mesh))
 
 (defn create-free-camera [name & {:keys [pos speed]
                                   :or {pos (v3 0 2 -10)
-                                       speed 0.5}}]
+                                       speed 0.5}
+                                  :as opts}]
   (let [camera (FreeCamera. name pos)]
+    (add-node-to-db name camera (assoc opts :type :free))
     (j/call-in camera [:keysUpward :push] 69)
     (j/call-in camera [:keysDownward :push] 81)
     (j/call-in camera [:keysUp :push] 87)
     (j/call-in camera [:keysDown :push] 83)
     (j/call-in camera [:keysLeft :push] 65)
     (j/call-in camera [:keysRight :push] 68)
-    (j/assoc! camera :speed speed)
-    (j/assoc! db :free-camera camera)
+    (j/assoc! camera
+              :speed speed
+              :type :free)
     camera))
 
 (defn create-arc-camera [name & {:keys [canvas
@@ -249,8 +335,10 @@
                                         apply-gravity?
                                         collision-radius
                                         lower-radius-limit
-                                        upper-radius-limit]}]
+                                        upper-radius-limit]
+                                 :as opts}]
   (let [camera (ArcRotateCamera. name 0 0 0 (v3))]
+    (add-node-to-db name camera (assoc opts :type :arc))
     (doto camera
       (j/call :setPosition pos)
       (j/call :attachControl canvas true)
@@ -262,8 +350,8 @@
               :applyGravity apply-gravity?
               :collisionRadius collision-radius
               :lowerRadiusLimit lower-radius-limit
-              :upperRadiusLimit upper-radius-limit)
-    (j/assoc! db :arc-camera camera)
+              :upperRadiusLimit upper-radius-limit
+              :type :arc)
     camera))
 
 (defn raycast-result []
@@ -311,4 +399,63 @@
   (j/call Tools :ToDegrees angle))
 
 (defn dispose-engine []
-  (j/call-in db [:engine :dispose]))
+  (j/call-in db [:engine :dispose])
+  (set! db #js {}))
+
+(defn show-debug []
+  (let [p (j/call-in db [:scene :debugLayer :show] #js {:embedMode true})]
+    (.then p
+           (fn []
+             (j/assoc-in! (js/document.getElementById "embed-host") [:style :position] "absolute")))))
+
+(defn hide-debug []
+  (j/call-in db [:scene :debugLayer :hide]))
+
+(defn animation [name & {:keys [target-prop
+                                fps
+                                data-type
+                                loop-mode
+                                easing
+                                keys]}]
+  (let [anim (Animation. name target-prop fps (j/get Animation data-type) (j/get Animation loop-mode))]
+    (m/cond-doto anim
+                 easing (j/call :setEasingFunction easing)
+                 keys (j/call :setKeys (clj->js keys)))))
+
+(defn cubic-ease [mode]
+  (doto (CubicEase.)
+    (j/call :setEasingMode (j/get EasingFunction mode))))
+
+(defn begin-direct-animation [& {:keys [target
+                                        animations
+                                        from
+                                        to
+                                        loop?
+                                        speed-ratio
+                                        on-animation-end
+                                        delay]
+                                 :or {loop? false
+                                      speed-ratio 1.0}}]
+  (let [p (a/promise-chan)
+        on-animation-end (fn []
+                           (when on-animation-end
+                             (on-animation-end))
+                           (a/put! p true))
+        f #(j/call-in db [:scene :beginDirectAnimation]
+                      target
+                      (clj->js (if (vector? animations)
+                                 animations
+                                 [animations]))
+                      from
+                      to
+                      loop?
+                      speed-ratio
+                      on-animation-end)]
+    (if (and delay (> delay 0))
+      (js/setTimeout f delay)
+      (f))
+    p))
+
+(defn active-camera []
+  (j/get-in db [:scene :activeCamera]))
+
