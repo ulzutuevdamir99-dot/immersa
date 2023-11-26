@@ -102,12 +102,19 @@
 (defn get-object-by-name [name]
   (j/get-in db [:nodes name :obj]))
 
-(defn dispose [name-or-obj]
-  (when-let [obj (if (string? name-or-obj)
-                   (get-object-by-name name-or-obj)
-                   name-or-obj)]
-    (j/call obj :dispose)
-    (js-delete (j/get db :nodes) (j/get obj :name))))
+(defn get-objects-by-type [type]
+  (map (j/get :obj) (filter #(= (j/get % :type) type) (js/Object.values (j/get db :nodes)))))
+
+(defn dispose [& name-or-obj]
+  (doseq [o name-or-obj]
+    (when-let [obj (if (string? o)
+                     (get-object-by-name o)
+                     o)]
+      (j/call obj :dispose)
+      (js-delete (j/get db :nodes) (j/get obj :name)))))
+
+(defn dispose-all [objs]
+  (apply dispose objs))
 
 (defn- check-name-exists [name obj]
   (when (j/get-in db [:nodes name])
@@ -116,7 +123,7 @@
 
 (defn add-node-to-db [name obj opts]
   (check-name-exists name obj)
-  (j/assoc-in! db [:nodes name] (clj->js (assoc opts :obj obj)))
+  (j/assoc-in! db [:nodes name] (clj->js (assoc opts :obj obj :name name)))
   obj)
 
 (defn box [name & {:keys [size
@@ -127,6 +134,7 @@
                           wrap?
                           visibility
                           position
+                          skybox?
                           mat]
                    :as opts}]
   (let [b (j/call MeshBuilder :CreateBox name #js {:size size
@@ -135,7 +143,9 @@
                                                    :width width
                                                    :height height
                                                    :depth depth})]
-    (add-node-to-db name b opts)
+    (add-node-to-db name b (assoc opts :type (if skybox?
+                                               :skybox
+                                               :box)))
     (cond-> b
             mat (j/assoc! :material mat)
             position (j/assoc! :position position)
@@ -245,7 +255,7 @@
                opacity (j/assoc! :opacity opacity)))
 
 (defn create-sky-box []
-  (let [skybox (box "skyBox" :size 5000.0)
+  (let [skybox (box "skyBox" :size 5000.0 :skybox? true)
         mat (standard-mat "skyBox"
                           :back-face-culling? false
                           :reflection-texture (CubeTexture. "" nil nil nil #js ["img/skybox/px.jpeg"

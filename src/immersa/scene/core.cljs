@@ -3,7 +3,7 @@
     [applied-science.js-interop :as j]
     [immersa.scene.api :as api :refer [v3 v4]]))
 
-(defn- create-box [name]
+(defn- create-box [name params]
   (let [columns 6
         rows 1
         face-uv (js/Array. columns)
@@ -12,12 +12,10 @@
         texture (api/texture "img/texture/numbers.jpg")
         mat (api/standard-mat "mat" :diffuse-texture texture)]
     (api/box name
-             ;:height 1
-             ;:width 15
-             :position (v3 0 -5 0)
-             :face-uv face-uv
-             :wrap? true
-             :mat mat)))
+             (assoc params
+               :face-uv face-uv
+               :wrap? true
+               :mat mat))))
 
 (defn animate-camera [object]
   (let [_ (j/call object :computeWorldMatrix true)
@@ -64,22 +62,53 @@
 
 (comment
   (doseq [slide [{:objects {"box" {:type :box
-                                   :position (v3 0 -5 0)}}
+                                   :position (v3 0 -5 0)}
+                            "box2" {:type :box
+                                    :position (v3 2 0 0)}}
                   "box" {:position (v3 0 0 0)}}]]
 
     (let [objects (:objects slide)
-          object-names (keys (dissoc slide :objects))
-          objects-to-create (filter #(not (api/get-object-by-name %)) object-names)]
-      )))
+          object-names-from-slide-info (keys (dissoc slide :objects))
+          object-names-from-objects (-> slide :objects keys)
+          objects-to-create (filter #(not (api/get-object-by-name %)) (concat object-names-from-slide-info
+                                                                              object-names-from-objects))
+          _ (doseq [name objects-to-create]
+              (let [params (get objects name)
+                    type (:type params)
+                    params (dissoc params :type)]
+                (case type
+                  :box (create-box name params))))
+          animations (reduce
+                       (fn [acc object-name]
+                         (let [object-slide-info (get slide object-name)]
+                           (if-let [last-pos (:position object-slide-info)]
+                             (if-let [init-pos (api/get-pos (api/get-object-by-name object-name))]
+                               (if-not (api/equals? init-pos last-pos)
+                                 (conj acc [object-name (create-position-animation init-pos last-pos 1)])
+                                 acc)
+                               acc)
+                             acc)))
+                       []
+                       object-names-from-slide-info)]
+      (doseq [[name animations] (reduce-kv
+                                  (fn [acc k v]
+                                    (assoc acc k (mapv second v)))
+                                  {}
+                                  (group-by first animations))]
+        (api/begin-direct-animation :target (api/get-object-by-name name)
+                                    :animations animations
+                                    :from 0
+                                    :to 30
+                                    :delay 1000))
+      animations)))
 
 (comment
-  (j/get (api/active-camera) :rotation)
+  (api/dispose-all (api/get-objects-by-type "box"))
 
-  (animate-camera (api/get-object-by-name "box"))
-
+  (api/dispose "box2")
   (do
     (api/dispose "box")
-    (create-box "box"))
+    (create-box "box" {:position (v3 2 0 0)}))
 
   (api/show-debug)
 
@@ -99,7 +128,7 @@
                                 :delay 1500)))
 
 (defn when-scene-ready []
-  (create-box "box"))
+  )
 
 (defn start-scene [canvas]
   (let [engine (api/create-engine canvas)
