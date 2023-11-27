@@ -15,18 +15,20 @@
     ["@babylonjs/core/Lights/hemisphericLight" :refer [HemisphericLight]]
     ["@babylonjs/core/Loading/sceneLoader" :refer [SceneLoader]]
     ["@babylonjs/core/Materials/Textures/cubeTexture" :refer [CubeTexture]]
+    ["@babylonjs/core/Materials/Textures/dynamicTexture" :refer [DynamicTexture]]
     ["@babylonjs/core/Materials/Textures/texture" :refer [Texture]]
     ["@babylonjs/core/Materials/standardMaterial" :refer [StandardMaterial]]
     ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3 Vector4]]
     ["@babylonjs/core/Maths/math.color" :refer [Color3]]
     ["@babylonjs/core/Meshes/meshBuilder" :refer [MeshBuilder]]
+    ["@babylonjs/core/Meshes/transformNode" :refer [TransformNode]]
     ["@babylonjs/core/Misc/tools" :refer [Tools]]
     ["@babylonjs/core/Physics/physicsRaycastResult" :refer [PhysicsRaycastResult]]
     ["@babylonjs/core/Physics/v2/IPhysicsEnginePlugin" :refer [PhysicsMotionType PhysicsShapeType]]
     ["@babylonjs/core/Physics/v2/physicsAggregate" :refer [PhysicsAggregate]]
     ["@babylonjs/core/scene" :refer [Scene]]
-    ["@babylonjs/gui/2D" :refer [AdvancedDynamicTexture]]
-    ["@babylonjs/gui/2D/controls" :refer [Button Image]]
+    ["@babylonjs/gui/2D" :refer [AdvancedDynamicTexture Control TextWrapping]]
+    ["@babylonjs/gui/2D/controls" :refer [Button Image Rectangle TextBlock]]
     ["@babylonjs/inspector"]
     ["@babylonjs/materials/grid/gridMaterial" :refer [GridMaterial]]
     ["earcut" :as earcut]
@@ -51,6 +53,9 @@
 (def easing-ease-in :EASINGMODE_EASEIN)
 (def easing-ease-out :EASINGMODE_EASEOUT)
 (def easing-ease-in-out :EASINGMODE_EASEINOUT)
+
+(def gui-horizontal-align-left :HORIZONTAL_ALIGNMENT_LEFT)
+(def gui-text-wrapping-word-wrap :WordWrap)
 
 (defn create-engine [canvas]
   (let [e (Engine. canvas true #js {:preserveDrawingBuffer true
@@ -176,6 +181,12 @@
     (add-node-to-db name c opts)
     (cond-> c
       visibility (j/assoc! :visibility visibility))))
+
+(defn plane [name & {:keys [size width height] :as opts}]
+  (let [p (j/call MeshBuilder :CreatePlane name #js {:size size
+                                                     :width width
+                                                     :height height})]
+    (add-node-to-db name p opts)))
 
 (defn text [name & {:keys [text
                            size
@@ -443,8 +454,8 @@
 (defn gui-button [name text]
   (j/call Button :CreateSimpleButton name text))
 
-(defn add-control [texture control]
-  (j/call texture :addControl control))
+(defn add-control [container control]
+  (j/call container :addControl control))
 
 (defn import-mesh [file f]
   (j/call SceneLoader :ImportMesh "" "models/" file (j/get db :scene) f))
@@ -527,3 +538,89 @@
 
 (defn detach-control [camera]
   (j/call camera :detachControl))
+
+(defn dynamic-texture [name & {:keys [resolution
+                                      width
+                                      height
+                                      alpha?
+                                      generate-mipmaps?]
+                               :or {resolution 1024
+                                    generate-mipmaps? true}}]
+  (let [[width height] (if resolution
+                         [resolution (/ resolution 2)]
+                         [width height])
+        texture (DynamicTexture. name #js {:width width
+                                           :height height
+                                           :generateMipMaps generate-mipmaps?})]
+    (m/cond-doto texture
+      (some? alpha?) (j/assoc! :hasAlpha alpha?))))
+
+(defn gui-rectangle [name & {:keys [corner-radius
+                                    background
+                                    height]
+                             :as opts}]
+  (let [rect (Rectangle. name)]
+    (add-node-to-db name rect opts)
+    (m/cond-doto rect
+      height (j/assoc! :height height)
+      corner-radius (j/assoc! :cornerRadius corner-radius)
+      background (j/assoc! :background background))))
+
+(defn gui-create-for-mesh [mesh & {:keys [width height]}]
+  (j/call AdvancedDynamicTexture :CreateForMesh mesh width height))
+
+(defn gui-text-block [name & {:keys [text
+                                     font-size-in-pixels
+                                     text-wrapping
+                                     text-horizontal-alignment
+                                     padding-left
+                                     font-size
+                                     color
+                                     font-weight]
+                              :as opts}]
+  (let [text-block (TextBlock. name text)]
+    (add-node-to-db name text-block opts)
+    (m/cond-doto text-block
+      font-size-in-pixels (j/assoc! :fontSizeInPixels font-size-in-pixels)
+      text-wrapping (j/assoc! :textWrapping (j/get TextWrapping text-wrapping))
+      text-horizontal-alignment (j/assoc! :textHorizontalAlignment (j/get Control text-horizontal-alignment))
+      padding-left (j/assoc! :paddingLeft padding-left)
+      font-size (j/assoc! :fontSize font-size)
+      color (j/assoc! :color color)
+      font-weight (j/assoc! :fontWeight font-weight))))
+
+(defn scaling
+  ([m n]
+   (scaling m n n n))
+  ([m x y z]
+   (j/assoc! m :scaling (v3 x y z))))
+
+(defn transform-node [name]
+  (let [tn (TransformNode. name)]
+    (add-node-to-db name tn {:type :transform-node})
+    tn))
+
+(comment
+  (do
+    (dispose "billboard-group")
+    (let [comp-name "billboard"
+          plane (plane (str comp-name "-plane") :width 1.2 :height 1)
+          _ (scaling plane 2)
+          resolution-scale 5
+          gui (gui-create-for-mesh plane :width (* resolution-scale 1024) :height (* resolution-scale 1024))
+          text (gui-text-block (str comp-name "-text-block")
+                               :text "❖ Ready-Made Templates\n\n❖ High-Performance Render\n\n❖ User-Friendly UI/UX"
+                               :font-size-in-pixels (* 50 resolution-scale)
+                               :text-wrapping gui-text-wrapping-word-wrap
+                               :text-horizontal-alignment gui-horizontal-align-left
+                               :padding-left (* 50 resolution-scale)
+                               :font-size 300
+                               :color "white"
+                               :font-weight "bold")
+          rect (gui-rectangle (str comp-name "-rect")
+                              :corner-radius 500
+                              :height "2500px"
+                              :background "rgba(128, 128, 128, 0.3)")]
+      (add-control gui rect)
+      (add-control rect text)
+      )))
