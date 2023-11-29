@@ -238,6 +238,7 @@
       (rest slides-vec))))
 
 (comment
+
   (let [command-ch (a/chan)]
     (api/dispose-all (concat (api/get-objects-by-type "box") (api/get-objects-by-type "billboard")))
     (reset-camera)
@@ -332,7 +333,8 @@
                                 :to 30
                                 :delay 1500)))
 
-(defn when-scene-ready [])
+(defn when-scene-ready []
+  (api/scene-clear-color api/color-white))
 
 (defn start-scene [canvas]
   (let [engine (api/create-engine canvas)

@@ -59,6 +59,8 @@
 
 (def mesh-billboard-mode-all :BILLBOARDMODE_ALL)
 
+(def color-white (j/call Color3 :White))
+
 (defn create-engine [canvas]
   (let [e (Engine. canvas true #js {:preserveDrawingBuffer true
                                     :stencil true})]
@@ -616,3 +618,6 @@
       font-size (j/assoc! :fontSize font-size)
       color (j/assoc! :color color)
       font-weight (j/assoc! :fontWeight font-weight))))
+
+(defn scene-clear-color [color]
+  (j/assoc-in! db [:scene :clearColor] color))
