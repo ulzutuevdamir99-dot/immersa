@@ -55,6 +55,9 @@
 (def easing-ease-in-out :EASINGMODE_EASEINOUT)
 
 (def gui-horizontal-align-left :HORIZONTAL_ALIGNMENT_LEFT)
+(def gui-horizontal-align-center :HORIZONTAL_ALIGNMENT_CENTER)
+(def gui-vertical-align-center :VERTICAL_ALIGNMENT_CENTER)
+
 (def gui-text-wrapping-word-wrap :WordWrap)
 
 (def mesh-billboard-mode-all :BILLBOARDMODE_ALL)
@@ -63,7 +66,8 @@
 
 (defn create-engine [canvas]
   (let [e (Engine. canvas true #js {:preserveDrawingBuffer true
-                                    :stencil true})]
+                                    :stencil true
+                                    :adaptToDeviceRatio true})]
     (j/assoc! db :engine e :canvas canvas)
     e))
 
@@ -340,23 +344,27 @@
 
 (defn create-sky-box []
   (let [skybox (box "skyBox"
-                    :size 5000.0
+                    :size 1000.0
                     :skybox? true
                     :infinite-distance? false)
         mat (standard-mat "skyBox"
                           :back-face-culling? false
-                          :reflection-texture (CubeTexture. "" nil nil nil #js ["img/skybox/px.jpeg"
-                                                                                "img/skybox/py.jpeg"
-                                                                                "img/skybox/pz.jpeg"
-                                                                                "img/skybox/nx.jpeg"
-                                                                                "img/skybox/ny.jpeg"
-                                                                                "img/skybox/nz.jpeg"])
+                          :reflection-texture (CubeTexture. "" nil nil nil #js ["img/skybox/space2/px.png"
+                                                                                "img/skybox/space2/py.png"
+                                                                                "img/skybox/space2/pz.png"
+                                                                                "img/skybox/space2/nx.png"
+                                                                                "img/skybox/space2/ny.png"
+                                                                                "img/skybox/space2/nz.png"])
                           :coordinates-mode :SKYBOX_MODE
                           :diffuse-color (color 0 0 0)
                           :specular-color (color 0 0 0)
                           :disable-lighting? true)]
     (j/assoc! skybox :material mat)
     skybox))
+
+(comment
+  (dispose "skyBox")
+  (create-sky-box))
 
 (defn texture [path & {:keys [u-scale v-scale]
                        :as opts}]
@@ -615,6 +623,7 @@
                                      font-size-in-pixels
                                      text-wrapping
                                      text-horizontal-alignment
+                                     text-vertical-alignment
                                      padding-left
                                      font-size
                                      color
@@ -626,6 +635,7 @@
       font-size-in-pixels (j/assoc! :fontSizeInPixels font-size-in-pixels)
       text-wrapping (j/assoc! :textWrapping (j/get TextWrapping text-wrapping))
       text-horizontal-alignment (j/assoc! :textHorizontalAlignment (j/get Control text-horizontal-alignment))
+      text-vertical-alignment (j/assoc! :textVerticalAlignment (j/get Control text-vertical-alignment))
       padding-left (j/assoc! :paddingLeft padding-left)
       font-size (j/assoc! :fontSize font-size)
       color (j/assoc! :color color)

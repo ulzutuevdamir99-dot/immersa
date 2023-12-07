@@ -190,10 +190,12 @@
                                :position (v3 2 0 0)
                                :rotation (v3 0 2.4 0)
                                :visibility 0.5}}}
+
                 {:data {"box" {:type :box
                                :position (v3 0 2 0)
                                :rotation (v3 1.2 2.3 4.1)
                                :visibility 1}}}
+
                 {:data {:camera {:focus "box"
                                  :type :left}
                         "billboard-1" {:type :billboard
@@ -203,6 +205,7 @@
                                        :font-weight "bold"
                                        :visibility 1}
                         "box" {}}}
+
                 {:data {:camera {:focus "box"
                                  :type :right}
                         "billboard-2" {:type :billboard
@@ -211,9 +214,11 @@
                                        :scale 2
                                        :font-weight "bold"}
                         "box" {}}}
+
                 {:data {:camera {:position (v3 0 0 -10)
                                  :rotation (v3 0 0 0)}
                         "box" {}}}
+
                 {:data {:camera {:position (v3 0 0 50)}}}]
         slides-vec (vec (map-indexed #(assoc %2 :index %1) slides))
         props-to-copy [:type :position :rotation :visibility]
@@ -239,7 +244,18 @@
 
 (comment
 
-  (let [command-ch (a/chan)]
+  (do
+    (api/dispose "immersa-text")
+    (api/gui-text-block "immersa-text"
+                       :text "Immersa - 3D Immersive Experience"
+                       :font-size-in-pixels (* 60 5)
+                       :text-horizontal-alignment api/gui-horizontal-align-center
+                       :text-vertical-alignment api/gui-vertical-align-center
+                       ;:color color
+                       ;:font-weight font-weight
+                       ))
+
+  (let [command-ch (a/chan (a/dropping-buffer 1))]
     (api/dispose-all (concat (api/get-objects-by-type "box") (api/get-objects-by-type "billboard")))
     (reset-camera)
     (api/detach-control (api/active-camera))
@@ -298,9 +314,9 @@
                                                (let [animations (mapv second animations)
                                                      max-fps (apply max (map (j/get :framePerSecond) animations))]
                                                  (assoc acc name {:target (api/get-object-by-name name)
-                                                                 :animations animations
-                                                                 :from 0
-                                                                 :to max-fps})))
+                                                                  :animations animations
+                                                                  :from 0
+                                                                  :to max-fps})))
                                              {}
                                              (group-by first animations)))
                          channels (mapv #(api/begin-direct-animation %) animations-data)]
