@@ -140,6 +140,16 @@
                  :loop-mode api/animation-loop-cons
                  :easing (api/cubic-ease api/easing-ease-in-out)))
 
+(defn- create-alpha-animation [start end duration]
+  (api/animation "alpha-animation"
+                 :target-prop "alpha"
+                 :duration duration
+                 :from start
+                 :to end
+                 :data-type :ANIMATIONTYPE_FLOAT
+                 :loop-mode api/animation-loop-cons
+                 :easing (api/cubic-ease api/easing-ease-in-out)))
+
 (defn- get-position-anim [object-slide-info object-name]
   (let [object (api/get-object-by-name object-name)
         start-pos (j/get object :position)
@@ -168,6 +178,12 @@
     (when (and last-visibility (not= init-visibility last-visibility))
       [object-name (create-visibility-animation init-visibility last-visibility 1)])))
 
+(defn- get-alpha-anim [object-slide-info object-name]
+  (let [last-alpha (:alpha object-slide-info)
+        init-alpha (j/get (api/get-object-by-name object-name) :alpha)]
+    (when (and last-alpha (not= init-alpha last-alpha))
+      [object-name (create-alpha-animation init-alpha last-alpha 1)])))
+
 (defn- get-animations-from-slide-info [acc object-slide-info object-name]
   (reduce
     (fn [acc anim-type]
@@ -175,6 +191,7 @@
                                               :position (get-position-anim object-slide-info object-name)
                                               :rotation (get-rotation-anim object-slide-info object-name)
                                               :visibility (get-visibility-anim object-slide-info object-name)
+                                              :alpha (get-alpha-anim object-slide-info object-name)
                                               :focus (create-focus-camera-anim object-slide-info))]
         (cond-> acc
                 (and (not= anim-type :focus) anim-vec)
@@ -183,10 +200,38 @@
                 (and (= anim-type :focus) anim-vec)
                 (conj [object-name (first anim)] [object-name (second anim)]))))
     acc
-    [:position :rotation :visibility :focus]))
+    [:position :rotation :visibility :alpha :focus]))
 
 (defn get-slides []
-  (let [slides [{:data {"box" {:type :box
+  (let [slides [{:data {"immersa-text" {:type :text
+                                        :text "IMMERSA"
+                                        :font-size 72
+                                        :font-family "Bellefair,serif"
+                                        :line-spacing "10px"
+                                        :alpha 0
+                                        :color "white"
+                                        :text-horizontal-alignment api/gui-horizontal-align-center
+                                        :text-vertical-alignment api/gui-vertical-align-center}}}
+                {:data {"immersa-text" {:type :text
+                                        :alpha 1}
+                        "immersa-text-2" {:type :text
+                                          :text "A 3D Presentation Tool for the Web"
+                                          :font-size 72
+                                          :font-family "Bellefair,serif"
+                                          :line-spacing "10px"
+                                          :alpha 0
+                                          :color "white"
+                                          :text-horizontal-alignment api/gui-horizontal-align-center
+                                          :text-vertical-alignment api/gui-vertical-align-center
+                                          :padding-top "70%"}}}
+                {:data {:camera {:focus "earth2"
+                                 :type :center}
+                        "earth2" {:position (v3 0 2 0)}
+                        "immersa-text" {:type :text
+                                        :alpha 0}
+                        "immersa-text-2" {:type :text
+                                          :alpha 1}}}
+                {:data {"box" {:type :box
                                :position (v3 2 0 0)
                                :rotation (v3 0 2.4 0)
                                :visibility 0.5}}}
@@ -243,20 +288,11 @@
       (rest slides-vec))))
 
 (comment
-
-  (do
-    (api/dispose "immersa-text")
-    (api/gui-text-block "immersa-text"
-                        :text "Immersa - 3D Immersive Experience"
-                        :font-size-in-pixels (* 60 5)
-                        :text-horizontal-alignment api/gui-horizontal-align-center
-                        :text-vertical-alignment api/gui-vertical-align-center
-                        ;:color color
-                        ;:font-weight font-weight
-                        ))
-
   (let [command-ch (a/chan (a/dropping-buffer 1))]
-    (api/dispose-all (concat (api/get-objects-by-type "box") (api/get-objects-by-type "billboard")))
+    (a/put! command-ch :next)
+    (api/dispose-all (concat (api/get-objects-by-type "box")
+                             (api/get-objects-by-type "billboard")
+                             (api/get-objects-by-type "text")))
     (reset-camera)
     (api/detach-control (api/active-camera))
     (common.utils/remove-element-listeners)
@@ -299,7 +335,10 @@
                                    params (dissoc params :type)]
                                (case type
                                  :box (create-box name params)
-                                 :text (api/text name params)
+                                 :text3D (api/text name params)
+                                 :text (api/add-control
+                                         (api/get-advanced-texture)
+                                         (api/gui-text-block name params))
                                  :billboard (billboard name params)
                                  nil)))
                          animations (reduce
@@ -326,21 +365,29 @@
                    (recur index))))))
 
 (defn register-before-render []
-  (let [sky-box (api/get-object-by-name "skyBox")
+  (let [sky-box (api/get-object-by-name "sky-box")
+        earth (api/get-object-by-name "earth2")
+        cloud (api/get-object-by-name "cloud")
         delta (api/get-delta-time)]
-    (j/update-in! sky-box [:rotation :y] #(+ % (* 0.008 delta)))))
+    (j/update-in! sky-box [:rotation :y] #(+ % (* 0.008 delta)))
+    (j/update-in! earth [:rotation :y] #(- % (* 0.05 delta)))
+    (j/update-in! cloud [:rotation :y] #(- % (* 0.07 delta)))
+    ))
 
 (defn when-scene-ready [scene]
   (api/scene-clear-color api/color-white)
-  (j/call scene :registerBeforeRender (fn [] (register-before-render)))
-  (api/advanced-dynamic-texture))
+  (j/assoc-in! (api/get-object-by-name "sky-box") [:rotation :y] js/Math.PI)
+  (api/advanced-dynamic-texture)
+  (j/call scene :registerBeforeRender (fn [] (register-before-render))))
 
 (defn start-scene [canvas]
   (let [engine (api/create-engine canvas)
         scene (api/create-scene engine)
         camera (api/create-free-camera "free-camera" :position (v3 0 0 -10))
         light (api/hemispheric-light "light")
-        light2 (api/directional-light "light2" :position (v3 20) :dir (v3 -1 -1 0))
+        light2 (api/directional-light "light2"
+                                      :position (v3 20)
+                                      :dir (v3 -1 -2 0))
         ground-material (api/grid-mat "grid-mat"
                                       :major-unit-frequency 5
                                       :minor-unit-visibility 0.45
@@ -361,22 +408,43 @@
     (j/call scene :executeWhenReady #(when-scene-ready scene))))
 
 (comment
+  (api/dispose "light2")
   (api/show-debug)
-  (let [_ (api/dispose "earth")
+  (reset-camera)
+  (let [_ (api/dispose "earth" "earth2" "mat2" "cloud" "clouds")
+        gl (api/glow-layer "gl")
+        ;tn (api/transform-node "earth" :position (v3 0 -0.7 -8.5) :rotation (v3 0 0 js/Math.PI))
         mat (api/standard-mat "mat2"
-                              :diffuse-texture (api/texture "img/texture/earth/diffuse.jpeg")
+                              :diffuse-texture (api/texture "img/texture/earth/diffuse2.png")
+                              ;:diffuse-color api/color-black
                               :emissive-texture (api/texture "img/texture/earth/emmisive.jpeg")
                               :specular-texture (api/texture "img/texture/earth/specular.jpeg")
                               :bump-texture (api/texture "img/texture/earth/bump.jpeg"))
+        mat-clouds (api/standard-mat "clouds"
+                                     :opacity-texture (api/texture "img/texture/earth/clouds2.jpg") :get-alpha-from-rgb? true)
         sp (api/sphere "earth2"
                        :mat mat
-                       :position (v3 1 1.5 0)
-                       :rotation (v3 0 0 3.14))
+                       :scale 1.2
+                       :position (v3 0 -0.7 -8.5)
+                       :rotation (v3 0 0 js/Math.PI))
+        clouds (api/sphere "cloud"
+                           :mat mat-clouds
+                           :scale 1.21
+                           :position (v3 0 -0.7 -8.5)
+                           :rotation (v3 0 0 js/Math.PI))
+        ;_ (j/assoc! clouds :renderingGroupId 1)
+        ;_ (j/assoc! sp :renderingGroupId 2)
         hl (api/highlight-layer "hl2"
-                                :blur-vertical-size 1.5
-                                :blur-horizontal-size 1.5)]
-    (j/call hl :addExcludedMesh (api/get-object-by-name "skyBox"))
-    (j/call hl :addMesh sp (api/color 0.3 0.74 0.94 0.82)))
+                                ;:inner-glow? true
+                                ;:outer-glow? true
+                                :blur-vertical-size 3
+                                :blur-horizontal-size 3)]
+    ;(j/call hl :addExcludedMesh (api/get-object-by-name "sky-box"))
+    ;(j/call gl :addIncludedOnlyMesh sp)
+    (j/call hl :addMesh clouds (api/color 0.3 0.74 0.94 0.82))
+    ;(j/assoc! clouds :parent tn)
+    ;(j/assoc! sp :parent tn)
+    )
 
   (do
     (api/dispose-engine)
@@ -387,8 +455,9 @@
     (api/add-control
       (api/get-advanced-texture)
       (api/gui-text-block "immersa-text"
-                          :text "Immersa"
+                          :text "IMMERSA"
                           :font-size 72
+                          :alpha 0.5
                           ;:font-size-in-pixels (* 60 2)
                           :color "white"
                           :text-horizontal-alignment api/gui-horizontal-align-center

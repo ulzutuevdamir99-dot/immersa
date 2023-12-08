@@ -9,7 +9,8 @@
     ["@babylonjs/core/Cameras/arcRotateCamera" :refer [ArcRotateCamera]]
     ["@babylonjs/core/Cameras/freeCamera" :refer [FreeCamera]]
     ["@babylonjs/core/Debug/debugLayer"]
-    ["@babylonjs/core/Layers/highlightLayer.js" :refer [HighlightLayer]]
+    ["@babylonjs/core/Layers/highlightLayer" :refer [HighlightLayer]]
+    ["@babylonjs/core/Layers/glowLayer" :refer [GlowLayer]]
     ["@babylonjs/core/Engines/engine" :refer [Engine]]
     ["@babylonjs/core/Lights/Shadows/shadowGenerator" :refer [ShadowGenerator]]
     ["@babylonjs/core/Lights/directionalLight" :refer [DirectionalLight]]
@@ -28,6 +29,7 @@
     ["@babylonjs/core/Physics/v2/IPhysicsEnginePlugin" :refer [PhysicsMotionType PhysicsShapeType]]
     ["@babylonjs/core/Physics/v2/physicsAggregate" :refer [PhysicsAggregate]]
     ["@babylonjs/core/scene" :refer [Scene]]
+    ["@babylonjs/core/Meshes/transformNode" :refer [TransformNode]]
     ["@babylonjs/gui/2D" :refer [AdvancedDynamicTexture Control TextWrapping]]
     ["@babylonjs/gui/2D/controls" :refer [Button Image Rectangle TextBlock]]
     ["@babylonjs/inspector"]
@@ -64,6 +66,8 @@
 (def mesh-billboard-mode-all :BILLBOARDMODE_ALL)
 
 (def color-white (j/call Color3 :White))
+(def color-black (j/call Color3 :Black))
+(def color-yellow (j/call Color3 :Yellow))
 
 (defn create-engine [canvas]
   (let [e (Engine. canvas true #js {:preserveDrawingBuffer true
@@ -274,7 +278,7 @@
                           :depth depth}
                      nil
                      earcut)]
-    (add-node-to-db name text (assoc opts :type :text))
+    (add-node-to-db name text (assoc opts :type :text3D))
     (cond-> text
             visibility (j/assoc! :visibility visibility)
             position (j/assoc! :position position))))
@@ -343,25 +347,30 @@
                                    specular-texture
                                    emissive-texture
                                    bump-texture
+                                   opacity-texture
                                    diffuse-color
                                    specular-color
                                    back-face-culling?
                                    reflection-texture
                                    coordinates-mode
                                    disable-lighting?
-                                   emissive-color]}]
+                                   get-alpha-from-rgb?
+                                   emissive-color]
+                            :as opts}]
   (cond-> (StandardMaterial. name)
-          diffuse-texture (j/assoc! :diffuseTexture diffuse-texture)
-          specular-texture (j/assoc! :specularTexture specular-texture)
-          emissive-texture (j/assoc! :emissiveTexture emissive-texture)
-          bump-texture (j/assoc! :bumpTexture bump-texture)
-          specular-color (j/assoc! :specularColor specular-color)
-          (some? back-face-culling?) (j/assoc! :backFaceCulling back-face-culling?)
-          reflection-texture (j/assoc! :reflectionTexture reflection-texture)
-          coordinates-mode (j/assoc-in! [:reflectionTexture :coordinatesMode] (j/get Texture coordinates-mode))
-          (some? disable-lighting?) (j/assoc! :disableLighting disable-lighting?)
-          diffuse-color (j/assoc! :diffuseColor diffuse-color)
-          emissive-color (j/assoc! :emissiveColor emissive-color)))
+            diffuse-texture (j/assoc! :diffuseTexture diffuse-texture)
+            specular-texture (j/assoc! :specularTexture specular-texture)
+            emissive-texture (j/assoc! :emissiveTexture emissive-texture)
+            bump-texture (j/assoc! :bumpTexture bump-texture)
+            opacity-texture (j/assoc! :opacityTexture opacity-texture)
+            get-alpha-from-rgb? (j/assoc-in! [:opacityTexture :getAlphaFromRGB] get-alpha-from-rgb?)
+            specular-color (j/assoc! :specularColor specular-color)
+            (some? back-face-culling?) (j/assoc! :backFaceCulling back-face-culling?)
+            reflection-texture (j/assoc! :reflectionTexture reflection-texture)
+            coordinates-mode (j/assoc-in! [:reflectionTexture :coordinatesMode] (j/get Texture coordinates-mode))
+            (some? disable-lighting?) (j/assoc! :disableLighting disable-lighting?)
+            diffuse-color (j/assoc! :diffuseColor diffuse-color)
+            emissive-color (j/assoc! :emissiveColor emissive-color)))
 
 (defn grid-mat [name & {:keys [major-unit-frequency
                                minor-unit-visibility
@@ -381,11 +390,11 @@
                opacity (j/assoc! :opacity opacity)))
 
 (defn create-sky-box []
-  (let [skybox (box "skyBox"
+  (let [skybox (box "sky-box"
                     :size 1000.0
                     :skybox? true
                     :infinite-distance? false)
-        mat (standard-mat "skyBox"
+        mat (standard-mat "sky-box-mat"
                           :back-face-culling? false
                           :reflection-texture (CubeTexture. "" nil nil nil #js ["img/skybox/space2/px.png"
                                                                                 "img/skybox/space2/py.png"
@@ -450,9 +459,10 @@
 (defn add-shadow-caster [shadow-generator mesh]
   (j/call shadow-generator :addShadowCaster mesh))
 
-(defn create-free-camera [name & {:keys [position speed]
+(defn create-free-camera [name & {:keys [position speed min-z]
                                   :or {position (v3 0 2 -10)
-                                       speed 0.5}
+                                       speed 0.5
+                                       min-z 0.1}
                                   :as opts}]
   (let [camera (FreeCamera. name position)
         init-rotation (clone (j/get camera :rotation))
@@ -469,6 +479,7 @@
     (j/assoc! camera
               :speed speed
               :type :free
+              :minZ min-z
               :init-rotation init-rotation
               :init-position init-position)
     camera))
@@ -482,7 +493,9 @@
                                         apply-gravity?
                                         collision-radius
                                         lower-radius-limit
-                                        upper-radius-limit]
+                                        upper-radius-limit
+                                        min-z]
+                                 :or {min-z 0.1}
                                  :as opts}]
   (let [camera (ArcRotateCamera. name 0 0 0 (v3))
         init-rotation (clone (j/get camera :rotation))
@@ -504,6 +517,7 @@
               :upperRadiusLimit upper-radius-limit
               :init-rotation init-rotation
               :init-position init-position
+              :minZ min-z
               :type :arc)
     camera))
 
@@ -659,6 +673,8 @@
   (j/call AdvancedDynamicTexture :CreateForMesh mesh width height))
 
 (defn gui-text-block [name & {:keys [text
+                                     alpha
+                                     font-family
                                      font-size-in-pixels
                                      text-wrapping
                                      text-horizontal-alignment
@@ -668,16 +684,20 @@
                                      padding-right
                                      padding-left
                                      font-size
+                                     line-spacing
                                      color
                                      font-weight]
                               :as opts}]
   (let [text-block (TextBlock. name text)]
-    (add-node-to-db name text-block opts)
+    (add-node-to-db name text-block (assoc opts :type :text))
     (m/cond-doto text-block
                  font-size-in-pixels (j/assoc! :fontSizeInPixels font-size-in-pixels)
                  text-wrapping (j/assoc! :textWrapping (j/get TextWrapping text-wrapping))
                  text-horizontal-alignment (j/assoc! :textHorizontalAlignment (j/get Control text-horizontal-alignment))
                  text-vertical-alignment (j/assoc! :textVerticalAlignment (j/get Control text-vertical-alignment))
+                 alpha (j/assoc! :alpha alpha)
+                 font-family (j/assoc! :fontFamily font-family)
+                 line-spacing (j/assoc! :lineSpacing line-spacing)
                  padding-top (j/assoc! :paddingTop padding-top)
                  padding-bottom (j/assoc! :paddingBottom padding-bottom)
                  padding-right (j/assoc! :paddingRight padding-right)
@@ -690,7 +710,34 @@
   (j/assoc-in! db [:scene :clearColor] color))
 
 (defn highlight-layer [name & {:keys [blur-horizontal-size
-                                      blur-vertical-size]}]
+                                      blur-vertical-size
+                                      inner-glow?
+                                      outer-glow?]}]
   (m/cond-doto (HighlightLayer. name)
                blur-horizontal-size (j/assoc! :blurHorizontalSize blur-horizontal-size)
-                blur-vertical-size (j/assoc! :blurVerticalSize blur-vertical-size)))
+               blur-vertical-size (j/assoc! :blurVerticalSize blur-vertical-size)
+               inner-glow? (j/assoc! :innerGlow inner-glow?)
+               outer-glow? (j/assoc! :outerGlow outer-glow?)))
+
+(defn glow-layer [name & {:keys [main-texture-samples
+                                 main-texture-fixed-size
+                                 blur-kernel-size
+                                 intensity]
+                          :or {main-texture-samples 1
+                               blur-kernel-size 32}}]
+  (let [gl (GlowLayer. name (j/get db :scene) #js {:mainTextureSamples main-texture-samples
+                                                   :mainTextureFixedSize main-texture-fixed-size
+                                                   :blurKernelSize blur-kernel-size})]
+    (m/cond-doto gl
+                 intensity (j/assoc! :intensity intensity))))
+
+(defn transform-node [name & {:keys [position
+                                     rotation
+                                     scale]
+                              :as opts}]
+  (let [tn (TransformNode. name)]
+    (add-node-to-db name tn opts)
+    (m/cond-doto tn
+                 position (j/assoc! :position position)
+                 rotation (j/assoc! :rotation rotation)
+                 scaling (scaling scale))))
