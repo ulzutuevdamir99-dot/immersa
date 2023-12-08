@@ -23,9 +23,9 @@
         mat (api/standard-mat "mat" :diffuse-texture texture)]
     (api/box name
              (assoc params
-                    :face-uv face-uv
-                    :wrap? true
-                    :mat mat))))
+               :face-uv face-uv
+               :wrap? true
+               :mat mat))))
 
 (defn billboard [name & {:keys [text
                                 position
@@ -177,11 +177,11 @@
                                               :visibility (get-visibility-anim object-slide-info object-name)
                                               :focus (create-focus-camera-anim object-slide-info))]
         (cond-> acc
-          (and (not= anim-type :focus) anim-vec)
-          (conj anim-vec)
+                (and (not= anim-type :focus) anim-vec)
+                (conj anim-vec)
 
-          (and (= anim-type :focus) anim-vec)
-          (conj [object-name (first anim)] [object-name (second anim)]))))
+                (and (= anim-type :focus) anim-vec)
+                (conj [object-name (first anim)] [object-name (second anim)]))))
     acc
     [:position :rotation :visibility :focus]))
 
@@ -224,21 +224,21 @@
         props-to-copy [:type :position :rotation :visibility]
         clone-if-exists (fn [data]
                           (cond-> data
-                            (:position data) (assoc :position (api/clone (:position data)))
-                            (:rotation data) (assoc :rotation (api/clone (:rotation data)))))]
+                                  (:position data) (assoc :position (api/clone (:position data)))
+                                  (:rotation data) (assoc :rotation (api/clone (:rotation data)))))]
     (reduce
       (fn [slides-vec slide]
         (let [prev-slide-data (get-in slides-vec [(dec (:index slide)) :data])
               slide-data (:data slide)]
           (conj slides-vec
                 (assoc slide :data
-                       (reduce-kv
-                         (fn [acc name objet-slide-data]
-                           (if-let [prev-slide-data (get prev-slide-data name)]
-                             (assoc acc name (merge (clone-if-exists (select-keys prev-slide-data props-to-copy)) objet-slide-data))
-                             (assoc acc name objet-slide-data)))
-                         {}
-                         slide-data)))))
+                             (reduce-kv
+                               (fn [acc name objet-slide-data]
+                                 (if-let [prev-slide-data (get prev-slide-data name)]
+                                   (assoc acc name (merge (clone-if-exists (select-keys prev-slide-data props-to-copy)) objet-slide-data))
+                                   (assoc acc name objet-slide-data)))
+                               {}
+                               slide-data)))))
       [(first slides-vec)]
       (rest slides-vec))))
 
@@ -247,13 +247,13 @@
   (do
     (api/dispose "immersa-text")
     (api/gui-text-block "immersa-text"
-                       :text "Immersa - 3D Immersive Experience"
-                       :font-size-in-pixels (* 60 5)
-                       :text-horizontal-alignment api/gui-horizontal-align-center
-                       :text-vertical-alignment api/gui-vertical-align-center
-                       ;:color color
-                       ;:font-weight font-weight
-                       ))
+                        :text "Immersa - 3D Immersive Experience"
+                        :font-size-in-pixels (* 60 5)
+                        :text-horizontal-alignment api/gui-horizontal-align-center
+                        :text-vertical-alignment api/gui-vertical-align-center
+                        ;:color color
+                        ;:font-weight font-weight
+                        ))
 
   (let [command-ch (a/chan (a/dropping-buffer 1))]
     (api/dispose-all (concat (api/get-objects-by-type "box") (api/get-objects-by-type "billboard")))
@@ -325,14 +325,22 @@
                      (recur next-index))
                    (recur index))))))
 
-(defn when-scene-ready []
-  (api/scene-clear-color api/color-white))
+(defn register-before-render []
+  (let [sky-box (api/get-object-by-name "skyBox")
+        delta (api/get-delta-time)]
+    (j/update-in! sky-box [:rotation :y] #(+ % (* 0.008 delta)))))
+
+(defn when-scene-ready [scene]
+  (api/scene-clear-color api/color-white)
+  (j/call scene :registerBeforeRender (fn [] (register-before-render)))
+  (api/advanced-dynamic-texture))
 
 (defn start-scene [canvas]
   (let [engine (api/create-engine canvas)
         scene (api/create-scene engine)
         camera (api/create-free-camera "free-camera" :position (v3 0 0 -10))
         light (api/hemispheric-light "light")
+        light2 (api/directional-light "light2" :position (v3 20) :dir (v3 -1 -1 0))
         ground-material (api/grid-mat "grid-mat"
                                       :major-unit-frequency 5
                                       :minor-unit-visibility 0.45
@@ -350,4 +358,49 @@
     (j/call camera :setTarget (v3))
     (j/call camera :attachControl canvas false)
     (j/call engine :runRenderLoop #(j/call scene :render))
-    (j/call scene :executeWhenReady when-scene-ready)))
+    (j/call scene :executeWhenReady #(when-scene-ready scene))))
+
+(comment
+  (api/show-debug)
+  (let [_ (api/dispose "earth")
+        mat (api/standard-mat "mat2"
+                              :diffuse-texture (api/texture "img/texture/earth/diffuse.jpeg")
+                              :emissive-texture (api/texture "img/texture/earth/emmisive.jpeg")
+                              :specular-texture (api/texture "img/texture/earth/specular.jpeg")
+                              :bump-texture (api/texture "img/texture/earth/bump.jpeg"))
+        sp (api/sphere "earth2"
+                       :mat mat
+                       :position (v3 1 1.5 0)
+                       :rotation (v3 0 0 3.14))
+        hl (api/highlight-layer "hl2"
+                                :blur-vertical-size 1.5
+                                :blur-horizontal-size 1.5)]
+    (j/call hl :addExcludedMesh (api/get-object-by-name "skyBox"))
+    (j/call hl :addMesh sp (api/color 0.3 0.74 0.94 0.82)))
+
+  (do
+    (api/dispose-engine)
+    (start-scene (js/document.getElementById "renderCanvas")))
+
+  (do
+    (api/dispose "immersa-text" "immersa-text-2")
+    (api/add-control
+      (api/get-advanced-texture)
+      (api/gui-text-block "immersa-text"
+                          :text "Immersa"
+                          :font-size 72
+                          ;:font-size-in-pixels (* 60 2)
+                          :color "white"
+                          :text-horizontal-alignment api/gui-horizontal-align-center
+                          :text-vertical-alignment api/gui-vertical-align-center))
+    (api/add-control
+      (api/get-advanced-texture)
+      (api/gui-text-block "immersa-text-2"
+                          :text "A 3D Presentation Tool"
+                          :font-size 72
+                          :padding-top 200
+                          ;:font-size-in-pixels (* 60 2)
+                          :color "white"
+                          :text-horizontal-alignment api/gui-horizontal-align-center
+                          :text-vertical-alignment api/gui-vertical-align-center)))
+  )
