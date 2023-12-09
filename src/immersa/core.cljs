@@ -1,5 +1,6 @@
 (ns immersa.core
   (:require
+    [breaking-point.core :as bp]
     [immersa.common.utils :as common.utils]
     [immersa.config :as config]
     [immersa.events :as events]
@@ -24,5 +25,9 @@
 
 (defn init []
   (re-frame/dispatch-sync [::events/initialize-db])
+  (re-frame/dispatch-sync [::bp/set-breakpoints {:breakpoints [:mobile 768
+                                                               :tablet 992
+                                                               :small-monitor 1200
+                                                               :large-monitor]}])
   (dev-setup)
   (mount-root))

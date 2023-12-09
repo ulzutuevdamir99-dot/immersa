@@ -23,9 +23,9 @@
         mat (api/standard-mat "mat" :diffuse-texture texture)]
     (api/box name
              (assoc params
-               :face-uv face-uv
-               :wrap? true
-               :mat mat))))
+                    :face-uv face-uv
+                    :wrap? true
+                    :mat mat))))
 
 (defn billboard [name & {:keys [text
                                 position
@@ -194,11 +194,11 @@
                                               :alpha (get-alpha-anim object-slide-info object-name)
                                               :focus (create-focus-camera-anim object-slide-info))]
         (cond-> acc
-                (and (not= anim-type :focus) anim-vec)
-                (conj anim-vec)
+          (and (not= anim-type :focus) anim-vec)
+          (conj anim-vec)
 
-                (and (= anim-type :focus) anim-vec)
-                (conj [object-name (first anim)] [object-name (second anim)]))))
+          (and (= anim-type :focus) anim-vec)
+          (conj [object-name (first anim)] [object-name (second anim)]))))
     acc
     [:position :rotation :visibility :alpha :focus]))
 
@@ -226,7 +226,8 @@
                                           :padding-top "70%"}}}
                 {:data {:camera {:focus "earth2"
                                  :type :center}
-                        "earth2" {:position (v3 0 2 0)}
+                        ;; "earth2" {:position (v3 0 2 0)}
+                        ;; "cloud" {:position (v3 0 2 0)}
                         "immersa-text" {:type :text
                                         :alpha 0}
                         "immersa-text-2" {:type :text
@@ -234,7 +235,9 @@
                 {:data {"box" {:type :box
                                :position (v3 2 0 0)
                                :rotation (v3 0 2.4 0)
-                               :visibility 0.5}}}
+                               :visibility 0.5}
+                        "immersa-text-2" {:type :text
+                                          :alpha 0}}}
 
                 {:data {"box" {:type :box
                                :position (v3 0 2 0)
@@ -264,26 +267,37 @@
                                  :rotation (v3 0 0 0)}
                         "box" {}}}
 
-                {:data {:camera {:position (v3 0 0 50)}}}]
+                {:data {"immersa-text-3" {:type :text
+                                          :text "✦Enjoy the Immersive Experience✦"
+                                          :font-size 72
+                                          :font-family "Bellefair,serif"
+                                          :line-spacing "10px"
+                                          :alpha 1
+                                          :color "white"
+                                          :text-horizontal-alignment api/gui-horizontal-align-center
+                                          :text-vertical-alignment api/gui-vertical-align-center}}}
+
+                {:data {:camera {:position (v3 0 0 50)}
+                        "immersa-text-3" {:alpha 0}}}]
         slides-vec (vec (map-indexed #(assoc %2 :index %1) slides))
         props-to-copy [:type :position :rotation :visibility]
         clone-if-exists (fn [data]
                           (cond-> data
-                                  (:position data) (assoc :position (api/clone (:position data)))
-                                  (:rotation data) (assoc :rotation (api/clone (:rotation data)))))]
+                            (:position data) (assoc :position (api/clone (:position data)))
+                            (:rotation data) (assoc :rotation (api/clone (:rotation data)))))]
     (reduce
       (fn [slides-vec slide]
         (let [prev-slide-data (get-in slides-vec [(dec (:index slide)) :data])
               slide-data (:data slide)]
           (conj slides-vec
                 (assoc slide :data
-                             (reduce-kv
-                               (fn [acc name objet-slide-data]
-                                 (if-let [prev-slide-data (get prev-slide-data name)]
-                                   (assoc acc name (merge (clone-if-exists (select-keys prev-slide-data props-to-copy)) objet-slide-data))
-                                   (assoc acc name objet-slide-data)))
-                               {}
-                               slide-data)))))
+                       (reduce-kv
+                         (fn [acc name objet-slide-data]
+                           (if-let [prev-slide-data (get prev-slide-data name)]
+                             (assoc acc name (merge (clone-if-exists (select-keys prev-slide-data props-to-copy)) objet-slide-data))
+                             (assoc acc name objet-slide-data)))
+                         {}
+                         slide-data)))))
       [(first slides-vec)]
       (rest slides-vec))))
 
@@ -371,8 +385,7 @@
         delta (api/get-delta-time)]
     (j/update-in! sky-box [:rotation :y] #(+ % (* 0.008 delta)))
     (j/update-in! earth [:rotation :y] #(- % (* 0.05 delta)))
-    (j/update-in! cloud [:rotation :y] #(- % (* 0.07 delta)))
-    ))
+    (j/update-in! cloud [:rotation :y] #(- % (* 0.07 delta)))))
 
 (defn when-scene-ready [scene]
   (api/scene-clear-color api/color-white)

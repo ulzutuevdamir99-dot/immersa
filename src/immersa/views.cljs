@@ -11,7 +11,7 @@
     [immersa.scene.core :as scene.core]
     [immersa.styles :as styles]
     [immersa.subs :as subs]
-    [re-frame.core :as re-frame]
+    [re-frame.core :refer [subscribe]]
     [reagent.core :as r]))
 
 (defn- canvas []
@@ -24,4 +24,16 @@
 
 (defn main-panel []
   [:div (styles/app-container)
-   [canvas]])
+   [:div
+    {:id "content-container"
+     :class (styles/content-container)}
+    [:div
+     {:id "canvas-container"
+      :class (styles/canvas-container @(subscribe [::subs/calculated-canvas-dimensions]))}
+     [canvas]]
+    [:div
+     {:id "progress-bar"
+      :class (styles/progress-bar)}
+     [:div
+      {:id "progress-line"
+       :class (styles/progress-line)}]]]])
