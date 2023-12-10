@@ -1,0 +1,31 @@
+(ns immersa.scene.api.constant
+  (:require
+    ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3 Vector4]]
+    ["@babylonjs/core/Maths/math.color" :refer [Color3]]
+    [applied-science.js-interop :as j]))
+
+(def v3-up (j/call Vector3 :Up))
+(def v3-forward (j/call Vector3 :Forward))
+(def v3-left (j/call Vector3 :Left))
+(def v3-right (j/call Vector3 :Right))
+
+(def animation-type-v3 :ANIMATIONTYPE_VECTOR3)
+(def animation-type-float :ANIMATIONTYPE_FLOAT)
+(def animation-loop-cons :ANIMATIONLOOPMODE_CONSTANT)
+(def animation-loop-cycle :ANIMATIONLOOPMODE_CYCLE)
+
+(def easing-ease-in :EASINGMODE_EASEIN)
+(def easing-ease-out :EASINGMODE_EASEOUT)
+(def easing-ease-in-out :EASINGMODE_EASEINOUT)
+
+(def gui-horizontal-align-left :HORIZONTAL_ALIGNMENT_LEFT)
+(def gui-horizontal-align-center :HORIZONTAL_ALIGNMENT_CENTER)
+(def gui-vertical-align-center :VERTICAL_ALIGNMENT_CENTER)
+
+(def gui-text-wrapping-word-wrap :WordWrap)
+
+(def mesh-billboard-mode-all :BILLBOARDMODE_ALL)
+
+(def color-white (j/call Color3 :White))
+(def color-black (j/call Color3 :Black))
+(def color-yellow (j/call Color3 :Yellow))

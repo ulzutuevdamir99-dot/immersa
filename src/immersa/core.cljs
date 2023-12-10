@@ -4,7 +4,7 @@
     [immersa.common.utils :as common.utils]
     [immersa.config :as config]
     [immersa.events :as events]
-    [immersa.scene.api :as api]
+    [immersa.scene.api.core :as api]
     [immersa.views :as views]
     [re-frame.core :as re-frame]
     [reagent.dom :as rdom]))
