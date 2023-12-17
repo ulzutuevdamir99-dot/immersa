@@ -21,6 +21,7 @@
 (def gui-horizontal-align-left :HORIZONTAL_ALIGNMENT_LEFT)
 (def gui-horizontal-align-center :HORIZONTAL_ALIGNMENT_CENTER)
 (def gui-vertical-align-center :VERTICAL_ALIGNMENT_CENTER)
+(def gui-vertical-align-top :VERTICAL_ALIGNMENT_TOP)
 
 (def gui-text-wrapping-word-wrap :WordWrap)
 

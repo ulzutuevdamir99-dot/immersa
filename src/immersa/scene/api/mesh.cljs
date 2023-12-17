@@ -117,7 +117,8 @@
                            resolution
                            depth
                            visibility
-                           position]
+                           position
+                           mat]
                     :or {size 1
                          resolution 64
                          depth 0.5}
@@ -132,5 +133,6 @@
                      earcut)]
     (api.core/add-node-to-db name text (assoc opts :type :text3D))
     (cond-> text
+      mat (j/assoc! :material mat)
       visibility (j/assoc! :visibility visibility)
       position (j/assoc! :position position))))

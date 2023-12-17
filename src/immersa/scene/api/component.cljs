@@ -90,7 +90,7 @@
                               :wrap? true
                               :mat mat))))
 
-(defn earth [& {:keys [name position]}]
+(defn earth [name & {:keys [position visibility] :as opts}]
   (let [mat (api.material/standard-mat (str name "-mat")
                                        :diffuse-texture (api.core/texture "img/texture/earth/diffuse2.png")
                                        :emissive-texture (api.core/texture "img/texture/earth/emmisive.jpeg")
@@ -99,13 +99,15 @@
         mat-clouds (api.material/standard-mat (str name "-clouds")
                                               :opacity-texture (api.core/texture "img/texture/earth/clouds2.jpg")
                                               :get-alpha-from-rgb? true)
-        tn (api.core/transform-node (str name "-earth-node") :position position)
+        tn (api.core/mesh name :position position)
         sp (api.mesh/sphere (str name "-earth-sphere")
                             :mat mat
+                            :visibility visibility
                             :scale 1.2
                             :rotation (v3 0 0 js/Math.PI))
         clouds (api.mesh/sphere (str name "-cloud-sphere")
                                 :mat mat-clouds
+                                :visibility visibility
                                 :scale 1.21
                                 :rotation (v3 0 0 js/Math.PI))
         ;; TODO it's suggested to use only one highlight layer for a scene
@@ -113,5 +115,6 @@
                                      :blur-vertical-size 3
                                      :blur-horizontal-size 3)]
     (api.core/add-children tn sp clouds)
+    (api.core/add-prop-to-db name :type :earth)
     (j/call hl :addMesh clouds (api.core/color 0.3 0.74 0.94 0.82))
     tn))

@@ -16,6 +16,7 @@
     (j/call :setEasingMode (j/get EasingFunction mode))))
 
 (defn animation [name & {:keys [target-prop
+                                delay
                                 fps
                                 data-type
                                 loop-mode
@@ -30,6 +31,7 @@
                                     {:frame (* duration fps) :value to}]))
         anim (Animation. name target-prop fps (j/get Animation data-type) (j/get Animation loop-mode))]
     (m/cond-doto anim
+      delay (j/assoc! :delay delay)
       easing (j/call :setEasingFunction easing)
       keys (j/call :setKeys (clj->js keys)))))
 
@@ -110,6 +112,7 @@
 
 (defn create-focus-camera-anim [object-slide-info]
   (when-let [object-name (:focus object-slide-info)]
+    (println "A: " (:delay object-slide-info))
     (let [object (api.core/get-object-by-name object-name)
           focus-type (:type object-slide-info)
           _ (j/call object :computeWorldMatrix true)
@@ -123,6 +126,7 @@
           final-position (v3 x y (- z final-radius))
           easing-function (cubic-ease api.const/easing-ease-in-out)
           position-animation (animation "camera-position-anim"
+                                        :delay (:delay object-slide-info)
                                         :fps 60
                                         :target-prop "position"
                                         :from (j/get camera :position)
@@ -131,6 +135,7 @@
                                         :loop-mode api.const/animation-loop-cons
                                         :easing easing-function)
           target-animation (animation "camera-target-anim"
+                                      :delay (:delay object-slide-info)
                                       :fps 60
                                       :target-prop "target"
                                       :from (j/call camera :getTarget)

@@ -12,8 +12,10 @@
     ["@babylonjs/core/Materials/Textures/texture" :refer [Texture]]
     ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3 Vector4]]
     ["@babylonjs/core/Maths/math.color" :refer [Color3]]
+    ["@babylonjs/core/Meshes/mesh" :refer [Mesh]]
     ["@babylonjs/core/Meshes/transformNode" :refer [TransformNode]]
     ["@babylonjs/core/Misc/tools" :refer [Tools]]
+    ["@babylonjs/core/Particles/pointsCloudSystem" :refer [PointsCloudSystem]]
     ["@babylonjs/core/scene" :refer [Scene]]
     ["@babylonjs/inspector"]
     [applied-science.js-interop :as j])
@@ -118,17 +120,19 @@
 (defn dispose-all [objs]
   (apply dispose objs))
 
-(defn- check-name-exists [name]
+(defn- remove-if-exists [name]
   (when-let [obj (j/get-in db [:nodes name :obj])]
     (dispose obj)))
 
 (defn add-node-to-db [name obj opts]
-  (check-name-exists name)
+  (remove-if-exists name)
   (j/assoc-in! db [:nodes name] (clj->js (assoc opts :obj obj :name name)))
   obj)
 
 (defn add-prop-to-db [name prop val]
-  (j/assoc-in! db [:nodes name prop] val))
+  (j/assoc-in! db [:nodes name prop] (if (keyword? val)
+                                       (cljs.core/name val)
+                                       val)))
 
 (defn get-pos [obj]
   (j/call obj :getAbsolutePosition))
@@ -245,7 +249,35 @@
       rotation (j/assoc! :rotation rotation)
       scale (scaling scale))))
 
+(defn mesh [name & {:keys [position
+                           rotation
+                           scale
+                           visibility]
+                    :as opts}]
+  (let [tn (Mesh. name)]
+    (add-node-to-db name tn opts)
+    (m/cond-doto tn
+      position (j/assoc! :position position)
+      visibility (j/assoc! :visibility visibility)
+      rotation (j/assoc! :rotation rotation)
+      scale (scaling scale))))
+
 (defn add-children [parent & children]
   (add-prop-to-db (j/get parent :name) :children children)
   (doseq [c children]
     (j/assoc! c :parent parent)))
+
+(defn point-cloud-system [name & {:keys [point-size
+                                         add-points
+                                         on-build-done
+                                         build-mesh?]
+                                  :or {build-mesh? true}
+                                  :as opts}]
+  (let [pcs (PointsCloudSystem. name point-size)]
+    (add-node-to-db name pcs opts)
+    (m/cond-doto pcs
+      add-points (j/call :addPoints add-points))
+    (when build-mesh?
+      (let [p (j/call pcs :buildMeshAsync)]
+        (when on-build-done
+          (j/call p :then on-build-done))))))

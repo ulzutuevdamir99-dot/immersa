@@ -86,9 +86,16 @@
                                         :alpha 0
                                         :color "white"
                                         :text-horizontal-alignment api.const/gui-horizontal-align-center
-                                        :text-vertical-alignment api.const/gui-vertical-align-center}}}
+                                        :text-vertical-alignment api.const/gui-vertical-align-center}
+                        "world" {:type :earth
+                                 :position (v3 0 -0.7 -9.5)
+                                 :visibility 0}}}
                 {:data {"immersa-text" {:type :text
                                         :alpha 1}
+                        "world" {:type :earth
+                                 :position (v3 0 -0.7 -8.5)}
+                        "world-cloud-sphere" {:visibility 1}
+                        "world-earth-sphere" {:visibility 1}
                         "immersa-text-2" {:type :text
                                           :text "A 3D Presentation Tool for the Web"
                                           :font-size 72
@@ -98,14 +105,29 @@
                                           :color "white"
                                           :text-horizontal-alignment api.const/gui-horizontal-align-center
                                           :text-vertical-alignment api.const/gui-vertical-align-center
-                                          :padding-top "70%"}}}
-                {:data {:camera {:focus "world-earth-sphere"
-                                 :type :center}
+                                          :padding-top "75%"}}}
+                {:data {"immersa-text-dim" {:type :text
+                                            :text "We added a new dimension to your presentations"
+                                            :font-size 72
+                                            :font-family "Bellefair,serif"
+                                            :line-spacing "10px"
+                                            :alpha 0
+                                            :color "white"
+                                            :text-horizontal-alignment api.const/gui-horizontal-align-center
+                                            :text-vertical-alignment api.const/gui-vertical-align-top
+                                            :padding-top "10%"}
                         "immersa-text" {:type :text
                                         :alpha 0}
                         "immersa-text-2" {:type :text
-                                          :alpha 1}}}
-                {:data {"box" {:type :box
+                                          :alpha 1}
+                        "world" {:type :earth
+                                 :position (v3 0 0 -7.5)}}}
+                {:data {:camera {:position (v3 0 2 -10)}
+                        "world" {:type :earth
+                                 :position (v3 0 2 -7.5)}
+                        "immersa-text-dim" {:type :text
+                                            :alpha 1}
+                        "box" {:type :box
                                :position (v3 2 0 0)
                                :rotation (v3 0 2.4 0)
                                :visibility 0.5}
@@ -121,7 +143,7 @@
                                  :type :left}
                         "billboard-1" {:type :billboard
                                        :position (v3 3 2.3 0)
-                                       :text "\n❖ 3D Immersive Experience\n\n❖ Web-Based Accessibility\n\n❖ AI-Powered Features\n\n"
+                                       :text "❖ 3D Immersive Experience\n\n❖ Web-Based Accessibility\n\n❖ AI-Powered Features"
                                        :scale 2
                                        :font-weight "bold"
                                        :visibility 1}
@@ -141,7 +163,7 @@
                         "box" {}}}
 
                 {:data {"immersa-text-3" {:type :text
-                                          :text "✦Enjoy the Immersive Experience✦"
+                                          :text "✦ Enjoy the Immersive Experience ✦"
                                           :font-size 72
                                           :font-family "Bellefair,serif"
                                           :line-spacing "10px"
@@ -179,7 +201,8 @@
     (a/put! command-ch :next)
     (api.core/dispose-all (concat (api.core/get-objects-by-type "box")
                                   (api.core/get-objects-by-type "billboard")
-                                  (api.core/get-objects-by-type "text")))
+                                  (api.core/get-objects-by-type "text")
+                                  (api.core/get-objects-by-type "earth")))
     (api.camera/reset-camera)
     (api.camera/detach-control (api.camera/active-camera))
     (common.utils/remove-element-listeners)
@@ -223,6 +246,7 @@
                                  params (dissoc params :type)]
                              (case type
                                :box (api.component/create-box-with-numbers name params)
+                               :earth (api.component/earth name params)
                                :text3D (api.mesh/text name params)
                                :text (api.gui/add-control
                                        (api.core/get-advanced-texture)
@@ -239,9 +263,11 @@
                                          (reduce-kv
                                            (fn [acc name animations]
                                              (let [animations (mapv second animations)
+                                                   delay (first (keep (j/get :delay) animations))
                                                    max-fps (apply max (map (j/get :framePerSecond) animations))]
                                                (assoc acc name {:target (api.core/get-object-by-name name)
                                                                 :animations animations
+                                                                :delay delay
                                                                 :from 0
                                                                 :to max-fps})))
                                            {}
@@ -255,9 +281,7 @@
 (defn register-before-render []
   (let [delta (api.core/get-delta-time)]
     (some-> (api.core/get-object-by-name "sky-box") (j/update-in! [:rotation :y] #(+ % (* 0.008 delta))))
-    (some-> (api.core/get-object-by-name "world-earth-node") (j/update-in! [:rotation :y] #(- % (* 0.05 delta))))
-    (some-> (api.core/get-object-by-name "earth2") (j/update-in! [:rotation :y] #(- % (* 0.05 delta))))
-    (some-> (api.core/get-object-by-name "cloud") (j/update-in! [:rotation :y] #(- % (* 0.07 delta))))))
+    (some-> (api.core/get-object-by-name "world") (j/update-in! [:rotation :y] #(- % (* 0.05 delta))))))
 
 (defn when-scene-ready [scene]
   (api.core/clear-scene-color api.const/color-white)
@@ -286,6 +310,7 @@
                                        :height 50
                                        :mat ground-material)
         sky-box (api.component/create-sky-box)]
+    (common.utils/register-event-listener js/window "resize" #(j/call engine :resize))
     (j/assoc! light :intensity 0.7)
     (j/call camera :setTarget (v3))
     (j/call camera :attachControl canvas false)
@@ -297,7 +322,11 @@
   (start-scene (js/document.getElementById "renderCanvas")))
 
 (comment
+  (js/console.log api.core/db)
+  (api.core/get-objects-by-type "earth")
+  (api.core/dispose (api.core/get-object-by-name "world"))
+  (j/assoc! (api.core/get-object-by-name "world-cloud-sphere") :visibility 1)
   (api.camera/reset-camera)
-  (api.component/earth :name "world"
+  (api.component/earth "world"
                        :position (v3 0 -0.7 -8.5))
   (restart-engine))

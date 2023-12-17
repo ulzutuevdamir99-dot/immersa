@@ -1,6 +1,7 @@
 (ns immersa.scene.api.material
   (:require
     ["@babylonjs/core/Materials/Textures/texture" :refer [Texture]]
+    ["@babylonjs/core/Materials/shaderMaterial" :refer [ShaderMaterial]]
     ["@babylonjs/core/Materials/standardMaterial" :refer [StandardMaterial]]
     ["@babylonjs/materials/grid/gridMaterial" :refer [GridMaterial]]
     [applied-science.js-interop :as j]
@@ -57,3 +58,14 @@
       main-color (j/assoc! :mainColor main-color)
       line-color (j/assoc! :lineColor line-color)
       opacity (j/assoc! :opacity opacity))))
+
+(defn shader-mat [name & {:keys [fragment
+                                 vertex
+                                 attrs
+                                 uniforms]
+                          :as opts}]
+  (let [sm (ShaderMaterial. name nil #js{:vertex vertex
+                                         :fragment fragment}
+                            (clj->js {:attributes attrs
+                                      :uniforms uniforms}))]
+    (api.core/add-node-to-db name sm opts)))
