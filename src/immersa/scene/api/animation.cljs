@@ -151,11 +151,10 @@
                                       :or {speed-factor 1}}]
   (let [p (a/promise-chan)
         dissolve (atom 0)
-        speed (* 0.01 speed-factor)
         dissolve-fn-name "dissolve-skybox"
         mat (api.core/get-object-by-name "skybox-shader")
         dissolve-fn (fn []
-                      (let [dissolve (swap! dissolve + speed)]
+                      (let [dissolve (swap! dissolve + (* (api.core/get-delta-time) speed-factor))]
                         (if (<= dissolve 1)
                           (j/call mat :setFloat "dissolve" dissolve)
                           (do
