@@ -3,13 +3,16 @@
     [applied-science.js-interop :as j]
     [immersa.common.utils :as common.utils]
     [immersa.scene.api.camera :as api.camera]
+    [immersa.scene.api.component :as api.component]
     [immersa.scene.api.constant :as api.const]
     [immersa.scene.api.core :as api.core :refer [v2 v3 v4]]
     [immersa.scene.api.gui :as api.gui]
     [immersa.scene.api.light :as api.light]
     [immersa.scene.api.material :as api.material]
     [immersa.scene.api.mesh :as api.mesh]
-    [immersa.scene.slide :as slide]))
+    [immersa.scene.slide :as slide])
+  (:require-macros
+    [shadow.resource :as rc]))
 
 (defn register-before-render []
   (let [delta (api.core/get-delta-time)]
@@ -25,7 +28,6 @@
   (j/assoc-in! (api.core/get-object-by-name "sky-box") [:rotation :y] js/Math.PI)
   (api.gui/advanced-dynamic-texture)
   (j/call scene :registerBeforeRender (fn [] (register-before-render)))
-
   (slide/start-slide-show))
 
 (defn start-scene [canvas]
@@ -48,8 +50,7 @@
                                        :width 50
                                        :height 50
                                        :mat ground-material)
-        ;; sky-box (api.component/create-sky-box)
-        ]
+        sky-box (api.component/create-sky-box)]
     (common.utils/register-event-listener js/window "resize" #(j/call engine :resize))
     (j/assoc! light :intensity 0.7)
     (j/call camera :setTarget (v3))
@@ -62,5 +63,11 @@
   (start-scene (js/document.getElementById "renderCanvas")))
 
 (comment
+
+  (j/call (api.core/get-object-by-name "skybox-mat") :setFloat "dissolve" 0.9)
+
+  (j/call (api.camera/active-camera) :attachControl (api.core/canvas) true)
+
+  (api.core/show-debug)
   (api.camera/reset-camera)
   (restart-engine))

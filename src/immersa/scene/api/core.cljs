@@ -8,6 +8,7 @@
     ["@babylonjs/core/Layers/glowLayer" :refer [GlowLayer]]
     ["@babylonjs/core/Layers/highlightLayer" :refer [HighlightLayer]]
     ["@babylonjs/core/Loading/sceneLoader" :refer [SceneLoader]]
+    ["@babylonjs/core/Materials/Textures/cubeTexture" :refer [CubeTexture]]
     ["@babylonjs/core/Materials/Textures/dynamicTexture" :refer [DynamicTexture]]
     ["@babylonjs/core/Materials/Textures/texture" :refer [Texture]]
     ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3 Vector4]]
@@ -17,7 +18,7 @@
     ["@babylonjs/core/Misc/tools" :refer [Tools]]
     ["@babylonjs/core/Particles/pointsCloudSystem" :refer [PointsCloudSystem]]
     ["@babylonjs/core/scene" :refer [Scene]]
-    ;["@babylonjs/inspector"]
+    ["@babylonjs/inspector"]
     [applied-science.js-interop :as j])
   (:require-macros
     [immersa.scene.macros :as m]))
@@ -42,6 +43,9 @@
 
 (defn canvas []
   (j/get db :canvas))
+
+(defn get-scene []
+  (j/get db :scene))
 
 (defn v2
   ([]
@@ -161,12 +165,16 @@
                                              (clj->js (update params :trigger #(j/get ActionManager (name %)))))
                                            callback)))
 
-(defn texture [path & {:keys [u-scale v-scale]
-                       :as opts}]
+(defn texture [path & {:keys [u-scale
+                              v-scale
+                              on-load
+                              on-error]}]
   (let [tex (Texture. path)]
     (m/cond-doto tex
       u-scale (j/assoc! :uScale u-scale)
-      v-scale (j/assoc! :vScale v-scale))))
+      v-scale (j/assoc! :vScale v-scale)
+      on-load (j/call-in [:onLoadObservable :add] on-load)
+      on-error (j/assoc! :onError on-error))))
 
 (defn register-on-before-render [f]
   (j/call-in db [:scene :onBeforeRenderObservable :add] f))
@@ -299,3 +307,17 @@
 
 (defn get-before-render-fns []
   (some-> (j/get db :before-render-fns) (js/Object.values)))
+
+(defn cube-texture [& {:keys [root-url
+                              extensions
+                              no-mipmaps?
+                              files
+                              coordinates-mode
+                              on-load
+                              on-error]
+                       :or {root-url ""}}]
+  (let [cb (CubeTexture. root-url nil extensions no-mipmaps? (clj->js files))]
+    (m/cond-doto cb
+      coordinates-mode (j/assoc! :coordinatesMode (j/get Texture coordinates-mode))
+      on-load (j/call-in [:onLoadObservable :add] on-load)
+      on-error (j/assoc! :onError on-error))))

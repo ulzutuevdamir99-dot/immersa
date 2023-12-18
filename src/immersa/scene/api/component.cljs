@@ -2,6 +2,7 @@
   (:require
     ["@babylonjs/core/Materials/Textures/cubeTexture" :refer [CubeTexture]]
     [applied-science.js-interop :as j]
+    [cljs.core.async :as a]
     [immersa.scene.api.constant :as api.const]
     [immersa.scene.api.core :as api.core :refer [v2 v3 v4]]
     [immersa.scene.api.gui :as api.gui]
@@ -11,23 +12,29 @@
     [immersa.scene.macros :as m]
     [shadow.resource :as rc]))
 
-(defn create-sky-box []
+(defn create-sky-box [& {:keys [skybox1
+                                skybox2
+                                noise
+                                speed-factor]
+                         :or {speed-factor 1
+                              skybox1 "img/skybox/black/black"
+                              skybox2 "img/skybox/space/space"
+                              noise "img/texture/noise/ac.jpg"}}]
   (let [skybox (api.mesh/box "sky-box"
                              :size 1000.0
                              :skybox? true
                              :infinite-distance? false)
-        mat (api.material/standard-mat "sky-box-mat"
-                                       :back-face-culling? false
-                                       :reflection-texture (CubeTexture. "" nil nil nil #js ["img/skybox/space2/px.png"
-                                                                                             "img/skybox/space2/py.png"
-                                                                                             "img/skybox/space2/pz.png"
-                                                                                             "img/skybox/space2/nx.png"
-                                                                                             "img/skybox/space2/ny.png"
-                                                                                             "img/skybox/space2/nz.png"])
-                                       :coordinates-mode :SKYBOX_MODE
-                                       :diffuse-color (api.core/color 0 0 0)
-                                       :specular-color (api.core/color 0 0 0)
-                                       :disable-lighting? true)]
+        mat (api.material/shader-mat
+              "skybox-shader"
+              :vertex (rc/inline "shader/skybox/vertex.glsl")
+              :fragment (rc/inline "shader/skybox/fragment.glsl")
+              :attrs ["position"]
+              :uniforms ["worldViewProjection" "dissolve" "skybox1" "skybox2" "noiseTexture"])]
+    (j/call mat :setTexture "skybox1" (api.core/cube-texture :root-url skybox1))
+    (j/call mat :setTexture "skybox2" (api.core/cube-texture :root-url skybox2))
+    (j/call mat :setTexture "noiseTexture" (api.core/texture noise))
+    (j/call mat :setFloat "dissolve" 0)
+    (j/assoc! mat :cullBackFaces false)
     (j/assoc! skybox :material mat)
     skybox))
 
@@ -155,7 +162,7 @@
                          "u_spd_modifier_1" "u_noise_amp_2" "u_noise_freq_2"
                          "u_spd_modifier_2"])
         pcs (api.core/point-cloud-system
-              (str "-wave-pcs")
+              (str name "-wave-pcs")
               :point-count (* width resolution)
               :on-add-point (fn [particle i]
                               (let [x (- (/ (* (mod i resolution) width) resolution) (/ width 2))

@@ -11,8 +11,6 @@
     [immersa.scene.api.constant :as api.const]
     [immersa.scene.api.core :as api.core :refer [v2 v3 v4]]
     [immersa.scene.api.gui :as api.gui]
-    [immersa.scene.api.light :as api.light]
-    [immersa.scene.api.material :as api.material]
     [immersa.scene.api.mesh :as api.mesh]
     [re-frame.core :refer [dispatch]]))
 
@@ -274,7 +272,9 @@
                                                          :to max-fps})))
                                     {}
                                     (group-by first animations)))
-                channels (mapv #(api.animation/begin-direct-animation %) animations-data)]
+                channels (mapv #(api.animation/begin-direct-animation %) animations-data)
+                _ (when (= next-index 3)
+                    (a/<! (api.animation/create-skybox-dissolve-anim :speed-factor 3)))]
             (doseq [c channels]
               (a/<! c))
             (recur next-index))

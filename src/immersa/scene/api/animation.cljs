@@ -112,7 +112,6 @@
 
 (defn create-focus-camera-anim [object-slide-info]
   (when-let [object-name (:focus object-slide-info)]
-    (println "A: " (:delay object-slide-info))
     (let [object (api.core/get-object-by-name object-name)
           focus-type (:type object-slide-info)
           _ (j/call object :computeWorldMatrix true)
@@ -147,3 +146,20 @@
                                       :loop-mode api.const/animation-loop-cons
                                       :easing easing-function)]
       [:camera [position-animation target-animation]])))
+
+(defn create-skybox-dissolve-anim [& {:keys [speed-factor]
+                                      :or {speed-factor 1}}]
+  (let [p (a/promise-chan)
+        dissolve (atom 0)
+        speed (* 0.01 speed-factor)
+        dissolve-fn-name "dissolve-skybox"
+        mat (api.core/get-object-by-name "skybox-shader")
+        dissolve-fn (fn []
+                      (let [dissolve (swap! dissolve + speed)]
+                        (if (<= dissolve 1)
+                          (j/call mat :setFloat "dissolve" dissolve)
+                          (do
+                            (a/put! p true)
+                            (api.core/remove-before-render-fn dissolve-fn-name)))))]
+    (api.core/register-before-render-fn dissolve-fn-name dissolve-fn)
+    p))

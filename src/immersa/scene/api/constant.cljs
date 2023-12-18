@@ -30,3 +30,5 @@
 (def color-white (j/call Color3 :White))
 (def color-black (j/call Color3 :Black))
 (def color-yellow (j/call Color3 :Yellow))
+
+(def coordinates-mode-skybox :SKYBOX_MODE)
