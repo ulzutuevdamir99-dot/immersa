@@ -63,5 +63,5 @@ void main() {
     pos.y += noise(rotate2d(PI / 4.) * pos.zx * 2.0 - u_time * 0.8 * 0.6) * 0.3;
 
     gl_Position = worldViewProjection * vec4(pos, 1.0);
-    gl_PointSize = 2.0;// Or any other size based on your preference
+    gl_PointSize = u_pointsize;// Or any other size based on your preference
 }

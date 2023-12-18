@@ -1,6 +1,6 @@
 {:nrepl {:port 8777}
 
- :source-paths ["src" "test"]
+ :source-paths ["src" "test" "resources/public"]
 
  :dependencies [[reagent "1.2.0"]
                 [re-frame "1.4.0"]

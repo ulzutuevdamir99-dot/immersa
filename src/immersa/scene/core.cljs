@@ -9,12 +9,15 @@
     [immersa.scene.api.camera :as api.camera]
     [immersa.scene.api.component :as api.component]
     [immersa.scene.api.constant :as api.const]
-    [immersa.scene.api.core :as api.core :refer [v3 v4]]
+    [immersa.scene.api.core :as api.core :refer [v2 v3 v4]]
     [immersa.scene.api.gui :as api.gui]
     [immersa.scene.api.light :as api.light]
     [immersa.scene.api.material :as api.material]
     [immersa.scene.api.mesh :as api.mesh]
-    [re-frame.core :refer [dispatch]]))
+    [re-frame.core :refer [dispatch]])
+  (:require-macros
+    [immersa.scene.macros :as m]
+    [shadow.resource :as rc]))
 
 (defn- get-position-anim [object-slide-info object-name]
   (let [object (api.core/get-object-by-name object-name)
@@ -281,10 +284,12 @@
 (defn register-before-render []
   (let [delta (api.core/get-delta-time)]
     (some-> (api.core/get-object-by-name "sky-box") (j/update-in! [:rotation :y] #(+ % (* 0.008 delta))))
-    (some-> (api.core/get-object-by-name "world") (j/update-in! [:rotation :y] #(- % (* 0.05 delta))))))
+    (some-> (api.core/get-object-by-name "world") (j/update-in! [:rotation :y] #(- % (* 0.05 delta))))
+    (doseq [f (api.core/get-before-render-fns)]
+      (f))))
 
 (defn when-scene-ready [scene]
-  (api.core/clear-scene-color api.const/color-white)
+  ;; (api.core/clear-scene-color api.const/color-white)
   (j/assoc-in! (api.core/get-object-by-name "sky-box") [:rotation :y] js/Math.PI)
   (api.gui/advanced-dynamic-texture)
   (j/call scene :registerBeforeRender (fn [] (register-before-render))))
@@ -322,6 +327,48 @@
   (start-scene (js/document.getElementById "renderCanvas")))
 
 (comment
+  (let [width 50
+        height 50
+        resolution 100
+        mat (api.material/shader-mat
+              "shader"
+              :fragment (rc/inline "shader/wave/fragment.glsl")
+              :vertex (rc/inline "shader/wave/vertex.glsl")
+              :attrs ["position" "normal" "uv"]
+              :uniforms ["world" "worldView" "worldViewProjection" "view" "projection"
+                         "time" "u_pointsize" "u_noise_amp_1" "u_noise_freq_1"
+                         "u_spd_modifier_1" "u_noise_amp_2" "u_noise_freq_2"
+                         "u_spd_modifier_2"])
+        pcs (api.core/point-cloud-system
+              "pcs"
+              :point-count (* width resolution)
+              :on-add-point (fn [particle i]
+                              (let [x (- (/ (* (mod i resolution) width) resolution) (/ width 2))
+                                    z (- (/ (* (Math/floor (/ i resolution)) height) resolution) (/ height 2))]
+                                (j/assoc! particle :position (v3 x 0 z))))
+              :on-build-done (fn [mesh]
+                               (m/assoc! mesh
+                                         :material mat
+                                         :material.pointsCloud true
+                                         :position (v3 0 1.5 0))))
+        start-time (js/Date.now)
+        engine (api.core/get-engine)]
+    (api.core/register-before-render-fn
+      "wave"
+      (fn []
+        (j/call mat :setFloat "u_pointsize" 2.0)
+        (j/call mat :setFloat "u_noise_amp_1" 0.2)
+        (j/call mat :setFloat "u_noise_freq_1" 3.0)
+        (j/call mat :setFloat "u_spd_modifier_1" 1.0)
+        (j/call mat :setFloat "u_noise_amp_2" 0.3)
+        (j/call mat :setFloat "u_noise_freq_2" 2.0)
+        (j/call mat :setFloat "u_spd_modifier_2" 0.8)
+        (j/call mat :setFloat "u_time" (/ (- (js/Date.now) start-time) 1000))
+        (j/call mat :setVector2 "u_resolution" (v2 (j/call engine :getRenderWidth)
+                                                   (j/call engine :getRenderHeight)))
+        ))
+    )
+
   (js/console.log api.core/db)
   (api.core/get-objects-by-type "earth")
   (api.core/dispose (api.core/get-object-by-name "world"))

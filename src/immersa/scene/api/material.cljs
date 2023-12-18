@@ -1,6 +1,7 @@
 (ns immersa.scene.api.material
   (:require
     ["@babylonjs/core/Materials/Textures/texture" :refer [Texture]]
+    ["@babylonjs/core/Materials/effect" :refer [Effect]]
     ["@babylonjs/core/Materials/shaderMaterial" :refer [ShaderMaterial]]
     ["@babylonjs/core/Materials/standardMaterial" :refer [StandardMaterial]]
     ["@babylonjs/materials/grid/gridMaterial" :refer [GridMaterial]]
@@ -64,8 +65,10 @@
                                  attrs
                                  uniforms]
                           :as opts}]
-  (let [sm (ShaderMaterial. name nil #js{:vertex vertex
-                                         :fragment fragment}
+  (j/assoc-in! Effect [:ShadersStore (str name "VertexShader")] vertex)
+  (j/assoc-in! Effect [:ShadersStore (str name "FragmentShader")] fragment)
+  (let [sm (ShaderMaterial. name nil #js{:vertex name
+                                         :fragment name}
                             (clj->js {:attributes attrs
                                       :uniforms uniforms}))]
     (api.core/add-node-to-db name sm opts)))

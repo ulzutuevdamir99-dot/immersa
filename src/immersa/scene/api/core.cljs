@@ -32,6 +32,9 @@
     (j/assoc! js/window :engine e)
     e))
 
+(defn get-engine []
+  (j/get db :engine))
+
 (defn create-scene [engine]
   (let [s (Scene. engine)]
     (j/assoc! db :scene s)
@@ -268,16 +271,25 @@
     (j/assoc! c :parent parent)))
 
 (defn point-cloud-system [name & {:keys [point-size
-                                         add-points
+                                         point-count
+                                         on-add-point
                                          on-build-done
                                          build-mesh?]
-                                  :or {build-mesh? true}
+                                  :or {build-mesh? true
+                                       point-size 1}
                                   :as opts}]
   (let [pcs (PointsCloudSystem. name point-size)]
     (add-node-to-db name pcs opts)
     (m/cond-doto pcs
-      add-points (j/call :addPoints add-points))
+      on-add-point (j/call :addPoints point-count on-add-point))
     (when build-mesh?
       (let [p (j/call pcs :buildMeshAsync)]
         (when on-build-done
-          (j/call p :then on-build-done))))))
+          (j/call p :then on-build-done))))
+    pcs))
+
+(defn register-before-render-fn [name f]
+  (j/assoc-in! db [:before-render-fns name] f))
+
+(defn get-before-render-fns []
+  (some-> (j/get db :before-render-fns) (js/Object.values)))
