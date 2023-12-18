@@ -64,8 +64,6 @@
 
 (comment
 
-  (j/call (api.core/get-object-by-name "skybox-mat") :setFloat "dissolve" 0.9)
-
   (j/call (api.camera/active-camera) :attachControl (api.core/canvas) true)
 
   (api.core/show-debug)

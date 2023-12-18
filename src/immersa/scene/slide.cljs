@@ -274,7 +274,7 @@
                                     (group-by first animations)))
                 channels (mapv #(api.animation/begin-direct-animation %) animations-data)
                 _ (when (= next-index 3)
-                    (a/<! (api.animation/create-skybox-dissolve-anim :speed-factor 3)))]
+                    (a/<! (api.animation/create-skybox-dissolve-anim :speed-factor 2)))]
             (doseq [c channels]
               (a/<! c))
             (recur next-index))
