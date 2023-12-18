@@ -147,18 +147,26 @@
                                       :easing easing-function)]
       [:camera [position-animation target-animation]])))
 
-(defn create-skybox-dissolve-anim [& {:keys [speed-factor]
+(defn create-skybox-dissolve-anim [& {:keys [skybox-path
+                                             speed-factor]
                                       :or {speed-factor 1}}]
   (let [p (a/promise-chan)
         dissolve (atom 0)
         dissolve-fn-name "dissolve-skybox"
         mat (api.core/get-object-by-name "skybox-shader")
+        current-skybox-path (j/get mat :skybox-path)
         dissolve-fn (fn []
                       (let [dissolve (swap! dissolve + (* (api.core/get-delta-time) speed-factor))]
-                        (if (<= dissolve 1)
+                        (if (<= dissolve 1.5)
                           (j/call mat :setFloat "dissolve" dissolve)
                           (do
-                            (a/put! p true)
-                            (api.core/remove-before-render-fn dissolve-fn-name)))))]
+                            (j/assoc! mat :skybox-path skybox-path)
+                            (api.core/remove-before-render-fn dissolve-fn-name)
+                            (a/put! p true)))))]
+    (j/call mat :setTexture "skybox1" (api.core/cube-texture :root-url current-skybox-path))
+    (j/call mat :setTexture "skybox2" (api.core/cube-texture :root-url skybox-path))
+    (j/call mat :setFloat "dissolve" 0)
+    (println current-skybox-path)
+    (println skybox-path)
     (api.core/register-before-render-fn dissolve-fn-name dissolve-fn)
     p))

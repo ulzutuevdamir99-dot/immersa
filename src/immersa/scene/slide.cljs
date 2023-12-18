@@ -121,6 +121,8 @@
                         "world" {:type :earth
                                  :position (v3 0 0 -7.5)}}}
                 {:data {:camera {:position (v3 0 2 -10)}
+                        :skybox {:path "img/skybox/space/space"
+                                 :speed-factor 0.5}
                         "world" {:type :earth
                                  :position (v3 0 2 -7.5)}
                         "immersa-text-dim" {:type :text
@@ -132,7 +134,9 @@
                         "immersa-text-2" {:type :text
                                           :alpha 0}}}
 
-                {:data {"box" {:type :box
+                {:data {:skybox {:path "img/skybox/sunny/sunny"
+                                 :speed-factor 0.5}
+                        "box" {:type :box
                                :position (v3 0 2 0)
                                :rotation (v3 1.2 2.3 4.1)
                                :visibility 1}}}
@@ -194,6 +198,23 @@
       [(first slides-vec)]
       (rest slides-vec))))
 
+(defn- run-skybox-dissolve-animation [objects-data]
+  (let [skybox-path (-> objects-data :skybox :path)
+        speed-factor (or (-> objects-data :skybox :speed-factor) 0.5)
+        skybox-shader (api.core/get-object-by-name "skybox-shader")
+        current-skybox-path (j/get skybox-shader :skybox-path)
+        default-skybox-path (j/get skybox-shader :default-skybox-path)
+        new-skybox-path (cond
+                          (and skybox-path (not= skybox-path current-skybox-path))
+                          skybox-path
+
+                          (and (nil? skybox-path) (not= default-skybox-path current-skybox-path))
+                          default-skybox-path)]
+    (when new-skybox-path
+      (api.animation/create-skybox-dissolve-anim
+        :skybox-path new-skybox-path
+        :speed-factor speed-factor))))
+
 (defn start-slide-show []
   (api.component/wave "sine")
   (let [command-ch (a/chan (a/dropping-buffer 1))]
@@ -236,7 +257,7 @@
                                                                      (inc next-index)))
                                                 prev-slide-object-names (-> prev-slide :data keys set)
                                                 current-slide-object-names (-> slide :data keys set)]
-                                            (set/difference prev-slide-object-names current-slide-object-names #{:camera})))
+                                            (set/difference prev-slide-object-names current-slide-object-names #{:camera :skybox})))
 
                 #_#__ (doseq [name object-names-to-dispose]
                                (api.core/dispose name))
@@ -272,9 +293,8 @@
                                                          :to max-fps})))
                                     {}
                                     (group-by first animations)))
-                channels (mapv #(api.animation/begin-direct-animation %) animations-data)
-                _ (when (= next-index 3)
-                    (a/<! (api.animation/create-skybox-dissolve-anim :speed-factor 0.5)))]
+                channels (mapv #(api.animation/begin-direct-animation %) animations-data)]
+            (some-> (run-skybox-dissolve-animation objects-data) a/<!)
             (doseq [c channels]
               (a/<! c))
             (recur next-index))

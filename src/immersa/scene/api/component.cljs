@@ -34,7 +34,10 @@
     (j/call mat :setTexture "skybox2" (api.core/cube-texture :root-url skybox2))
     (j/call mat :setTexture "noiseTexture" (api.core/texture noise))
     (j/call mat :setFloat "dissolve" 0)
-    (j/assoc! mat :cullBackFaces false)
+    (j/assoc! mat
+              :cullBackFaces false
+              :skybox-path skybox1
+              :default-skybox-path skybox1)
     (j/assoc! skybox :material mat)
     skybox))
 
