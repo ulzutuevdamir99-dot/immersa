@@ -39,6 +39,7 @@
           scene (api.core/create-scene engine)
           _ (api.core/create-assets-manager :on-finish #(dispatch [::events/set-show-arrow-keys-text? false]))
           _ (a/<! (api.core/load-async))
+          _ (api.core/init-p5)
           camera (api.camera/create-free-camera "free-camera" :position (v3 0 0 -10))
           light (api.light/hemispheric-light "light")
           light2 (api.light/directional-light "light2"

@@ -3,6 +3,7 @@
   (:require
     ["@babylonjs/core/Actions/actionManager" :refer [ActionManager]]
     ["@babylonjs/core/Actions/directActions" :refer [ExecuteCodeAction]]
+    ["@babylonjs/core/Buffers/buffer" :refer [VertexBuffer]]
     ["@babylonjs/core/Debug/debugLayer"]
     ["@babylonjs/core/Engines/engine" :refer [Engine]]
     ["@babylonjs/core/Layers/glowLayer" :refer [GlowLayer]]
@@ -13,13 +14,16 @@
     ["@babylonjs/core/Materials/Textures/texture" :refer [Texture]]
     ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3 Vector4]]
     ["@babylonjs/core/Maths/math.color" :refer [Color3]]
+    ["@babylonjs/core/Maths/math.scalar" :refer [Scalar]]
     ["@babylonjs/core/Meshes/mesh" :refer [Mesh]]
     ["@babylonjs/core/Meshes/transformNode" :refer [TransformNode]]
     ["@babylonjs/core/Misc/assetsManager" :refer [AssetsManager]]
     ["@babylonjs/core/Misc/tools" :refer [Tools]]
     ["@babylonjs/core/Particles/pointsCloudSystem" :refer [PointsCloudSystem]]
+    ["@babylonjs/core/Particles/pointsCloudSystem" :refer [PointsCloudSystem]]
     ["@babylonjs/core/scene" :refer [Scene]]
     ["@babylonjs/inspector"]
+    ["p5" :as p5]
     [applied-science.js-interop :as j]
     [cljs.core.async :as a]
     [immersa.scene.api.assets :refer [assets]])
@@ -352,3 +356,39 @@
           :cube-textures (add-cube-texture-task (str "cube-texture-" index) path))))
     (j/call (j/call-in db [:assets-manager :loadAsync]) :then #(a/put! p true))
     p))
+
+(defn pcs [name & {:keys [point-size]
+                   :or {point-size 1}
+                   :as opts}]
+  (let [pcs (PointsCloudSystem. name point-size)]
+    (add-node-to-db name pcs opts)))
+
+(defn add-points [pcs n f]
+  (j/call pcs :addPoints n f))
+
+(defn build-mesh-async [pcs on-build-done]
+  (let [p (j/call pcs :buildMeshAsync)]
+    (some->> on-build-done (j/call p :then))))
+
+(defn init-p5 []
+  (new p5 (fn [p5]
+            (j/assoc! p5 :setup
+                      (fn []
+                        (some-> (js/document.getElementsByTagName "main") (j/get 0) (j/call :remove))))
+            (j/assoc-in! db [:p5 :obj] p5)
+            (j/assoc-in! db [:p5 :font :big-caslon] (j/call p5 :loadFont "font/BigCaslon.otf")))))
+
+(defn get-p5 []
+  (j/get-in db [:p5 :obj]))
+
+(defn get-p5-font [font]
+  (j/get-in db [:p5 :font font]))
+
+(defn update-vertices-data [mesh positions]
+  (j/call mesh :updateVerticesData (j/get VertexBuffer :PositionKind) positions))
+
+(defn lerp [start end amount]
+  (j/call Scalar :Lerp start end amount))
+
+(defn rand-range [start end]
+  (j/call Scalar :RandomRange start end))
