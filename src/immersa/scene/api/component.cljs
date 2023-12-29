@@ -1,6 +1,8 @@
 (ns immersa.scene.api.component
   (:require
     ["@babylonjs/core/Materials/Textures/cubeTexture" :refer [CubeTexture]]
+    ["@babylonjs/core/Meshes/meshBuilder" :refer [MeshBuilder]]
+    ["earcut" :as earcut]
     [applied-science.js-interop :as j]
     [immersa.scene.api.constant :as api.const]
     [immersa.scene.api.constant :as api.const]
@@ -242,3 +244,31 @@
                                                                       (j/call engine :getRenderWidth)
                                                                       (j/call engine :getRenderHeight)))))]
     (api.core/add-node-to-db name pcs (assoc opts :type :pcs))))
+
+(defn image [name & {:keys [path
+                            position
+                            rotation
+                            visibility
+                            scale
+                            radius
+                            billboard-mode]}]
+  (let [texture (api.core/texture path)
+        {:keys [width height]} (j/lookup (j/call texture :getSize))
+        width (/ width height)
+        height 1
+        mat (api.material/standard-mat (str name "-image-mat")
+                                       :diffuse-texture texture
+                                       :emissive-color api.const/color-white)
+        opts {:width width
+              :height height
+              :radius radius
+              :position position
+              :rotation rotation
+              :visibility visibility
+              :scale scale
+              :billboard-mode billboard-mode
+              :material mat
+              :type :image}]
+    (if (and radius (> radius 0))
+      (api.mesh/plane-rounded name opts)
+      (api.mesh/plane name opts))))

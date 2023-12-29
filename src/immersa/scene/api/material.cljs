@@ -14,6 +14,7 @@
 (defn standard-mat [name & {:keys [diffuse-texture
                                    specular-texture
                                    emissive-texture
+                                   emissive-color
                                    bump-texture
                                    opacity-texture
                                    diffuse-color
@@ -31,6 +32,7 @@
       diffuse-texture (j/assoc! :diffuseTexture diffuse-texture)
       specular-texture (j/assoc! :specularTexture specular-texture)
       emissive-texture (j/assoc! :emissiveTexture emissive-texture)
+      emissive-color (j/assoc! :emissiveColor emissive-color)
       bump-texture (j/assoc! :bumpTexture bump-texture)
       opacity-texture (j/assoc! :opacityTexture opacity-texture)
       get-alpha-from-rgb? (j/assoc-in! [:opacityTexture :getAlphaFromRGB] get-alpha-from-rgb?)

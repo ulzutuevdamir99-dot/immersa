@@ -6,6 +6,7 @@
                     "img/skybox/black/black"}
    :textures #{"img/texture/noise/ac.jpg"
                "img/texture/numbers.jpg"
+               "img/texture/pp.jpeg"
                "img/texture/earth/diffuse2-min.png"
                "img/texture/earth/emmisive.jpeg"
                "img/texture/earth/specular.jpeg"

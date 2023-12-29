@@ -5,7 +5,7 @@
     ["earcut" :as earcut]
     [applied-science.js-interop :as j]
     [immersa.scene.api.constant :as api.const]
-    [immersa.scene.api.core :as api.core]
+    [immersa.scene.api.core :as api.core :refer [v3]]
     [immersa.scene.font :as font])
   (:require-macros
     [immersa.scene.macros :as m]))
@@ -82,24 +82,74 @@
     (cond-> c
       visibility (j/assoc! :visibility visibility))))
 
-(defn plane [name & {:keys [size
-                            position
+(defn plane [name & {:keys [position
                             rotation
                             width
                             height
                             billboard-mode
                             visibility
-                            scale] :as opts}]
-  (let [p (j/call MeshBuilder :CreatePlane name #js {:size size
-                                                     :width width
+                            scale
+                            material
+                            type]
+                     :or {type :plane}
+                     :as opts}]
+  (let [p (j/call MeshBuilder :CreatePlane name #js {:width width
                                                      :height height})]
     (m/cond-doto p
       billboard-mode (j/assoc! :billboardMode (j/get Mesh billboard-mode))
       visibility (j/assoc! :visibility visibility)
       position (j/assoc! :position position)
       rotation (j/assoc! :rotation rotation)
-      scale (api.core/scaling scale))
-    (api.core/add-node-to-db name p opts)))
+      scale (api.core/scaling scale)
+      material (j/assoc! :material material))
+    (api.core/add-node-to-db name p (assoc opts :type type))))
+
+(defn plane-rounded [name & {:keys [radius
+                                    width
+                                    height
+                                    depth
+                                    side-orientation
+                                    billboard-mode
+                                    visibility
+                                    position
+                                    rotation
+                                    scale
+                                    material
+                                    type]
+                             :or {radius 0.5
+                                  width 1
+                                  height 1
+                                  depth 1
+                                  side-orientation api.const/mesh-default-side
+                                  type :plane-rounded}
+                             :as opts}]
+  (let [theta (/ Math/PI 32)
+        pi Math/PI
+        center-x (- (- (* 0.5 width) radius))
+        center-z (- (- (* 0.5 height) radius))
+        shape (for [theta (range pi (* 1.5 pi) theta)]
+                (v3 (+ center-x (* radius (Math/cos theta))) 0 (+ center-z (* radius (Math/sin theta)))))
+        center-x (- (* 0.5 width) radius)
+        shape2 (for [theta (range (* 1.5 pi) (* 2 pi) theta)]
+                 (v3 (+ center-x (* radius (Math/cos theta))) 0 (+ center-z (* radius (Math/sin theta)))))
+        center-z (- (* 0.5 height) radius)
+        shape3 (for [theta (range 0 (* 0.5 pi) theta)]
+                 (v3 (+ center-x (* radius (Math/cos theta))) 0 (+ center-z (* radius (Math/sin theta)))))
+        center-x (- (- (* 0.5 width) radius))
+        shape4 (for [theta (range (* 0.5 pi) pi theta)]
+                 (v3 (+ center-x (* radius (Math/cos theta))) 0 (+ center-z (* radius (Math/sin theta)))))
+        shape (concat shape shape2 shape3 shape4)
+        mesh (j/call MeshBuilder :CreatePolygon "polygon" (clj->js {:shape shape
+                                                                    :sideOrientation side-orientation}) nil earcut)]
+    (m/cond-doto mesh
+      billboard-mode (j/assoc! :billboardMode (j/get Mesh billboard-mode))
+      visibility (j/assoc! :visibility visibility)
+      position (j/assoc! :position position)
+      rotation (j/assoc! :rotation rotation)
+      scale (api.core/scaling scale)
+      material (j/assoc! :material material))
+    (j/assoc-in! mesh [:rotation :x] (/ Math/PI -2))
+    (api.core/add-node-to-db name mesh (assoc opts :type type))))
 
 (defn create-ground-from-hm [name & {:keys [texture subdivisions width height max-height min-height on-ready mat]
                                      :as opts}]
