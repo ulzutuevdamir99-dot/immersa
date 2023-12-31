@@ -116,7 +116,7 @@
                                     scale
                                     material
                                     type]
-                             :or {radius 0.5
+                             :or {radius 0.25
                                   width 1
                                   height 1
                                   depth 1

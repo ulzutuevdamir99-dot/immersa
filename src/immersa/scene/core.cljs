@@ -17,6 +17,7 @@
 
 (defn register-before-render []
   (let [delta (api.core/get-delta-time)]
+    (j/update! api.core/db :elapsed-time (fnil + 0) delta)
     (some-> (api.core/get-object-by-name "sky-box") (j/update-in! [:rotation :y] #(+ % (* 0.008 delta))))
     (some-> (api.core/get-object-by-name "world") (j/update-in! [:rotation :y] #(- % (* 0.05 delta))))
     (doseq [f (api.core/get-before-render-fns)]

@@ -12,6 +12,7 @@
     [immersa.scene.api.core :as api.core :refer [v2 v3 v4]]
     [immersa.scene.api.gui :as api.gui]
     [immersa.scene.api.mesh :as api.mesh]
+    [immersa.scene.api.particle :as api.particle]
     [re-frame.core :refer [dispatch]]))
 
 (defn- get-position-anim [object-slide-info object-name]
@@ -21,11 +22,13 @@
     (cond
       (and start-pos end-pos (not (api.core/equals? start-pos end-pos)))
       [object-name (api.animation/create-position-animation {:start start-pos
-                                                             :end end-pos})]
+                                                             :end end-pos
+                                                             :delay (:delay object-slide-info)})]
 
       (and (= object-name :camera) (not (api.core/equals? start-pos (j/get object :init-position))))
       [object-name (api.animation/create-position-animation {:start start-pos
-                                                             :end (api.core/clone (j/get object :init-position))})])))
+                                                             :end (api.core/clone (j/get object :init-position))
+                                                             :delay (:delay object-slide-info)})])))
 
 (defn- get-rotation-anim [object-slide-info object-name]
   (let [object (api.core/get-object-by-name object-name)
@@ -34,25 +37,29 @@
     (cond
       (and start-rotation end-rotation (not (api.core/equals? start-rotation end-rotation)))
       [object-name (api.animation/create-rotation-animation {:start start-rotation
-                                                             :end end-rotation})]
+                                                             :end end-rotation
+                                                             :delay (:delay object-slide-info)})]
 
       (and (= object-name :camera) (not (api.core/equals? start-rotation (j/get object :init-rotation))))
       [object-name (api.animation/create-rotation-animation {:start start-rotation
-                                                             :end (api.core/clone (j/get object :init-rotation))})])))
+                                                             :end (api.core/clone (j/get object :init-rotation))
+                                                             :delay (:delay object-slide-info)})])))
 
 (defn- get-visibility-anim [object-slide-info object-name]
   (let [end-visibility (:visibility object-slide-info)
         start-visibility (j/get (api.core/get-object-by-name object-name) :visibility)]
     (when (and end-visibility (not= start-visibility end-visibility))
       [object-name (api.animation/create-visibility-animation {:start start-visibility
-                                                               :end end-visibility})])))
+                                                               :end end-visibility
+                                                               :delay (:delay object-slide-info)})])))
 
 (defn- get-alpha-anim [object-slide-info object-name]
   (let [end-alpha (:alpha object-slide-info)
         start-alpha (j/get (api.core/get-object-by-name object-name) :alpha)]
     (when (and end-alpha (not= start-alpha end-alpha))
       [object-name (api.animation/create-alpha-animation {:start start-alpha
-                                                          :end end-alpha})])))
+                                                          :end end-alpha
+                                                          :delay (:delay object-slide-info)})])))
 
 (defn- get-animations-from-slide-info [acc object-slide-info object-name]
   (reduce
@@ -123,6 +130,10 @@
                 {:data {:camera {:position (v3 0 2 -10)}
                         :skybox {:path "img/skybox/space/space"
                                  :speed-factor 0.5}
+                        "image" {:type :image
+                                 :path "img/texture/pp.jpeg"
+                                 :radius 0.2
+                                 :visibility 0}
                         "world" {:type :earth
                                  :position (v3 0 2 -7.5)}
                         "immersa-text-dim" {:type :text
@@ -140,6 +151,10 @@
                                      :point-size 5
                                      :position (v3 -4.5 0 0)
                                      :color api.const/color-white}
+                        "image" {:visibility 1
+                                 :delay 1000}
+                        "particle-cycle" {:type :particle
+                                          :target-stop-duration 2}
                         #_{:path "img/skybox/sunny/sunny"
                            :speed-factor 1}
                         "box" {:type :box
@@ -178,7 +193,8 @@
                                           :alpha 1
                                           :color "white"
                                           :text-horizontal-alignment api.const/gui-horizontal-align-center
-                                          :text-vertical-alignment api.const/gui-vertical-align-center}}}
+                                          :text-vertical-alignment api.const/gui-vertical-align-center}
+                        "image" {:visibility 0}}}
 
                 {:data {:camera {:position (v3 0 0 50)}
                         "immersa-text-3" {:alpha 0}}}]
@@ -288,6 +304,8 @@
                         :text (api.gui/add-control
                                 (api.core/get-advanced-texture)
                                 (api.gui/text-block name params))
+                        :image (api.component/image name params)
+                        :particle (api.particle/circle-move name params)
                         :billboard (api.component/billboard name params)
                         nil)))
                 animations (reduce
@@ -319,7 +337,15 @@
                                       (let [object-slide-info (get-in slide [:data object-name])]
                                         (when (#{:pcs-text} (:type object-slide-info))
                                           (api.animation/pcs-text-anim object-name object-slide-info))))
-                                    object-names-from-slide-info)]
+                                    object-names-from-slide-info)
+                particles (keep
+                            (fn [object-name]
+                              (let [object-slide-info (get-in slide [:data object-name])]
+                                (when (#{:particle} (:type object-slide-info))
+                                  (api.core/get-object-by-name object-name))))
+                            object-names-from-slide-info)]
+            (doseq [p particles]
+              (api.particle/start p))
             (some-> skybox-dissolve-anim a/<!)
             (cond
               (-> objects-data :skybox :gradient?)

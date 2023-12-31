@@ -177,7 +177,7 @@
                                      :blur-horizontal-size 3)]
     (api.core/add-children tn sp clouds)
     (api.core/add-prop-to-db name :type :earth)
-    (j/call hl :addMesh clouds (api.core/color 0.3 0.74 0.94 0.82))
+    (j/call hl :addMesh clouds (api.core/color 0.3 0.74 0.94))
     tn))
 
 (defn wave [name & {:keys [width

@@ -13,7 +13,7 @@
     ["@babylonjs/core/Materials/Textures/dynamicTexture" :refer [DynamicTexture]]
     ["@babylonjs/core/Materials/Textures/texture" :refer [Texture]]
     ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3 Vector4]]
-    ["@babylonjs/core/Maths/math.color" :refer [Color3]]
+    ["@babylonjs/core/Maths/math.color" :refer [Color3 Color4]]
     ["@babylonjs/core/Maths/math.scalar" :refer [Scalar]]
     ["@babylonjs/core/Meshes/mesh" :refer [Mesh]]
     ["@babylonjs/core/Meshes/transformNode" :refer [TransformNode]]
@@ -53,6 +53,9 @@
 
 (defn get-scene []
   (j/get db :scene))
+
+(defn get-elapsed-time []
+  (j/get db :elapsed-time))
 
 (defn v2
   ([]
@@ -97,9 +100,9 @@
   ([c]
    (color c c c))
   ([r g b]
-   (Color3. r g b 1.0))
+   (Color3. r g b))
   ([r g b a]
-   (Color3. r g b a)))
+   (Color4. r g b a)))
 
 (defn color-rgb
   ([c]
