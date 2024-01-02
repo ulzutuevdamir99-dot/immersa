@@ -12,6 +12,7 @@
     [immersa.scene.macros :as m]))
 
 (defn standard-mat [name & {:keys [diffuse-texture
+                                   has-alpha?
                                    specular-texture
                                    emissive-texture
                                    emissive-color
@@ -23,16 +24,15 @@
                                    reflection-texture
                                    coordinates-mode
                                    disable-lighting?
-                                   get-alpha-from-rgb?
-                                   emissive-color]
+                                   get-alpha-from-rgb?]
                             :as opts}]
   (let [sm (StandardMaterial. name)]
     (api.core/add-node-to-db name sm opts)
     (cond-> sm
       diffuse-texture (j/assoc! :diffuseTexture diffuse-texture)
+      (some? has-alpha?) (j/assoc! :hasAlpha has-alpha?)
       specular-texture (j/assoc! :specularTexture specular-texture)
       emissive-texture (j/assoc! :emissiveTexture emissive-texture)
-      emissive-color (j/assoc! :emissiveColor emissive-color)
       bump-texture (j/assoc! :bumpTexture bump-texture)
       opacity-texture (j/assoc! :opacityTexture opacity-texture)
       get-alpha-from-rgb? (j/assoc-in! [:opacityTexture :getAlphaFromRGB] get-alpha-from-rgb?)

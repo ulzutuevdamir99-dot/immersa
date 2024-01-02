@@ -131,7 +131,7 @@
                         :skybox {:path "img/skybox/space/space"
                                  :speed-factor 0.5}
                         "image" {:type :image
-                                 :path "img/texture/pp.jpeg"
+                                 :path "img/texture/gg.png"
                                  :radius 0.2
                                  :visibility 0}
                         "world" {:type :earth

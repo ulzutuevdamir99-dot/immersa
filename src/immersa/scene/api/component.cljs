@@ -258,7 +258,9 @@
         height 1
         mat (api.material/standard-mat (str name "-image-mat")
                                        :diffuse-texture texture
-                                       :emissive-color api.const/color-white)
+                                       :opacity-texture texture
+                                       :emissive-color api.const/color-white
+                                       :has-alpha? true)
         opts {:width width
               :height height
               :radius radius

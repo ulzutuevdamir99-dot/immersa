@@ -8,6 +8,7 @@
                "img/texture/numbers.jpg"
                "img/texture/pp.jpeg"
                "img/texture/flare.png"
+               "img/texture/gg.png"
                "img/texture/fire_01.png"
                "img/texture/star_04.png"
                "img/texture/star_08.png"
