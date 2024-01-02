@@ -121,8 +121,6 @@
                                             :text-horizontal-alignment api.const/gui-horizontal-align-center
                                             :text-vertical-alignment api.const/gui-vertical-align-top
                                             :padding-top "10%"}
-                        "immersa-text" {:type :text
-                                        :alpha 0}
                         "immersa-text-2" {:type :text
                                           :alpha 1}
                         "world" {:type :earth
@@ -169,8 +167,7 @@
                                        :text "❖ 3D Immersive Experience\n\n❖ Web-Based Accessibility\n\n❖ AI-Powered Features"
                                        :scale 2
                                        :font-weight "bold"
-                                       :visibility 1}
-                        "box" {}}}
+                                       :visibility 1}}}
 
                 {:data {:camera {:focus "box"
                                  :type :right}
@@ -178,12 +175,10 @@
                                        :position (v3 -3 2.3 0)
                                        :text "❖ Ready-Made Templates\n\n❖ High-Performance Render\n\n❖ User-Friendly UI/UX"
                                        :scale 2
-                                       :font-weight "bold"}
-                        "box" {}}}
+                                       :font-weight "bold"}}}
 
                 {:data {:camera {:position (v3 0 0 -10)
-                                 :rotation (v3 0 0 0)}
-                        "box" {}}}
+                                 :rotation (v3 0 0 0)}}}
 
                 {:data {"immersa-text-3" {:type :text
                                           :text "✦ Enjoy the Immersive Experience ✦"
@@ -236,6 +231,76 @@
       (api.animation/create-skybox-dissolve-anim
         :skybox-path new-skybox-path
         :speed-factor speed-factor))))
+
+(defmulti disable-component (comp keyword api.core/get-object-type-by-name))
+
+(defmethod disable-component :text [name]
+  (let [text (api.core/get-object-by-name name)
+        alpha (j/get text :alpha)
+        duration 0.5
+        to (* 30 1.0)]
+    (api.animation/begin-direct-animation
+      :target text
+      :animations (api.animation/create-alpha-animation {:start alpha
+                                                         :end 0
+                                                         :duration duration})
+      :to to)))
+
+(defmethod disable-component :earth [name]
+  (let [earth-sphere (api.core/get-object-by-name (str name "-earth-sphere"))
+        cloud-sphere (api.core/get-object-by-name (str name "-cloud-sphere"))
+        hl (j/get-in api.core/db [:nodes name :hl])
+        earth-sphere-visibility (j/get earth-sphere :visibility)
+        cloud-sphere-visibility (j/get cloud-sphere :visibility)
+        duration 0.5
+        to (* 30 1.0)]
+    (j/call hl :removeMesh cloud-sphere)
+    (api.animation/begin-direct-animation
+      :target earth-sphere
+      :animations (api.animation/create-visibility-animation {:start earth-sphere-visibility
+                                                              :end 0
+                                                              :duration duration})
+      :to to
+      :on-animation-end #(api.core/set-enabled earth-sphere false))
+    (api.animation/begin-direct-animation
+      :target cloud-sphere
+      :animations (api.animation/create-visibility-animation {:start cloud-sphere-visibility
+                                                              :end 0
+                                                              :duration duration})
+      :to to
+      :on-animation-end #(api.core/set-enabled cloud-sphere false))))
+
+(defmethod disable-component :box [name]
+  (let [box (api.core/get-object-by-name name)
+        visibility (j/get box :visibility)
+        duration 0.5
+        to (* 30 1.0)]
+    (api.animation/begin-direct-animation
+      :target box
+      :animations (api.animation/create-visibility-animation {:start visibility
+                                                              :end 0
+                                                              :duration duration})
+      :to to
+      :on-animation-end #(api.core/set-enabled box false))))
+
+(defmethod disable-component :default [name]
+  (println "dispose-component Default: " name))
+
+(defmulti enable-component (comp keyword api.core/get-object-type-by-name))
+
+(defmethod enable-component :box [name]
+  (api.core/set-enabled (api.core/get-object-by-name name) true))
+
+(defmethod enable-component :earth [name]
+  (let [hl (j/get-in api.core/db [:nodes name :hl])
+        earth-sphere (api.core/get-object-by-name (str name "-earth-sphere"))
+        cloud-sphere (api.core/get-object-by-name (str name "-cloud-sphere"))]
+    (api.core/set-enabled earth-sphere true)
+    (api.core/set-enabled cloud-sphere true)
+    (j/call hl :addMesh cloud-sphere (api.core/color 0.3 0.74 0.94))))
+
+(defmethod enable-component :default [name]
+  (println "enable-component Default: " name))
 
 (defn start-slide-show []
   (api.component/wave "sine")
@@ -291,8 +356,8 @@
                                                 current-slide-object-names (-> slide :data keys set)]
                                             (set/difference prev-slide-object-names current-slide-object-names #{:camera :skybox})))
 
-                #_#__ (doseq [name object-names-to-dispose]
-                               (api.core/dispose name))
+                _ (doseq [name object-names-to-dispose]
+                    (disable-component name))
                 _ (doseq [name objects-to-create]
                     (let [params (get objects-data name)
                           type (:type params)
@@ -331,6 +396,8 @@
                                         (-> (:data (slides (inc current-index))) :skybox :gradient?))
                 skybox-dissolve-anim (when-not prev-and-gradient?
                                        (run-skybox-dissolve-animation objects-data))
+                _ (doseq [name (map first animations)]
+                    (enable-component name))
                 channels (mapv #(api.animation/begin-direct-animation %) animations-data)
                 direct-animations (keep
                                     (fn [object-name]

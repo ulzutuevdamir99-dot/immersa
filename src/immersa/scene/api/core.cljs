@@ -122,6 +122,9 @@
 (defn get-object-by-name [name]
   (j/get-in db [:nodes name :obj]))
 
+(defn get-object-type-by-name [name]
+  (j/get-in db [:nodes name :type]))
+
 (defn get-objects-by-type [type]
   (map (j/get :obj) (filter #(= (j/get % :type) type) (js/Object.values (j/get db :nodes)))))
 
@@ -136,6 +139,9 @@
         (js-delete (j/get db :nodes) obj-name)
         (doseq [c children]
           (dispose c))))))
+
+(defn set-enabled [obj enabled?]
+  (j/call obj :setEnabled enabled?))
 
 (defn dispose-all [objs]
   (apply dispose objs))

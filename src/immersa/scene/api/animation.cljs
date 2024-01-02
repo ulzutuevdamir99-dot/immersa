@@ -44,7 +44,8 @@
                                         speed-ratio
                                         on-animation-end
                                         delay]
-                                 :or {loop? false
+                                 :or {from 0
+                                      loop? false
                                       speed-ratio 1.0}}]
   (let [p (a/promise-chan)
         on-animation-end (fn []
