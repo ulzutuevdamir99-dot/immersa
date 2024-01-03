@@ -155,10 +155,11 @@
   (j/assoc-in! db [:nodes name] (clj->js (assoc opts :obj obj :name name)))
   obj)
 
-(defn add-prop-to-db [name prop val]
-  (j/assoc-in! db [:nodes name prop] (if (keyword? val)
-                                       (cljs.core/name val)
-                                       val)))
+(defn add-prop-to-db [name & ks]
+  (doseq [[prop val] (partition 2 ks)]
+    (j/assoc-in! db [:nodes name prop] (if (keyword? val)
+                                         (cljs.core/name val)
+                                         val))))
 
 (defn get-pos [obj]
   (j/call obj :getAbsolutePosition))

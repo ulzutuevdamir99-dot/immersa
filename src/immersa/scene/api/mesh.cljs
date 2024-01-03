@@ -179,15 +179,16 @@
                            position
                            mat]
                     :or {size 1
-                         resolution 64
-                         depth 0.5}
+                         resolution 8
+                         depth 1.0}
                     :as opts}]
   (let [text (j/call MeshBuilder :CreateText name
                      text
                      font/droid
                      #js {:size size
                           :resolution resolution
-                          :depth depth}
+                          :depth depth
+                          :sideOrientation api.const/mesh-double-side}
                      nil
                      earcut)]
     (api.core/add-node-to-db name text (assoc opts :type :text3D))

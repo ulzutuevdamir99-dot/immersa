@@ -128,6 +128,10 @@
                 {:data {:camera {:position (v3 0 2 -10)}
                         :skybox {:path "img/skybox/space/space"
                                  :speed-factor 0.5}
+                        "text-3" {:type :text3D
+                                  :text "Hello, world!"
+                                  :depth 0.5
+                                  :visibility 1}
                         "image" {:type :image
                                  :path "img/texture/gg.png"
                                  :radius 0.2
@@ -143,9 +147,11 @@
                         "immersa-text-2" {:type :text
                                           :alpha 0}}}
 
-                {:data {:skybox {:gradient? true}
+                {:data {:skybox {:gradient? true
+                                 :speed-factor 1.0}
                         "text-dots" {:type :pcs-text
                                      :text "     Welcome to \n\n\n\n\n\n\nImmersive Journey"
+                                     :visibility 1
                                      :point-size 5
                                      :position (v3 -4.5 0 0)
                                      :color api.const/color-white}
@@ -175,7 +181,8 @@
                                        :position (v3 -3 2.3 0)
                                        :text "❖ Ready-Made Templates\n\n❖ High-Performance Render\n\n❖ User-Friendly UI/UX"
                                        :scale 2
-                                       :font-weight "bold"}}}
+                                       :font-weight "bold"
+                                       :visibility 1}}}
 
                 {:data {:camera {:position (v3 0 0 -10)
                                  :rotation (v3 0 0 0)}}}
@@ -234,6 +241,19 @@
 
 (defmulti disable-component (comp keyword api.core/get-object-type-by-name))
 
+(defn- disable-mesh-component-via-visibility [name]
+  (let [mesh (api.core/get-object-by-name name)
+        visibility (j/get mesh :visibility)
+        duration 0.5
+        to (* 30 1.0)]
+    (api.animation/begin-direct-animation
+      :target mesh
+      :animations (api.animation/create-visibility-animation {:start visibility
+                                                              :end 0
+                                                              :duration duration})
+      :to to
+      :on-animation-end #(api.core/set-enabled mesh false))))
+
 (defmethod disable-component :text [name]
   (let [text (api.core/get-object-by-name name)
         alpha (j/get text :alpha)
@@ -271,24 +291,44 @@
       :on-animation-end #(api.core/set-enabled cloud-sphere false))))
 
 (defmethod disable-component :box [name]
-  (let [box (api.core/get-object-by-name name)
-        visibility (j/get box :visibility)
+  (disable-mesh-component-via-visibility name))
+
+(defmethod disable-component :billboard [name]
+  (disable-mesh-component-via-visibility name))
+
+(defmethod disable-component :image [name]
+  (disable-mesh-component-via-visibility name))
+
+(defmethod disable-component :text3D [name]
+  (disable-mesh-component-via-visibility name))
+
+(defmethod disable-component :pcs-text [name]
+  (let [mesh (api.core/get-object-by-name name)
+        pcs (j/get mesh :pcs)
+        visibility (j/get mesh :visibility)
         duration 0.5
         to (* 30 1.0)]
     (api.animation/begin-direct-animation
-      :target box
+      :target mesh
       :animations (api.animation/create-visibility-animation {:start visibility
                                                               :end 0
                                                               :duration duration})
       :to to
-      :on-animation-end #(api.core/set-enabled box false))))
+      :on-animation-end (fn []
+                          (api.core/dispose mesh)
+                          (api.core/dispose pcs)))))
+
+(defmethod disable-component :particle [name]
+  (let [ps (api.core/get-object-by-name name)]
+    (api.particle/stop ps)
+    (api.particle/reset ps)))
 
 (defmethod disable-component :default [name]
   (println "dispose-component Default: " name))
 
 (defmulti enable-component (comp keyword api.core/get-object-type-by-name))
 
-(defmethod enable-component :box [name]
+(defn- enable-mesh-component [name]
   (api.core/set-enabled (api.core/get-object-by-name name) true))
 
 (defmethod enable-component :earth [name]
@@ -298,6 +338,18 @@
     (api.core/set-enabled earth-sphere true)
     (api.core/set-enabled cloud-sphere true)
     (j/call hl :addMesh cloud-sphere (api.core/color 0.3 0.74 0.94))))
+
+(defmethod enable-component :box [name]
+  (enable-mesh-component name))
+
+(defmethod enable-component :billboard [name]
+  (enable-mesh-component name))
+
+(defmethod enable-component :image [name]
+  (enable-mesh-component name))
+
+(defmethod enable-component :text3D [name]
+  (enable-mesh-component name))
 
 (defmethod enable-component :default [name]
   (println "enable-component Default: " name))
@@ -384,12 +436,15 @@
                                     (fn [acc name animations]
                                       (let [animations (mapv second animations)
                                             delay (first (keep (j/get :delay) animations))
-                                            max-fps (apply max (map (j/get :framePerSecond) animations))]
-                                        (assoc acc name {:target (api.core/get-object-by-name name)
-                                                         :animations animations
-                                                         :delay delay
-                                                         :from 0
-                                                         :to max-fps})))
+                                            max-fps (apply max (map (j/get :framePerSecond) animations))
+                                            target (api.core/get-object-by-name name)]
+                                        (if target
+                                          (assoc acc name {:target (api.core/get-object-by-name name)
+                                                           :animations animations
+                                                           :delay delay
+                                                           :from 0
+                                                           :to max-fps})
+                                          acc)))
                                     {}
                                     (group-by first animations)))
                 prev-and-gradient? (and (= :prev command)
@@ -399,12 +454,12 @@
                 _ (doseq [name (map first animations)]
                     (enable-component name))
                 channels (mapv #(api.animation/begin-direct-animation %) animations-data)
-                direct-animations (keep
-                                    (fn [object-name]
-                                      (let [object-slide-info (get-in slide [:data object-name])]
-                                        (when (#{:pcs-text} (:type object-slide-info))
-                                          (api.animation/pcs-text-anim object-name object-slide-info))))
-                                    object-names-from-slide-info)
+                pcs-animations (keep
+                                 (fn [object-name]
+                                   (let [object-slide-info (get-in slide [:data object-name])]
+                                     (when (and (#{:pcs-text} (:type object-slide-info)))
+                                       (api.animation/pcs-text-anim object-name object-slide-info))))
+                                 object-names-from-slide-info)
                 particles (keep
                             (fn [object-name]
                               (let [object-slide-info (get-in slide [:data object-name])]
@@ -426,7 +481,7 @@
             (doseq [c channels]
               (a/<! c))
 
-            (doseq [c direct-animations]
+            (doseq [c pcs-animations]
               (a/<! c))
 
             (recur current-index))

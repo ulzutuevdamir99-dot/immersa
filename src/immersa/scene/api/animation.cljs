@@ -180,7 +180,7 @@
         dissolve-fn-name "dissolve-sky-sphere"
         sphere (api.core/get-object-by-name "sky-sphere")
         mat (api.core/get-object-by-name "sky-sphere-mat")
-        speed-factor 1
+        speed-factor 2
         dissolve-fn (fn []
                       (let [dissolve (swap! dissolve + (* (api.core/get-delta-time) speed-factor))]
                         (if (<= dissolve 1.0)
@@ -199,7 +199,7 @@
         dissolve-fn-name "reverse-dissolve-sky-sphere"
         sphere (api.core/get-object-by-name "sky-sphere")
         mat (api.core/get-object-by-name "sky-sphere-mat")
-        speed-factor 1
+        speed-factor 2
         dissolve-fn (fn []
                       (let [dissolve (swap! dissolve - (* (api.core/get-delta-time) speed-factor))]
                         (if (>= dissolve 0.0)
@@ -224,6 +224,7 @@
                                     color
                                     rand-range
                                     font
+                                    visibility
                                     delay]
                              :or {point-size 1
                                   font-size 120
@@ -233,12 +234,13 @@
                                   rand-range [-10 10]
                                   fps 30
                                   duration 2.0
-                                  font :big-caslon}}]
+                                  font :big-caslon}
+                             :as opts}]
   (let [p (a/promise-chan)
         font (api.core/get-p5-font font)
         points (j/call font :textToPoints text 0 0 font-size #js {:sampleFactor sample-factor
                                                                   :simplifyThreshold simplify-threshold})
-        pcs (api.core/pcs name :point-size point-size)]
+        pcs (api.core/pcs (str name "-pcs") :point-size point-size)]
     (doseq [p points]
       (api.core/add-points pcs 1 (fn [particle]
                                    (j/assoc! particle
@@ -252,7 +254,11 @@
     (api.core/build-mesh-async
       pcs
       (fn [mesh]
-        (some->> position (j/assoc! mesh :position))
+        (api.core/add-node-to-db name mesh (assoc opts :type :pcs-text))
+        (api.core/add-prop-to-db name :pcs pcs)
+        (m/cond-doto mesh
+          position (j/assoc! :position position)
+          visibility (j/assoc! :visibility visibility))
         (let [end-positions (j/call mesh :getPositionData)
               end-positions-len (j/get end-positions :length)
               points-count (/ end-positions-len 3)

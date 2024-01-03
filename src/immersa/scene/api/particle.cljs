@@ -123,8 +123,7 @@
 
 (defn circle-move [name & {:keys [position
                                   target-stop-duration]
-                           :or {position (v3 0 0 0)
-                                target-stop-duration 2}}]
+                           :or {position (v3 0 0 0)}}]
   (let [emitter-position (v3 0 0 0)
         before-render-fn (str name "-circle-move-before-render")
         ps (create-particle-system name
