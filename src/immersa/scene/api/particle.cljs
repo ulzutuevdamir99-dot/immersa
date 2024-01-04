@@ -34,6 +34,7 @@
 
 (defn create-particle-system [name & {:keys [capacity
                                              gpu?
+                                             position
                                              particle-texture
                                              emitter
                                              min-emit-box
@@ -76,6 +77,7 @@
     (m/cond-doto particle-system
       particle-texture (j/assoc! :particleTexture particle-texture)
       emitter (j/assoc! :emitter emitter)
+      position (j/assoc! :position position)
       min-emit-box (j/assoc! :minEmitBox min-emit-box)
       max-emit-box (j/assoc! :maxEmitBox max-emit-box)
       color1 (j/assoc! :color1 color1)
@@ -144,7 +146,8 @@
                                    :update-speed 0.005
                                    :emit-rate 1000
                                    :target-stop-duration target-stop-duration
-                                   :emitter emitter-position)]
+                                   :emitter emitter-position
+                                   :position position)]
     (j/call ps :createSphereEmitter 0.1)
     ;; TODO when on dispose remove before-render-fn
     (api.core/register-before-render-fn
@@ -152,6 +155,7 @@
       (fn []
         (let [speed-factor 4
               elapsed (* speed-factor (api.core/get-elapsed-time))
+              position (j/get ps :position)
               r 1
               x (+ (j/get position :x) (* r (Math/cos elapsed)))
               y (+ (j/get position :y)

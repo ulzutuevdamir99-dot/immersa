@@ -178,6 +178,7 @@
                            depth
                            visibility
                            position
+                           rotation
                            emissive-color
                            mat]
                     :or {size 1
@@ -200,4 +201,5 @@
     (cond-> text
       mat (j/assoc! :material mat)
       visibility (j/assoc! :visibility visibility)
-      position (j/assoc! :position position))))
+      position (j/assoc! :position position)
+      rotation (j/assoc! :rotation rotation))))

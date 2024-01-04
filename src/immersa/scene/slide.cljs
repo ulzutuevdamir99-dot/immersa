@@ -121,12 +121,15 @@
                                   :emissive-color api.const/color-white
                                   :size 0.5
                                   :position (v3 0 0 5)
+                                  :rotation (v3 (/ js/Math.PI 2) 0 0)
                                   :visibility 0}}}
                 {:data {:camera {:position (v3 0 2 -10)}
                         :skybox {:path "img/skybox/space/space"
                                  :speed-factor 0.5}
                         "text-3" {:type :text3D
                                   :position (v3 0 0 0)
+                                  :rotation (v3)
+                                  :delay 500
                                   :visibility 1}
                         "image" {:type :image
                                  :path "img/texture/gg.png"
@@ -357,21 +360,24 @@
                                                               :duration duration})
       :to to)))
 
-(defmethod enable-component :box [name]
+(defmethod enable-component :box [name _]
   (enable-mesh-component name))
 
-(defmethod enable-component :billboard [name]
+(defmethod enable-component :billboard [name _]
   (enable-mesh-component name))
 
-(defmethod enable-component :image [name]
+(defmethod enable-component :image [name _]
   (enable-mesh-component name))
 
-(defmethod enable-component :text3D [name]
+(defmethod enable-component :text3D [name _]
   (enable-mesh-component name))
 
-(defmethod enable-component :wave [name]
+(defmethod enable-component :wave [name _]
   (when-not (api.core/get-object-by-name name)
     (api.component/wave name)))
+
+(defmethod enable-component :particle [name _]
+  (api.particle/start (api.core/get-object-by-name name)))
 
 (defmethod enable-component :default [name]
   (println "enable-component Default: " name))
@@ -484,15 +490,7 @@
                                    (let [object-slide-info (get-in slide [:data object-name])]
                                      (when (and (#{:pcs-text} (:type object-slide-info)))
                                        (api.animation/pcs-text-anim object-name object-slide-info))))
-                                 object-names-from-slide-info)
-                particles (keep
-                            (fn [object-name]
-                              (let [object-slide-info (get-in slide [:data object-name])]
-                                (when (#{:particle} (:type object-slide-info))
-                                  (api.core/get-object-by-name object-name))))
-                            object-names-from-slide-info)]
-            (doseq [p particles]
-              (api.particle/start p))
+                                 object-names-from-slide-info)]
             (some-> skybox-dissolve-anim a/<!)
             (cond
               (-> objects-data :skybox :gradient?)
