@@ -1,5 +1,7 @@
 (ns immersa.scene.api.constant
   (:require
+    ["@babylonjs/core/Events/keyboardEvents" :refer [KeyboardEventTypes]]
+    ["@babylonjs/core/Events/pointerEvents" :refer [PointerEventTypes]]
     ["@babylonjs/core/Materials/material" :refer [Material]]
     ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3 Vector4]]
     ["@babylonjs/core/Maths/math.color" :refer [Color3]]
@@ -40,3 +42,9 @@
 
 (def mat-alpha-blend (j/get Material :MATERIAL_ALPHABLEND))
 (def mat-alpha-test-and-blend (j/get Material :ATERIAL_ALPHATESTANDBLEND))
+
+(def pointer-type-down (j/get PointerEventTypes :POINTERDOWN))
+(def pointer-type-up (j/get PointerEventTypes :POINTERUP))
+
+(def keyboard-type-key-down (j/get KeyboardEventTypes :KEYDOWN))
+(def keyboard-type-key-up (j/get KeyboardEventTypes :KEYUP))

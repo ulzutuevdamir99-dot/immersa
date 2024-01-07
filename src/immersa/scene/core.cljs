@@ -23,6 +23,61 @@
     (doseq [f (api.core/get-before-render-fns)]
       (f))))
 
+(defn switch-camera-if-needed [scene]
+  (let [wasd? (boolean (seq (filter true? (map #(j/get-in api.core/db [:keyboard %]) ["w" "a" "s" "d"]))))
+        left-click? (j/get-in api.core/db [:mouse :left-click?])
+        switch-type (cond
+                      wasd? :free
+                      (and left-click? (not wasd?)) :arc
+                      :else :arc)
+        camera (api.camera/active-camera)
+        camera-type (j/get camera :type)
+        arc-camera (api.core/get-object-by-name "arc-camera")
+        free-camera (api.core/get-object-by-name "free-camera")
+        canvas (api.core/canvas)]
+    (cond
+      (and (= switch-type :free) (not (= camera-type :free)))
+      (let [position (api.core/clone (j/get arc-camera :position))
+            target (j/call arc-camera :getTarget)]
+        (j/call-in free-camera [:position :copyFrom] position)
+        (j/call free-camera :setTarget (api.core/clone target))
+        (j/assoc! scene :activeCamera free-camera)
+        (api.camera/detach-control arc-camera)
+        (j/call free-camera :attachControl canvas true))
+
+      (and (= switch-type :arc) (not (= camera-type :arc)))
+      (let [position (api.core/clone (j/get free-camera :position))
+            target (j/call free-camera :getTarget)]
+        (api.core/set-pos arc-camera position)
+        (j/call arc-camera :setTarget (api.core/clone target))
+        (j/assoc! scene :activeCamera arc-camera)
+        (api.camera/detach-control free-camera)
+        (j/call arc-camera :attachControl canvas true)))))
+
+(defn- register-scene-mouse-events [scene]
+  (let [wasd #{"w" "a" "s" "d"}]
+    (j/call-in scene [:onPointerObservable :add]
+               (fn [info]
+                 (cond
+                   (= (j/get info :type) api.const/pointer-type-down)
+                   (j/assoc-in! api.core/db [:mouse :left-click?] true)
+
+                   (= (j/get info :type) api.const/pointer-type-up)
+                   (j/assoc-in! api.core/db [:mouse :left-click?] false))
+                 (switch-camera-if-needed scene)))
+    (j/call-in scene [:onKeyboardObservable :add]
+               (fn [info]
+                 (let [key (j/get-in info [:event :key])]
+                   (cond
+                     (and (= (j/get info :type) api.const/keyboard-type-key-down)
+                          (wasd (j/get-in info [:event :key])))
+                     (j/assoc-in! api.core/db [:keyboard key] true)
+
+                     (and (= (j/get info :type) api.const/keyboard-type-key-up)
+                          (wasd (j/get-in info [:event :key])))
+                     (j/assoc-in! api.core/db [:keyboard key] false))
+                   (switch-camera-if-needed scene))))))
+
 (defn when-scene-ready [scene start-slide-show?]
   ;; (api.core/clear-scene-color api.const/color-white)
   ;; (api.core/clear-scene-color (api.core/color-rgb 239 239 239))
@@ -30,6 +85,8 @@
   (j/assoc-in! (api.core/get-object-by-name "sky-box") [:rotation :y] js/Math.PI)
   (api.gui/advanced-dynamic-texture)
   (j/call scene :registerBeforeRender (fn [] (register-before-render)))
+  (when-not start-slide-show?
+    (register-scene-mouse-events scene))
   (when start-slide-show?
     (slide/start-slide-show)))
 
@@ -41,7 +98,10 @@
           _ (api.core/create-assets-manager :on-finish #(dispatch [::events/set-show-arrow-keys-text? false]))
           _ (a/<! (api.core/load-async))
           _ (api.core/init-p5)
-          camera (api.camera/create-free-camera "free-camera" :position (v3 0 0 -10))
+          free-camera (api.camera/create-free-camera "free-camera" :position (v3 0 0 -10))
+          arc-camera (api.camera/create-arc-camera "arc-camera"
+                                                   :position (v3 0 0 -10)
+                                                   :canvas canvas)
           light (api.light/hemispheric-light "light")
           light2 (api.light/directional-light "light2"
                                               :position (v3 20)
@@ -63,8 +123,8 @@
       ;; TODO add debounce here
       (common.utils/register-event-listener js/window "resize" #(j/call engine :resize))
       (j/assoc! light :intensity 0.7)
-      (j/call camera :setTarget (v3))
-      (j/call camera :attachControl canvas false)
+      (j/call free-camera :setTarget (v3))
+      (j/call free-camera :attachControl canvas false)
       (j/call engine :runRenderLoop #(j/call scene :render))
       (j/call scene :executeWhenReady #(when-scene-ready scene start-slide-show?)))))
 

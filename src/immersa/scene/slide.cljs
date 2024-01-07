@@ -139,7 +139,7 @@
                                   :text "A new dimension to your presentations"
                                   :depth 0.001
                                   :emissive-color api.const/color-white
-                                  :size 0.5
+                                  :size 0.4
                                   :position (v3 0 0 5)
                                   :rotation (v3 (/ js/Math.PI 2) 0 0)
                                   :visibility 0}}}
@@ -147,7 +147,7 @@
                         :skybox {:path "img/skybox/space/space"
                                  :speed-factor 0.5}
                         "text-3" {:type :text3D
-                                  :position (v3 0 0 0)
+                                  :position (v3 0 0 -2)
                                   :rotation (v3)
                                   :delay 500
                                   :visibility 1}
@@ -155,13 +155,14 @@
                                  :path "img/texture/gg.png"
                                  :visibility 0}
                         "world" {:type :earth
-                                 :position (v3 0 2.5 -7.5)
+                                 :position (v3 0 2.25 -7.5)
                                  :visibility 1}}}
 
                 {:data {:camera {:position (v3 0 2 -1)
                                  :duration 4
                                  :delay 100}
-                        :skybox {:gradient? true
+                        :skybox {:path "img/skybox/space/space"}
+                        #_#_:skybox {:gradient? true
                                  :speed-factor 1.0}
                         "text-dots" {:type :pcs-text
                                      :text "     Welcome to \n\n\n\n\n\n\nImmersive Journey"
