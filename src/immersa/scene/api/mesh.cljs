@@ -181,11 +181,13 @@
                            rotation
                            emissive-color
                            mat
-                           hl-color]
+                           hl-color
+                           hl-blur]
                     :or {size 1
                          resolution 8
                          depth 1.0
-                         mat (api.material/standard-mat (str name "-mat"))}
+                         mat (api.material/standard-mat (str name "-mat"))
+                         hl-blur 1.0}
                     :as opts}]
   (let [text (j/call MeshBuilder :CreateText name
                      text
@@ -197,7 +199,9 @@
                      nil
                      earcut)]
     (when hl-color
-      (let [hl (api.core/highlight-layer (str name "-hl"))
+      (let [hl (api.core/highlight-layer (str name "-hl")
+                                         :blur-vertical-size hl-blur
+                                         :blur-horizontal-size hl-blur)
             [r g b] hl-color]
         (j/call hl :addMesh text (api.core/color r g b))))
     (api.core/add-node-to-db name text (assoc opts :type :text3D))
@@ -229,7 +233,8 @@
                   :rotation (v3 -0.25 Math/PI -0.4)
                   })
 
-  (api.core/dispose "text-dots" "t2" "t" "2d-slide-text-2" "2d-slide")
+  (api.core/dispose "text-dots" "t2" "t" "2d-slide-text-2" "2d-slide"
+                    "3d-slide-text-1")
   (text "t"
         {:type :text3D
          :text "$2.3B\n(TOM)"

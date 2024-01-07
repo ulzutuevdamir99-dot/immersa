@@ -48,39 +48,25 @@
 (defn- get-rotation-anim [object-slide-info object-name]
   (let [object (api.core/get-object-by-name object-name)
         start-rotation (j/get object :rotation)
-        end-rotation (:rotation object-slide-info)]
-    (cond
-      (and (not= object-name :camera)
-           start-rotation
-           end-rotation
-           (not (vector? end-rotation))
-           (not (api.core/equals? start-rotation end-rotation)))
-      [object-name (api.animation/create-rotation-animation {:start start-rotation
-                                                             :end end-rotation
-                                                             :duration (:duration object-slide-info)
-                                                             :delay (:delay object-slide-info)})]
+        end-rotation (:rotation object-slide-info)
+        camera? (= object-name :camera)]
+    (let [end-rotation (cond
+                         (and end-rotation
+                              (or (and
+                                    (not (vector? end-rotation))
+                                    (not (api.core/equals? start-rotation end-rotation)))
+                                  (and (vector? end-rotation)
+                                       (> (count end-rotation) 1))))
+                         end-rotation
 
-      (and (not= object-name :camera)
-           start-rotation
-           end-rotation
-           (vector? end-rotation)
-           (not (api.core/equals? start-rotation end-rotation)))
-      [object-name (api.animation/create-multiple-rotation-animation {:start start-rotation
-                                                                      :end end-rotation
-                                                                      :duration (:duration object-slide-info)
-                                                                      :delay (:delay object-slide-info)})]
-
-      (and (= object-name :camera) (not end-rotation) (not (api.core/equals? start-rotation (j/get object :init-rotation))))
-      [object-name (api.animation/create-rotation-animation {:start start-rotation
-                                                             :end (api.core/clone (j/get object :init-rotation))
-                                                             :duration (:duration object-slide-info)
-                                                             :delay (:delay object-slide-info)})]
-
-      (and (= object-name :camera) (vector? end-rotation))
-      [object-name (api.animation/create-multiple-rotation-animation {:start start-rotation
-                                                                      :end end-rotation
-                                                                      :duration (:duration object-slide-info)
-                                                                      :delay (:delay object-slide-info)})])))
+                         (and camera?
+                              (not end-rotation)
+                              (not (api.core/equals? start-rotation (j/get object :init-rotation))))
+                         (api.core/clone (j/get object :init-rotation)))]
+      (when end-rotation
+        [object-name (api.animation/create-rotation-animation (assoc object-slide-info
+                                                                     :start start-rotation
+                                                                     :end end-rotation))]))))
 
 (defn- get-visibility-anim [object-slide-info object-name]
   (let [end-visibility (:visibility object-slide-info)
@@ -251,25 +237,28 @@
                                  :rotation (v3 0 Math/PI 0)}
 
                         "3d-slide-text-1" {:type :text3D
-                                           :text "$2.3B\n(TOM)"
+                                           :text "$412B\n(TOM)"
                                            :depth 0.1
                                            :size 0.25
                                            :position (v3 -1.5 1.5 5)
                                            :hl-color [0.99 0.8 1]
+                                           :hl-blur 0.5
                                            :visibility 0}
                         "3d-slide-text-2" {:type :text3D
-                                           :text "$242.9M\n  (SAM)"
+                                           :text "$177.2B\n  (SAM)"
                                            :depth 0.1
                                            :size 0.25
                                            :position (v3 0 1.5 5)
                                            :hl-color [0.9 0.8 0.4]
+                                           :hl-blur 0.5
                                            :visibility 0}
                         "3d-slide-text-3" {:type :text3D
-                                           :text "$15M\n(SOM)"
+                                           :text "$1.78B\n(SOM)"
                                            :depth 0.1
                                            :size 0.25
                                            :position (v3 1.5 1.5 5)
                                            :hl-color [0.9 0.88 0.88]
+                                           :hl-blur 0.5
                                            :visibility 0}}}
 
                 {:data {:camera {:position (v3 0 2 -1)
@@ -295,7 +284,8 @@
                                  :delay 750
                                  :duration 4}}}
 
-                {:data {:camera {:position (v3 0 2 -1)}
+                {:data {:camera {:position (v3 0 2 -1)
+                                 :rotation (v3)}
                         :skybox {:path "img/skybox/space/space"}}}
 
                 {:data {:camera {:focus "box"

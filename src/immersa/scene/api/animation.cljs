@@ -104,41 +104,33 @@
                :loop-mode api.const/animation-loop-cons
                :easing (cubic-ease api.const/easing-ease-in-out))))
 
-(defn create-rotation-animation [{:keys [start end duration delay]}]
-  (let [duration (or duration 1.0)]
-    (animation "rotation-animation"
-               :target-prop "rotation"
-               :duration duration
-               :delay delay
-               :from start
-               :to end
-               :data-type api.const/animation-type-v3
-               :loop-mode api.const/animation-loop-cons
-               :easing (cubic-ease api.const/easing-ease-in-out))))
+(defn- get-anim-keys [{:keys [start end duration]}]
+  (when (vector? end)
+    (let [from {:frame 0 :value start}
+          n-positions (count end)
+          fps 30]
+      (->> (map
+             (fn [frame value]
+               {:frame frame :value value})
+             (rest (take (inc n-positions) (iterate (partial + (/ (* fps duration) n-positions)) 0)))
+             end)
+           (cons from)
+           vec))))
 
-(defn create-multiple-rotation-animation [{:keys [start end duration delay fps]
-                                           :or {duration 1.0
-                                                fps 30}}]
+(defn create-rotation-animation [{:keys [start end duration delay]}]
   (let [duration (or duration 1.0)
-        from {:frame 0 :value start}
-        n-positions (count end)
-        keys (vec
-               (cons
-                 from
-                 (map
-                   (fn [frame value]
-                     {:frame frame :value value})
-                   (rest (take (inc n-positions) (iterate (partial + (/ (* fps duration) n-positions)) 0)))
-                   end)))]
-    (animation "multiple-rotation-animation"
-               :target-prop "rotation"
-               :fps fps
-               :duration duration
-               :delay delay
-               :keys keys
-               :data-type api.const/animation-type-v3
-               :loop-mode api.const/animation-loop-cons
-               :easing (cubic-ease api.const/easing-ease-in-out))))
+        keys (get-anim-keys {:start start
+                             :end end
+                             :duration duration})]
+    (animation "rotation-animation"
+               (cond-> {:target-prop "rotation"
+                        :duration duration
+                        :delay delay
+                        :data-type api.const/animation-type-v3
+                        :loop-mode api.const/animation-loop-cons
+                        :easing (cubic-ease api.const/easing-ease-in-out)}
+                 keys (assoc :keys keys)
+                 (nil? keys) (assoc :from start :to end)))))
 
 (defn create-visibility-animation [{:keys [start end duration delay]
                                     :or {duration 1.0}}]
