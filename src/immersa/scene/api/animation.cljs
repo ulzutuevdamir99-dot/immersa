@@ -83,7 +83,8 @@
 (defn create-multiple-position-animation [{:keys [start end duration delay fps]
                                            :or {duration 1.0
                                                 fps 30}}]
-  (let [from {:frame 0 :value start}
+  (let [duration (or duration 1.0)
+        from {:frame 0 :value start}
         n-positions (count end)
         keys (vec
                (cons
@@ -103,22 +104,23 @@
                :loop-mode api.const/animation-loop-cons
                :easing (cubic-ease api.const/easing-ease-in-out))))
 
-(defn create-rotation-animation [{:keys [start end duration delay]
-                                  :or {duration 1.0}}]
-  (animation "rotation-animation"
-             :target-prop "rotation"
-             :duration duration
-             :delay delay
-             :from start
-             :to end
-             :data-type api.const/animation-type-v3
-             :loop-mode api.const/animation-loop-cons
-             :easing (cubic-ease api.const/easing-ease-in-out)))
+(defn create-rotation-animation [{:keys [start end duration delay]}]
+  (let [duration (or duration 1.0)]
+    (animation "rotation-animation"
+               :target-prop "rotation"
+               :duration duration
+               :delay delay
+               :from start
+               :to end
+               :data-type api.const/animation-type-v3
+               :loop-mode api.const/animation-loop-cons
+               :easing (cubic-ease api.const/easing-ease-in-out))))
 
 (defn create-multiple-rotation-animation [{:keys [start end duration delay fps]
                                            :or {duration 1.0
                                                 fps 30}}]
-  (let [from {:frame 0 :value start}
+  (let [duration (or duration 1.0)
+        from {:frame 0 :value start}
         n-positions (count end)
         keys (vec
                (cons
