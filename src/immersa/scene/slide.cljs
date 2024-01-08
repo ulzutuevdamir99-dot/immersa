@@ -184,6 +184,7 @@
                                  :duration 3
                                  :delay 100}
                         :skybox {:path "img/skybox/space/space"}
+
                         #_#_:skybox {:gradient? true
                                      :speed-factor 1.0}
                         "text-dots" {:type :pcs-text
