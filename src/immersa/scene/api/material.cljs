@@ -8,6 +8,7 @@
     ["@babylonjs/core/Materials/standardMaterial" :refer [StandardMaterial]]
     ["@babylonjs/materials/grid/gridMaterial" :refer [GridMaterial]]
     [applied-science.js-interop :as j]
+    [immersa.scene.api.constant :as api.cons]
     [immersa.scene.api.core :as api.core])
   (:require-macros
     [immersa.scene.macros :as m]))
@@ -78,22 +79,30 @@
     (api.core/add-node-to-db name sm opts)))
 
 (defn background-mat [name & {:keys [reflection-texture
-                                     primary-color]
+                                     primary-color
+                                     shadow-level]
+                              :or {shadow-level 0.4}
                               :as opts}]
   (let [bm (BackgroundMaterial. name)]
-    (cond-> bm
-      reflection-texture (j/assoc! :reflectionTexture reflection-texture)
-      true (j/assoc-in! [:reflectionTexture :coordinatesMode] (j/get Texture :SKYBOX_MODE))
-      true (j/assoc-in! [:reflectionTexture :gammaSpace] false)
-      true (j/assoc! :enableNoise true)
-      true (j/assoc! :useRGBColor false)
-      primary-color (j/assoc! :primaryColor primary-color))
+    (m/assoc! bm
+              :backFaceCulling false
+              :reflectionTexture reflection-texture
+              :reflectionTexture.coordinatesMode (j/get Texture :SKYBOX_MODE)
+              :reflectionTexture.gammaSpace false
+              :shadowLevel shadow-level
+              :opacityFresnel true
+              :enableNoise true
+              :useRGBColor false
+              :primaryColor primary-color)
     (api.core/add-node-to-db name bm opts)))
 
 (comment
+
+
   (let [mat (background-mat "background-mat"
                             :reflection-texture (api.core/cube-texture :root-url "img/skybox/background/background")
-                            :primary-color (api.core/color 1 0 0))]
+                            :primary-color api.cons/color-gray
+                            :shadow-level 0.4)]
     (j/assoc! (api.core/get-object-by-name "sky-box") :material mat)))
 
 (defn parse-from-json [json-str]

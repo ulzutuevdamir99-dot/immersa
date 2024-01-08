@@ -31,3 +31,8 @@
   ::set-show-arrow-keys-text?
   (fn [db [_ show-arrow-keys-text?]]
     (assoc db :show-arrow-keys-text? show-arrow-keys-text?)))
+
+(reg-event-db
+  ::set-background-color
+  (fn [db [_ background-color]]
+    (assoc db :background-color background-color)))

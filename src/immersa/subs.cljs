@@ -31,3 +31,8 @@
 (reg-sub
   ::show-arrow-keys-text?
   :show-arrow-keys-text?)
+
+(reg-sub
+  ::background-color
+  (fn [db]
+    (str "radial-gradient(" (:background-color db) ", rgb(0,0,0))")))

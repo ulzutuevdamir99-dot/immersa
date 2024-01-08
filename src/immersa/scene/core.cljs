@@ -1,10 +1,12 @@
 (ns immersa.scene.core
   (:require
+    ["/immersa/vendor/pixels"]
     [applied-science.js-interop :as j]
     [cljs.core.async :as a]
     [goog.functions :as functions]
     [immersa.common.utils :as common.utils]
     [immersa.events :as events]
+    [cljs.core.async :as a :refer [go-loop <!]]
     [immersa.scene.api.camera :as api.camera]
     [immersa.scene.api.component :as api.component]
     [immersa.scene.api.constant :as api.const]
@@ -79,17 +81,65 @@
                      (j/assoc-in! api.core/db [:keyboard key] false))
                    (switch-camera-if-needed scene))))))
 
-(defn when-scene-ready [scene start-slide-show?]
-  ;; (api.core/clear-scene-color api.const/color-white)
+(defn- read-pixels [engine]
+  (let [p (a/promise-chan)
+        canvas (j/call engine :getRenderingCanvas)
+        width (j/get canvas :width)
+        height (j/get canvas :height)
+        pixels (j/call engine :readPixels 0 0 width height)]
+    (j/call pixels :then #(a/put! p {:pixels %
+                                     :width width
+                                     :height height}))
+    p))
+
+(defn- lerp-colors [old-color new-color]
+  (let [p (a/promise-chan)
+        elapsed-time (atom 0)
+        transition-duration 0.5
+        fn-name "lerp-bg-colors"
+        _ (api.core/register-before-render-fn
+            fn-name
+            (fn []
+              (let [elapsed-time (swap! elapsed-time + (api.core/get-delta-time))
+                    amount (min (/ elapsed-time transition-duration) 1)
+                    color (api.core/color-lerp old-color new-color amount)
+                    color-str (str "rgb(" (j/get color :r) "," (j/get color :g) "," (j/get color :b) ")")]
+                (dispatch [::events/set-background-color color-str])
+                (when (>= elapsed-time transition-duration)
+                  (api.core/remove-before-render-fn fn-name)
+                  (a/put! p true)))))]
+    p))
+
+;;TODO check OffscreenCanvas support
+(defn- start-background-lighting [engine]
+  (when (j/get js/window :Worker)
+    (let [worker (js/Worker. "js/worker/worker.js")
+          color-ch (a/chan (a/dropping-buffer 1))
+          prev-color (atom (api.core/color 0 0 0))]
+      (a/put! color-ch #js[0 0 0])
+      (j/assoc! worker :onmessage #(a/put! color-ch (j/get % :data)))
+      (go-loop []
+               (let [{:keys [pixels width height]} (<! (read-pixels engine))
+                     color (<! color-ch)
+                     new-color (api.core/color (j/get color 0) (j/get color 1) (j/get color 2))
+                     _ (<! (lerp-colors @prev-color new-color))]
+                 (reset! prev-color new-color)
+                 (j/call worker :postMessage #js[pixels width height])
+                 (<! (a/timeout 500))
+                 (recur))))))
+
+(defn when-scene-ready [engine scene start-slide-show?]
+  ;(api.core/clear-scene-color api.const/color-white)
   ;; (api.core/clear-scene-color (api.core/color-rgb 239 239 239))
-  (api.core/clear-scene-color api.const/color-black)
+  ;(api.core/clear-scene-color api.const/color-black)
   (j/assoc-in! (api.core/get-object-by-name "sky-box") [:rotation :y] js/Math.PI)
   (api.gui/advanced-dynamic-texture)
   (j/call scene :registerBeforeRender (fn [] (register-before-render)))
   (when-not start-slide-show?
     (register-scene-mouse-events scene))
   (when start-slide-show?
-    (slide/start-slide-show)))
+    (slide/start-slide-show)
+    (start-background-lighting engine)))
 
 (defn start-scene [canvas & {:keys [start-slide-show?]
                              :or {start-slide-show? true}}]
@@ -127,7 +177,7 @@
       (j/call free-camera :setTarget (v3))
       (j/call free-camera :attachControl canvas false)
       (j/call engine :runRenderLoop #(j/call scene :render))
-      (j/call scene :executeWhenReady #(when-scene-ready scene start-slide-show?)))))
+      (j/call scene :executeWhenReady #(when-scene-ready engine scene start-slide-show?)))))
 
 (defn restart-engine [& {:keys [start-slide-show?]
                          :or {start-slide-show? true}}]

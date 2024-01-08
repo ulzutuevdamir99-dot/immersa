@@ -20,7 +20,6 @@
     ["@babylonjs/core/Misc/assetsManager" :refer [AssetsManager]]
     ["@babylonjs/core/Misc/tools" :refer [Tools]]
     ["@babylonjs/core/Particles/pointsCloudSystem" :refer [PointsCloudSystem]]
-    ["@babylonjs/core/Particles/pointsCloudSystem" :refer [PointsCloudSystem]]
     ["@babylonjs/core/scene" :refer [Scene]]
     ["@babylonjs/inspector"]
     ["p5" :as p5]
@@ -419,3 +418,6 @@
 
 (defn rand-range [start end]
   (j/call Scalar :RandomRange start end))
+
+(defn color-lerp [start end amount]
+  (j/call Color3 :Lerp start end amount))

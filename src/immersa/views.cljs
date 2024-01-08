@@ -81,7 +81,9 @@
   [:div (styles/app-container)
    [:div
     {:id "content-container"
-     :class (styles/content-container)}
+     :class (styles/content-container)
+     :style {:background @(subscribe [::subs/background-color])}
+     }
     [canvas-container]
     [:div
      {:id "progress-bar"

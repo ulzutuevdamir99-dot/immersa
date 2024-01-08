@@ -30,7 +30,8 @@
    :display "flex"
    :justify-content "center"
    :align-items "center"
-   :background-color "rgb(13, 14, 19)"})
+   :background "radial-gradient(rgb(0,0,0), rgb(0,0,0))"
+   :transition "background 1s ease-in-out"})
 
 (defclass canvas-container [{:keys [width height]}]
   {:width (str width "px")
