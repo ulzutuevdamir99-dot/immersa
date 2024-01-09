@@ -111,7 +111,7 @@
     p))
 
 (defn- strong-machine? [engine]
-  (let [gl (j/get engine :getGlInfo)
+  (let [gl (j/call engine :getGlInfo)
         renderer (j/get gl :renderer)]
     (boolean
       (when-not (str/blank? renderer)
