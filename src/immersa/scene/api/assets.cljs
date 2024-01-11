@@ -1,7 +1,8 @@
 (ns immersa.scene.api.assets)
 
 (def assets
-  {:cube-textures #{"img/skybox/sunny/sunny"
+  {:texts #{"shader/nme/purpleGlass.json"}
+   :cube-textures #{"img/skybox/sunny/sunny"
                     "img/skybox/space/space"
                     "img/skybox/black/black"
                     "img/skybox/background/background"

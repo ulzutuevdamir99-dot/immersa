@@ -70,10 +70,10 @@
 
 (defn create-position-animation [{:keys [start end duration delay]}]
   (let [duration (or duration 1.0)]
-    (animation "position-animation"                         ;
+    (animation "position-animation"
                :target-prop "position"
                :duration duration
-               :delay delay                                 ;
+               :delay delay
                :from start
                :to end
                :data-type api.const/animation-type-v3

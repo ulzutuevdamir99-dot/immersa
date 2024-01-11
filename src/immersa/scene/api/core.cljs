@@ -360,6 +360,10 @@
 (defn add-cube-texture-task [name url]
   (j/call-in db [:assets-manager :addCubeTextureTask] name url))
 
+(defn add-text-task [name url]
+  (let [task (j/call-in db [:assets-manager :addTextFileTask] name url)]
+    (j/assoc! task :onSuccess #(j/assoc-in! db [:assets-manager :texts url] (j/get % :text)))))
+
 (defn add-mesh-task [name meshes-names url]
   (let [task (j/call-in db [:assets-manager :addMeshTask] name meshes-names url)]
     (j/assoc! task :onSuccess (fn [task]
@@ -377,6 +381,7 @@
     (doseq [[type assets] assets]
       (doseq [[index path] (map-indexed vector assets)]
         (case type
+          :texts (add-text-task (str "text-" index) path)
           :textures (add-texture-task (str "texture-" index) path)
           :cube-textures (add-cube-texture-task (str "cube-texture-" index) path)
           :models (add-mesh-task (str "mesh-" index) "" path))))

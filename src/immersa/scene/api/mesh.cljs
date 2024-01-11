@@ -1,5 +1,6 @@
 (ns immersa.scene.api.mesh
   (:require
+    ["@babylonjs/core/Maths/math.path" :refer [Curve3]]
     ["@babylonjs/core/Meshes/mesh" :refer [Mesh]]
     ["@babylonjs/core/Meshes/meshBuilder" :refer [MeshBuilder]]
     ["earcut" :as earcut]
@@ -222,6 +223,11 @@
       visibility (j/assoc! :visibility visibility)
       position (j/assoc! :position position)
       rotation (j/assoc! :rotation rotation))))
+
+(defn line [name & {:keys [points]
+                    :as opts}]
+  (let [l (j/call MeshBuilder :CreateLines name (clj->js {:points points}))]
+    (api.core/add-node-to-db name l (assoc opts :type :line))))
 
 (defn glb->mesh [name & {:keys [path
                                 position

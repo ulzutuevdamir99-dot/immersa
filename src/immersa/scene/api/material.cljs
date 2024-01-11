@@ -11,8 +11,7 @@
     [applied-science.js-interop :as j]
     [immersa.scene.api.core :as api.core])
   (:require-macros
-    [immersa.scene.macros :as m]
-    [shadow.resource :as rc]))
+    [immersa.scene.macros :as m]))
 
 (defn parse-from-json [json-str]
   (j/call NodeMaterial :Parse (js/JSON.parse json-str)))
@@ -20,11 +19,11 @@
 (defn parse-from-snippet [id on-loaded]
   (j/call (j/call NodeMaterial :ParseFromSnippetAsync id) :then on-loaded))
 
-;; TODO move to addTask, currently it's bundled with the app.js!!!
 (def nme)
 
 (defn init-nme-materials []
-  (set! nme {:purple-glass (parse-from-json (rc/inline "shader/nme/purpleGlass.json"))}))
+  (let [get-json #(j/get-in api.core/db [:assets-manager :texts %])]
+    (set! nme {:purple-glass (parse-from-json (get-json "shader/nme/purpleGlass.json"))})))
 
 (defn get-nme-material [name]
   (api.core/clone (get nme name)))
