@@ -1,20 +1,21 @@
 (ns immersa.scene.materials-in-sphere
-  (:require [applied-science.js-interop :as j]
-            [immersa.scene.api.camera :as api.camera]
-            [immersa.scene.api.core :as api.core :refer [v3]]
-            [immersa.scene.api.material :as api.material]
-            [immersa.scene.api.mesh :as api.mesh]))
+  (:require
+    [applied-science.js-interop :as j]
+    [immersa.scene.api.camera :as api.camera]
+    [immersa.scene.api.core :as api.core :refer [v3]]
+    [immersa.scene.api.material :as api.material]
+    [immersa.scene.api.mesh :as api.mesh]))
 
 (defn- sphere-specular [name opts]
   (api.mesh/sphere
     name
     (assoc opts
-      :mat (api.material/pbr-metallic-roughness-mat
-             "pbr"
-             :base-color (api.core/color 1.0 0.766 0.336)
-             :metallic 1.0
-             :roughness 0.0
-             :environment-texture (api.core/create-from-prefiltered-data "img/texture/environment/environmentSpecular.env")))))
+           :mat (api.material/pbr-metallic-roughness-mat
+                  "pbr"
+                  :base-color (api.core/color 1.0 0.766 0.336)
+                  :metallic 1.0
+                  :roughness 0.0
+                  :environment-texture (api.core/create-from-prefiltered-data "img/texture/environment/environmentSpecular.env")))))
 
 (defn- sphere-stone [name opts]
   (api.mesh/sphere
@@ -35,13 +36,13 @@
 (defn- sphere-copper [name opts]
   (api.mesh/sphere name
                    (assoc opts :mat
-                               (api.material/pbr-mat
-                                 (str name "-mat")
-                                 :reflection-texture (api.core/cube-texture :root-url "img/texture/environment/cube_specular.env")
-                                 :albedo-texture (api.core/texture "img/texture/copper-diffuse.png")
-                                 :bump-texture (api.core/texture "img/texture/copper-normal.jpg")
-                                 :metallic 1
-                                 :roughness 1))))
+                          (api.material/pbr-mat
+                            (str name "-mat")
+                            :reflection-texture (api.core/cube-texture :root-url "img/texture/environment/cube_specular.env")
+                            :albedo-texture (api.core/texture "img/texture/copper-diffuse.png")
+                            :bump-texture (api.core/texture "img/texture/copper-normal.jpg")
+                            :metallic 1
+                            :roughness 1))))
 
 (defn- sphere-nebula [name opts]
   (api.mesh/sphere name (assoc opts :mat (api.material/get-nme-material :nebula))))

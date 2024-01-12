@@ -2,9 +2,9 @@
   (:require
     ["@babylonjs/core/Helpers/environmentHelper" :refer [EnvironmentHelper]]
     ["@babylonjs/core/Materials/Background/backgroundMaterial" :refer [BackgroundMaterial]]
-    ["@babylonjs/core/Materials/PBR/pbrMetallicRoughnessMaterial" :refer [PBRMetallicRoughnessMaterial]]
-    ["@babylonjs/core/Materials/PBR/pbrMaterial" :refer [PBRMaterial]]
     ["@babylonjs/core/Materials/Node/nodeMaterial" :refer [NodeMaterial]]
+    ["@babylonjs/core/Materials/PBR/pbrMaterial" :refer [PBRMaterial]]
+    ["@babylonjs/core/Materials/PBR/pbrMetallicRoughnessMaterial" :refer [PBRMetallicRoughnessMaterial]]
     ["@babylonjs/core/Materials/Textures/texture" :refer [Texture]]
     ["@babylonjs/core/Materials/effect" :refer [Effect]]
     ["@babylonjs/core/Materials/shaderMaterial" :refer [ShaderMaterial]]
@@ -52,20 +52,20 @@
   (let [sm (StandardMaterial. name)]
     (api.core/add-node-to-db name sm opts)
     (cond-> sm
-            diffuse-texture (j/assoc! :diffuseTexture diffuse-texture)
-            (some? has-alpha?) (j/assoc! :hasAlpha has-alpha?)
-            specular-texture (j/assoc! :specularTexture specular-texture)
-            emissive-texture (j/assoc! :emissiveTexture emissive-texture)
-            bump-texture (j/assoc! :bumpTexture bump-texture)
-            opacity-texture (j/assoc! :opacityTexture opacity-texture)
-            get-alpha-from-rgb? (j/assoc-in! [:opacityTexture :getAlphaFromRGB] get-alpha-from-rgb?)
-            specular-color (j/assoc! :specularColor specular-color)
-            (some? back-face-culling?) (j/assoc! :backFaceCulling back-face-culling?)
-            reflection-texture (j/assoc! :reflectionTexture reflection-texture)
-            coordinates-mode (j/assoc-in! [:reflectionTexture :coordinatesMode] (j/get Texture coordinates-mode))
-            (some? disable-lighting?) (j/assoc! :disableLighting disable-lighting?)
-            diffuse-color (j/assoc! :diffuseColor diffuse-color)
-            emissive-color (j/assoc! :emissiveColor emissive-color))))
+      diffuse-texture (j/assoc! :diffuseTexture diffuse-texture)
+      (some? has-alpha?) (j/assoc! :hasAlpha has-alpha?)
+      specular-texture (j/assoc! :specularTexture specular-texture)
+      emissive-texture (j/assoc! :emissiveTexture emissive-texture)
+      bump-texture (j/assoc! :bumpTexture bump-texture)
+      opacity-texture (j/assoc! :opacityTexture opacity-texture)
+      get-alpha-from-rgb? (j/assoc-in! [:opacityTexture :getAlphaFromRGB] get-alpha-from-rgb?)
+      specular-color (j/assoc! :specularColor specular-color)
+      (some? back-face-culling?) (j/assoc! :backFaceCulling back-face-culling?)
+      reflection-texture (j/assoc! :reflectionTexture reflection-texture)
+      coordinates-mode (j/assoc-in! [:reflectionTexture :coordinatesMode] (j/get Texture coordinates-mode))
+      (some? disable-lighting?) (j/assoc! :disableLighting disable-lighting?)
+      diffuse-color (j/assoc! :diffuseColor diffuse-color)
+      emissive-color (j/assoc! :emissiveColor emissive-color))))
 
 (defn grid-mat [name & {:keys [major-unit-frequency
                                minor-unit-visibility
@@ -78,13 +78,13 @@
   (let [gm (GridMaterial. name)]
     (api.core/add-node-to-db name gm opts)
     (m/cond-doto (GridMaterial. name)
-                 major-unit-frequency (j/assoc! :majorUnitFrequency major-unit-frequency)
-                 minor-unit-visibility (j/assoc! :minorUnitVisibility minor-unit-visibility)
-                 grid-ratio (j/assoc! :gridRatio grid-ratio)
-                 (some? back-face-culling?) (j/assoc! :backFaceCulling back-face-culling?)
-                 main-color (j/assoc! :mainColor main-color)
-                 line-color (j/assoc! :lineColor line-color)
-                 opacity (j/assoc! :opacity opacity))))
+      major-unit-frequency (j/assoc! :majorUnitFrequency major-unit-frequency)
+      minor-unit-visibility (j/assoc! :minorUnitVisibility minor-unit-visibility)
+      grid-ratio (j/assoc! :gridRatio grid-ratio)
+      (some? back-face-culling?) (j/assoc! :backFaceCulling back-face-culling?)
+      main-color (j/assoc! :mainColor main-color)
+      line-color (j/assoc! :lineColor line-color)
+      opacity (j/assoc! :opacity opacity))))
 
 (defn shader-mat [name & {:keys [fragment
                                  vertex
@@ -125,11 +125,11 @@
                        :as opts}]
   (let [pbr (PBRMaterial. name)]
     (m/cond-doto pbr
-                 reflection-texture (j/assoc! :reflectionTexture reflection-texture)
-                 albedo-texture (j/assoc! :albedoTexture albedo-texture)
-                 bump-texture (j/assoc! :bumpTexture bump-texture)
-                 metallic (j/assoc! :metallic metallic)
-                 roughness (j/assoc! :roughness roughness))
+      reflection-texture (j/assoc! :reflectionTexture reflection-texture)
+      albedo-texture (j/assoc! :albedoTexture albedo-texture)
+      bump-texture (j/assoc! :bumpTexture bump-texture)
+      metallic (j/assoc! :metallic metallic)
+      roughness (j/assoc! :roughness roughness))
     (api.core/add-node-to-db name pbr opts)))
 
 (defn pbr-metallic-roughness-mat [name & {:keys [base-color
@@ -139,10 +139,10 @@
                                           :as opts}]
   (let [pbr (PBRMetallicRoughnessMaterial. name)]
     (m/cond-doto pbr
-                 base-color (j/assoc! :baseColor base-color)
-                 metallic (j/assoc! :metallic metallic)
-                 roughness (j/assoc! :roughness roughness)
-                 environment-texture (j/assoc! :environmentTexture environment-texture))
+      base-color (j/assoc! :baseColor base-color)
+      metallic (j/assoc! :metallic metallic)
+      roughness (j/assoc! :roughness roughness)
+      environment-texture (j/assoc! :environmentTexture environment-texture))
     (api.core/add-node-to-db name pbr opts)))
 
 (defn create-environment-helper []

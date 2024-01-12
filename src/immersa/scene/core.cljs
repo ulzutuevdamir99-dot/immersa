@@ -123,7 +123,7 @@
     (let [worker (js/Worker. "js/worker/worker.js")
           color-ch (a/chan (a/dropping-buffer 1))
           prev-color (atom (api.core/color 0 0 0))
-          lerp-fn (fn [r g b]
+          on-lerp (fn [r g b]
                     (let [color-str (str "rgb(" r "," g "," b ")")]
                       (dispatch [::events/set-background-color color-str])))]
       (a/put! color-ch #js[0 0 0])
@@ -133,7 +133,9 @@
               color (<! color-ch)
               new-color (api.core/color (j/get color 0) (j/get color 1) (j/get color 2))
               _ (when-not (api.core/equals? @prev-color new-color)
-                  (<! (api.core/lerp-colors @prev-color new-color lerp-fn)))]
+                  (<! (api.core/lerp-colors {:start-color @prev-color
+                                             :end-color new-color
+                                             :on-lerp on-lerp})))]
           (reset! prev-color new-color)
           (j/call worker :postMessage #js[pixels width height])
           (<! (a/timeout 500))

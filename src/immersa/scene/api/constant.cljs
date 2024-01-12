@@ -2,13 +2,13 @@
   (:require
     ["@babylonjs/core/Events/keyboardEvents" :refer [KeyboardEventTypes]]
     ["@babylonjs/core/Events/pointerEvents" :refer [PointerEventTypes]]
+    ["@babylonjs/core/Materials/GreasedLine/greasedLineMaterialInterfaces" :refer [GreasedLineMeshColorMode
+                                                                                   GreasedLineMeshMaterialType]]
     ["@babylonjs/core/Materials/material" :refer [Material]]
     ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3 Vector4]]
     ["@babylonjs/core/Maths/math.color" :refer [Color3]]
     ["@babylonjs/core/Meshes/mesh" :refer [Mesh]]
     ["@babylonjs/core/Particles/particleSystem" :refer [ParticleSystem]]
-    ["@babylonjs/core/Materials/GreasedLine/greasedLineMaterialInterfaces" :refer [GreasedLineMeshColorMode
-                                                                                   GreasedLineMeshMaterialType]]
     [applied-science.js-interop :as j]))
 
 (def v3-up (j/call Vector3 :Up))
