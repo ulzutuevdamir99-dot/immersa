@@ -154,7 +154,8 @@
     (slide/start-slide-show)
     (start-background-lighting engine)))
 
-(defn start-scene [canvas & {:keys [start-slide-show?]
+(defn start-scene [canvas & {:keys [start-slide-show?
+                                    dev?]
                              :or {start-slide-show? true}}]
   (a/go
     (let [engine (api.core/create-engine canvas)
@@ -186,7 +187,8 @@
           _ (api.component/create-sky-sphere)
           _ (api.material/create-environment-helper)
           _ (api.material/init-nme-materials)]
-      (common.utils/remove-element-listeners)
+      (when dev?
+        (common.utils/remove-element-listeners))
       (common.utils/register-event-listener js/window "resize" (functions/debounce #(j/call engine :resize) 250))
       (j/assoc! light :intensity 0.7)
       (j/call free-camera :setTarget (v3))
@@ -194,10 +196,13 @@
       (j/call engine :runRenderLoop #(j/call scene :render))
       (j/call scene :executeWhenReady #(when-scene-ready engine scene start-slide-show?)))))
 
-(defn restart-engine [& {:keys [start-slide-show?]
+(defn restart-engine [& {:keys [start-slide-show?
+                                dev?]
                          :or {start-slide-show? true}}]
   (api.core/dispose-engine)
-  (start-scene (js/document.getElementById "renderCanvas") :start-slide-show? start-slide-show?))
+  (start-scene (js/document.getElementById "renderCanvas")
+               :start-slide-show? start-slide-show?
+               :dev? dev?))
 
 (comment
   (common.utils/register-event-listener js/window "resize" #(do

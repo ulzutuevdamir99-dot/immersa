@@ -122,7 +122,8 @@
    :transition "all 0.3s ease"
    :width "120px"
    :height "100%"
-   :border-radius "50px"}
+   :border-radius "50px"
+   :outline :none}
   [:&:hover {:transition "all 0.3s ease"}])
 
 (defclass wait-list-button-glow []
