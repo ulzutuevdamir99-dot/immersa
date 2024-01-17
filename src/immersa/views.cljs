@@ -1,12 +1,5 @@
 (ns immersa.views
   (:require
-    ["@babylonjs/core/Cameras/freeCamera" :refer [FreeCamera]]
-    ["@babylonjs/core/Engines/engine" :refer [Engine]]
-    ["@babylonjs/core/Lights/hemisphericLight" :refer [HemisphericLight]]
-    ["@babylonjs/core/Materials/standardMaterial" :refer [StandardMaterial]]
-    ["@babylonjs/core/Maths/math" :refer [Vector3]]
-    ["@babylonjs/core/Meshes/meshBuilder" :refer [MeshBuilder]]
-    ["@babylonjs/core/scene" :refer [Scene]]
     ["@phosphor-icons/react" :refer [CaretLeft
                                      CaretRight
                                      DotsThreeVertical
@@ -43,12 +36,13 @@
                          :class (styles/canvas)}])}))
 
 (defn- canvas-container []
-  ;; TODO we need to notify the engine when the canvas dimensions change
-  (let [{:keys [width height] :as dimensions} @(subscribe [::subs/calculated-canvas-dimensions])]
+  (let [{:keys [width height]} @(subscribe [::subs/calculated-canvas-dimensions])]
     (when (and (> width 0) (> height 0))
       [:div
        {:id "canvas-container"
-        :class (styles/canvas-container dimensions)}
+        :style {:width (str width "px")
+                :height (str height "px")}
+        :class (styles/canvas-container)}
        (when @(subscribe [::subs/show-arrow-keys-text?])
          [:div (styles/arrow-keys-text)
           [:h1 "Use arrow keys to navigate"]

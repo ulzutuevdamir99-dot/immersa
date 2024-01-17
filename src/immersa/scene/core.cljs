@@ -92,24 +92,6 @@
                                      :height height}))
     p))
 
-(defn- lerp-colors [old-color new-color]
-  (let [p (a/promise-chan)
-        elapsed-time (atom 0)
-        transition-duration 0.5
-        fn-name "lerp-bg-colors"
-        _ (api.core/register-before-render-fn
-            fn-name
-            (fn []
-              (let [elapsed-time (swap! elapsed-time + (api.core/get-delta-time))
-                    amount (min (/ elapsed-time transition-duration) 1)
-                    color (api.core/color-lerp old-color new-color amount)
-                    color-str (str "rgb(" (j/get color :r) "," (j/get color :g) "," (j/get color :b) ")")]
-                (dispatch [::events/set-background-color color-str])
-                (when (>= elapsed-time transition-duration)
-                  (api.core/remove-before-render-fn fn-name)
-                  (a/put! p true)))))]
-    p))
-
 (defn- strong-machine? [engine]
   (let [gl (j/call engine :getGlInfo)
         renderer (j/get gl :renderer)]

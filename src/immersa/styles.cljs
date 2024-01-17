@@ -33,10 +33,8 @@
    :background "radial-gradient(rgb(0,0,0), rgb(0,0,0))"
    :transition "background 1s ease-in-out"})
 
-(defclass canvas-container [{:keys [width height]}]
-  {:width (str width "px")
-   :height (str height "px")
-   :box-sizing "border-box"})
+(defclass canvas-container []
+  {:box-sizing "border-box"})
 
 (defclass canvas []
   {:width "100%"

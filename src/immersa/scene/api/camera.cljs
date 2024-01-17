@@ -90,3 +90,16 @@
       true (j/assoc! :type :arc)
       true (j/assoc! :init-rotation init-rotation)
       true (j/assoc! :init-position init-position))))
+
+(defn calculate-new-fov [original-fov frame-height container-height]
+  (* 2 (Math/atan (* (Math/tan (/ original-fov 2)) (/ container-height frame-height)))))
+
+;; 931 522
+;; 1026 576
+(comment
+  (j/get (active-camera) :fov)
+  (j/assoc! (active-camera) :fov 0.8)
+  (j/assoc! (active-camera) :fov 1.1578)
+  (calculate-new-fov 0.8 500 773)
+  (calculate-new-fov 0.8730305915925877 576 522)
+  )
