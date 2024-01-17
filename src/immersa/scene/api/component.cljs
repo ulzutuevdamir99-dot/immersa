@@ -129,7 +129,7 @@
                                 thickness]
                          :or {width 1.2
                               height 1
-                              scale 1
+                              scale (v3 1)
                               resolution-scale 5
                               font-size 100
                               font-family "Bellefair,serif"

@@ -191,13 +191,14 @@
 (defn clouds [name & {:keys [position
                              scale]
                       :or {position (v3 0 0 0)
-                           scale 0.1}}]
+                           scale (v3 0.1)}}]
   (let [cloud-mesh (api.mesh/sphere (str name "-mesh")
                                     :position position
                                     :diameter 0.1
                                     :segments 16
                                     :scale scale
                                     :visible? false)
+        scale-factor (j/get scale :x)
         before-render-fn (str name "-clouds-before-render")
         cloud-system (create-particle-system name
                                              :position position
@@ -229,8 +230,8 @@
                                              :pre-warm-cycles 100
                                              :emitter cloud-mesh
                                              ;; :local? true
-                                             :min-size (* 0.3 scale)
-                                             :max-size (* 0.3 scale)
+                                             :min-size (* 0.3 scale-factor)
+                                             :max-size (* 0.3 scale-factor)
                                              :color-gradients [[0 (api.core/color 1 1 1 0)]
                                                                [0.3 (api.core/color 1 1 1 0.7)]
                                                                [1 (api.core/color 0.3 0.3 0.3 0)]])]
@@ -252,9 +253,9 @@
   (api.core/dispose "cloud-particle")
   (start
     (clouds "cloud-particle"
-           :scale (v3 0.9)
+            :scale (v3 0.9)
             :update-speed 0.01
-           :position (v3 0 2.1 2)))
+            :position (v3 0 1.1 3)))
 
   (let [origin (v3 0 0 0)
         position (v3 0 0 0)

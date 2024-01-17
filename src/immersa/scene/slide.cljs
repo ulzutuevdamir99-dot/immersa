@@ -327,9 +327,9 @@
                                          :visibility 1}
                         "cloud-particle" {:type :particle
                                           :particle-type :cloud
+                                          :position (v3 10 2.1 2)
                                           :scale (v3 0.9)
-                                          :update-speed 0.01
-                                          :position (v3 10 2.1 2)}}}
+                                          :update-speed 0.01}}}
 
                 {:data {:camera {:position (v3 0 2 -1)
                                  :rotation (v3 0 0 0)}
