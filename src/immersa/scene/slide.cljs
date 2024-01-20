@@ -214,7 +214,7 @@
                         "world" {:type :earth
                                  :position [0 -0.7 -9.5]
                                  :visibility 0}}}
-                {:data {:skybox {:background {:color 0}}
+                {:data {:skybox {:background {:image "img/skybox/sunny/sunny"}}
                         "wave" {:type :wave}
                         "immersa-text" {:type :billboard
                                         :visibility 1}
@@ -592,9 +592,8 @@
       [(first slides-vec)]
       (rest slides-vec))))
 
-(defn- run-skybox-dissolve-animation [objects-data]
-  (let [skybox-path (-> objects-data :skybox :path)
-        speed-factor (or (-> objects-data :skybox :speed-factor) 0.5)
+(defn- run-skybox-bg-image->bg-image-dissolve-anim [skybox]
+  (let [skybox-path (-> skybox :background :image)
         skybox-shader (api.core/get-object-by-name "skybox-shader")
         current-skybox-path (j/get skybox-shader :skybox-path)
         default-skybox-path (j/get skybox-shader :default-skybox-path)
@@ -605,9 +604,9 @@
                           (and (nil? skybox-path) (not= default-skybox-path current-skybox-path))
                           default-skybox-path)]
     (when new-skybox-path
-      (api.animation/create-skybox-dissolve-anim
+      (api.animation/create-skybox-bg-image->bg-image-dissolve-anim
         :skybox-path new-skybox-path
-        :speed-factor speed-factor))))
+        :duration (:duration skybox)))))
 
 (defmulti disable-component (comp keyword api.core/get-object-type-by-name))
 
@@ -933,7 +932,6 @@
                                           acc)))
                                     {}
                                     (group-by first animations)))
-                background? (-> objects-data :skybox :background)
                 _ (doseq [name (set/difference current-slide-object-names
                                                object-names-to-dispose
                                                (set prev-slide-object-names))]
@@ -949,17 +947,23 @@
                                  object-names-from-slide-info)]
             (swap! current-running-anims #(vec (concat % pcs-animations)))
 
-            (when (or (and background?
-                           (= :prev command)
+            (when (or (and (= :prev command)
                            (-> (:data (slides (inc current-index))) :skybox :background :color))
-                      (and background?
-                           (= :next command)
+                      (and (= :next command)
                            (> current-index 0)
                            (-> (:data (slides (dec current-index))) :skybox :background :color)))
               (do
                 (println "background color changing")
                 (some->> (api.animation/create-background->background-color-anim (:skybox objects-data))
                          (swap! current-running-anims conj))))
+
+            (when (or (and (= :prev command)
+                           (-> (:data (slides (inc current-index))) :skybox :background :image))
+                      (and (= :next command)
+                           (> current-index 0)
+                           (-> (:data (slides (dec current-index))) :skybox :background :image)))
+              (some->> (run-skybox-bg-image->bg-image-dissolve-anim (:skybox objects-data))
+                       (swap! current-running-anims conj)))
 
             (doseq [{:keys [ch]} @current-running-anims]
               (a/<! ch))

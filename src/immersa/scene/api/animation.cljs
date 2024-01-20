@@ -270,27 +270,33 @@
                            :targets [[skybox-material :primaryColor]
                                      [ground-material :primaryColor]]})))
 
-(defn create-skybox-dissolve-anim [& {:keys [skybox-path
-                                             speed-factor]
-                                      :or {speed-factor 1}}]
+(defn create-skybox-bg-image->bg-image-dissolve-anim [& {:keys [skybox-path
+                                                                duration]}]
   (let [p (a/promise-chan)
-        dissolve (atom 0)
+        duration (or duration 1.0)
+        elapsed-time (atom 0)
         dissolve-fn-name "dissolve-skybox"
         mat (api.core/get-object-by-name "skybox-shader")
         current-skybox-path (j/get mat :skybox-path)
+        max-dissolve 1.5
+        finish-fn (fn []
+                    (api.core/remove-before-render-fn dissolve-fn-name)
+                    (j/call mat :setFloat "dissolve" max-dissolve)
+                    (j/assoc! mat :skybox-path skybox-path)
+                    (a/put! p true))
         dissolve-fn (fn []
-                      (let [dissolve (swap! dissolve + (* (api.core/get-delta-time) speed-factor))]
-                        (if (<= dissolve 1.5)
+                      (let [elapsed-time (swap! elapsed-time + (api.core/get-delta-time))
+                            dissolve-step (/ max-dissolve duration)
+                            dissolve (* elapsed-time dissolve-step)]
+                        (if (<= elapsed-time duration)
                           (j/call mat :setFloat "dissolve" dissolve)
-                          (do
-                            (j/assoc! mat :skybox-path skybox-path)
-                            (api.core/remove-before-render-fn dissolve-fn-name)
-                            (a/put! p true)))))]
+                          (finish-fn))))]
     (j/call mat :setTexture "skybox1" (api.core/cube-texture :root-url current-skybox-path))
     (j/call mat :setTexture "skybox2" (api.core/cube-texture :root-url skybox-path))
     (j/call mat :setFloat "dissolve" 0)
     (api.core/register-before-render-fn dissolve-fn-name dissolve-fn)
-    p))
+    {:ch p
+     :force-finish-fn finish-fn}))
 
 (defn create-sky-sphere-dissolve-anim []
   (let [p (a/promise-chan)
