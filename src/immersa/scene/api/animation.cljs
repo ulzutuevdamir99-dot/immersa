@@ -216,7 +216,7 @@
                                                   :or {duration 1.0}}]
   (let [p (a/promise-chan)
         elapsed-time (atom 0)
-        max-dissolve 1.5
+        max-dissolve 1.1
         dissolve-fn-name "dissolve-skybox->background"
         mat (api.core/get-object-by-name "skybox-shader")
         _ (j/assoc! mat :alpha 0)
@@ -294,7 +294,7 @@
         dissolve-fn-name "dissolve-skybox"
         mat (api.core/get-object-by-name "skybox-shader")
         current-skybox-path (j/get mat :skybox-path)
-        max-dissolve 1.5
+        max-dissolve 1.1
         finish-fn (fn []
                     (api.core/remove-before-render-fn dissolve-fn-name)
                     (j/call mat :setFloat "dissolve" max-dissolve)

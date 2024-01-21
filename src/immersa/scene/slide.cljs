@@ -232,7 +232,8 @@
                                           :height 3
                                           :font-size 35
                                           :visibility 0}}}
-                {:data {:skybox {:background {:image "img/skybox/sunny/sunny"}}
+                {:data {:skybox {:background {:image "img/skybox/sunny/sunny"}
+                                 :duration 2.5}
                         "wave" {:type :wave}
                         "immersa-text-2" {:type :billboard
                                           :text "A 3D Presentation Tool for the Web"
