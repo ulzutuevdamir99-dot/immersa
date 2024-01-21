@@ -14,3 +14,13 @@
     (j/call element :removeEventListener type f))
   (swap! db assoc :event-listeners [])
   (js/console.log "All events listeners removed"))
+
+(defn save-canvas-as-webp [canvas-id & {:keys [scale-factor quality]
+                                        :or {scale-factor 0.5
+                                             quality 0.75}}]
+  (let [canvas (js/document.getElementById canvas-id)
+        ctx (j/call canvas :getContext "2d")]
+    (j/assoc! canvas :width (* (j/get canvas :width) scale-factor))
+    (j/assoc! canvas :height (* (j/get canvas :height) scale-factor))
+    (j/call ctx :drawImage canvas 0 0 (j/get canvas :width) (j/get canvas :height))
+    (j/call canvas :toDataURL "image/webp" quality)))

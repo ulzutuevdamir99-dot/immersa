@@ -49,7 +49,7 @@
 (comment
   (create-sky-box)
   (api.core/dispose "skybox-shader")
-  (api.core/dispose "sky-box")
+  (js/setTimeout #(api.core/dispose "sky-box") 2000)
   (j/call (api.core/get-object-by-name "skybox-shader") :setFloat "transparency" 0.2)
   (j/call (api.core/get-object-by-name "skybox-shader") :getFloat "transparency")
   (j/assoc! (api.core/get-object-by-name "skybox-shader") :alpha 0)

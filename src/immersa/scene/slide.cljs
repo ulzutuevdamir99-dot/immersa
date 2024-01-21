@@ -204,7 +204,7 @@
 
 ;; TODO is is called every time a slide is changed
 (defn get-slides []
-  (let [slides [{:data {:skybox {:background {:image "img/skybox/space/space"}}
+  (let [slides [{:data {:skybox {:background {:color [80 157 105]}}
                         "wave" {:type :wave}
                         "immersa-text" {:type :billboard
                                         :position 0
@@ -214,7 +214,8 @@
                         "world" {:type :earth
                                  :position [0 -0.7 -9.5]
                                  :visibility 0}}}
-                {:data {:skybox {:background {:image "img/skybox/sunny/sunny"}}
+                {:data {:skybox {:background {:image "img/skybox/space/space"}
+                                 :duration 1.5}
                         "wave" {:type :wave}
                         "immersa-text" {:type :billboard
                                         :visibility 1}
@@ -231,7 +232,8 @@
                                           :height 3
                                           :font-size 35
                                           :visibility 0}}}
-                {:data {"wave" {:type :wave}
+                {:data {:skybox {:background {:image "img/skybox/sunny/sunny"}}
+                        "wave" {:type :wave}
                         "immersa-text-2" {:type :billboard
                                           :text "A 3D Presentation Tool for the Web"
                                           :visibility 1}
@@ -246,9 +248,8 @@
                                   :position [0 0 5]
                                   :rotation [(/ js/Math.PI 2) 0 0]
                                   :visibility 0}}}
-                {:data {:camera {:position [0 2 -10]}
-                        :skybox {:path "img/skybox/space/space"
-                                 :speed-factor 0.5}
+                {:data {:skybox {:background {:color [80 157 105]}}
+                        :camera {:position [0 2 -10]}
                         "text-3" {:type :text3D
                                   :position [0 0 -2]
                                   :rotation 0
@@ -261,10 +262,10 @@
                                  :position [0 2.25 -7.5]
                                  :visibility 1}}}
 
-                {:data {:camera {:position [0 2 -1]
+                {:data {:skybox {:background {:color 255}}
+                        :camera {:position [0 2 -1]
                                  :duration 3
                                  :delay 100}
-                        :skybox {:path "img/skybox/space/space"}
                         "text-dots" {:type :pcs-text
                                      :text "      Welcome to the\n\n\n\n\n\n\n\nFuture of Presentation"
                                      :duration 1.5
@@ -306,8 +307,8 @@
                                :rotation [1.2 2.3 4.1]
                                :visibility 0}}}
 
-                {:data {:camera {:position [0 2 -1]}
-                        :skybox {:path "img/skybox/space/space"}
+                {:data {:skybox {:background {:image "img/skybox/space/space"}}
+                        :camera {:position [0 2 -1]}
                         "2d-slide" {:visibility 1
                                     :scale 3.7}
                         "2d-slide-text-1" {:visibility 1}
@@ -846,6 +847,27 @@
               (j/assoc! skybox-shader-mat :alpha 1)
               (j/call skybox-shader-mat :setTexture "skybox1" (api.core/cube-texture :root-url image))))))
 
+(defn- add-skybox-anims [{:keys [prev-slide objects-data current-running-anims skybox]}]
+  (when prev-slide
+    (let [anim (cond
+                 (and
+                   (-> prev-slide :skybox :background :color)
+                   (-> objects-data :skybox :background :color))
+                 (api.animation/create-background->background-color-anim skybox)
+
+                 (and (-> prev-slide :skybox :background :image)
+                      (-> objects-data :skybox :background :image))
+                 (run-skybox-bg-image->bg-image-dissolve-anim skybox)
+
+                 (and (-> prev-slide :skybox :background :image)
+                      (-> objects-data :skybox :background :color))
+                 (api.animation/create-skybox->background-dissolve-anim skybox)
+
+                 (and (-> prev-slide :skybox :background :color)
+                      (-> objects-data :skybox :background :image))
+                 (api.animation/create-background->skybox-dissolve-anim skybox))]
+      (some->> anim (swap! current-running-anims conj)))))
+
 (defn start-slide-show []
   (let [command-ch (a/chan (a/dropping-buffer 1))
         slide-controls (js/document.getElementById "slide-controls")
@@ -853,7 +875,8 @@
         next-button (j/get-in slide-controls [:children 2])
         current-running-anims (atom [])
         slide-in-progress? (atom false)
-        slides (get-slides)]
+        slides (get-slides)
+        prev-slide (atom nil)]
     (a/put! command-ch :next)
     (api.core/dispose-all (concat (api.core/get-objects-by-type "box")
                                   (api.core/get-objects-by-type "billboard")
@@ -946,28 +969,13 @@
                                        (api.animation/pcs-text-anim object-name object-slide-info))))
                                  object-names-from-slide-info)]
             (swap! current-running-anims #(vec (concat % pcs-animations)))
-
-            (when (or (and (= :prev command)
-                           (-> (:data (slides (inc current-index))) :skybox :background :color))
-                      (and (= :next command)
-                           (> current-index 0)
-                           (-> (:data (slides (dec current-index))) :skybox :background :color)))
-              (do
-                (println "background color changing")
-                (some->> (api.animation/create-background->background-color-anim (:skybox objects-data))
-                         (swap! current-running-anims conj))))
-
-            (when (or (and (= :prev command)
-                           (-> (:data (slides (inc current-index))) :skybox :background :image))
-                      (and (= :next command)
-                           (> current-index 0)
-                           (-> (:data (slides (dec current-index))) :skybox :background :image)))
-              (some->> (run-skybox-bg-image->bg-image-dissolve-anim (:skybox objects-data))
-                       (swap! current-running-anims conj)))
-
+            (add-skybox-anims {:prev-slide @prev-slide
+                               :objects-data objects-data
+                               :current-running-anims current-running-anims
+                               :skybox (:skybox objects-data)})
             (doseq [{:keys [ch]} @current-running-anims]
               (a/<! ch))
-
+            (reset! prev-slide objects-data)
             (reset! slide-in-progress? false)
             (recur current-index))
           (recur index))))))
