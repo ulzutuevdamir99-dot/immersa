@@ -219,6 +219,10 @@
         max-dissolve 1.1
         dissolve-fn-name "dissolve-skybox->background"
         mat (api.core/get-object-by-name "skybox-shader")
+        skybox-path (j/get mat :skybox-path)
+        _ (do
+            (j/call mat :setTexture "skybox1" (api.core/cube-texture :root-url skybox-path))
+            (j/call mat :setTexture "skybox2" (api.core/cube-texture :root-url skybox-path)))
         _ (j/assoc! mat :alpha 0)
         skybox-material (j/get-in api.core/db [:environment-helper :skybox :material])
         ground-material (j/get-in api.core/db [:environment-helper :ground :material])
@@ -243,6 +247,10 @@
     (api.core/register-before-render-fn dissolve-fn-name dissolve-fn)
     {:ch p
      :force-finish-fn finish-fn}))
+
+(comment
+  (j/get (api.core/get-object-by-name "skybox-shader") :skybox-path)
+  )
 
 (defn create-background->skybox-dissolve-anim [& {:keys [background duration]
                                                   :or {duration 1.0}}]

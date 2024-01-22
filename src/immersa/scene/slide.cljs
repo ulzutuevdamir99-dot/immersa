@@ -869,8 +869,10 @@
                  (api.animation/create-background->skybox-dissolve-anim skybox))]
       (some->> anim (swap! current-running-anims conj)))))
 
+(def command-ch)
+
 (defn start-slide-show []
-  (let [command-ch (a/chan (a/dropping-buffer 1))
+  (let [_ (set! command-ch (a/chan (a/dropping-buffer 1)))
         slide-controls (js/document.getElementById "slide-controls")
         prev-button (j/get-in slide-controls [:children 0])
         next-button (j/get-in slide-controls [:children 2])
@@ -911,7 +913,8 @@
       (let [command (a/<! command-ch)
             current-index (case command
                             :next (inc index)
-                            :prev (dec index))
+                            :prev (dec index)
+                            command)
             slides (get-slides)]
         (if (and (>= current-index 0) (< current-index (count slides)))
           (let [_ (notify-ui current-index (count slides))
@@ -922,11 +925,8 @@
                     (api.camera/update-active-camera))
                 objects-to-create (filter #(not (api.core/get-object-by-name %)) object-names-from-slide-info)
                 current-slide-object-names (-> slide :data keys set)
-                [prev-slide-object-names object-names-to-dispose] (when (> current-index 0)
-                                                                    (let [prev-slide (slides (if (= command :next)
-                                                                                               (dec current-index)
-                                                                                               (inc current-index)))
-                                                                          prev-slide-object-names (-> prev-slide :data keys set)]
+                [prev-slide-object-names object-names-to-dispose] (when @prev-slide
+                                                                    (let [prev-slide-object-names (-> @prev-slide keys set)]
                                                                       [prev-slide-object-names
                                                                        (set/difference prev-slide-object-names current-slide-object-names #{:camera :skybox})]))
 
@@ -980,3 +980,7 @@
             (reset! slide-in-progress? false)
             (recur current-index))
           (recur index))))))
+
+(comment
+  (a/put! command-ch 8)
+  )
