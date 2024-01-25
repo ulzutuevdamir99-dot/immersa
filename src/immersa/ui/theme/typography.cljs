@@ -23,6 +23,7 @@
 (def xl "15px")
 (def xxl "18px")
 
+(def light 300)
 (def regular 400)
 (def medium 500)
 (def semi-bold 600)

@@ -2,7 +2,7 @@
   (:require
     [immersa.ui.theme.colors :as colors]
     [immersa.ui.theme.typography :as typography]
-    [spade.core :refer [defglobal defclass defattrs]]))
+    [spade.core :refer [defclass defattrs]]))
 
 (def hover-style
   [:&:hover
@@ -12,10 +12,9 @@
 (def active-style
   [:&:active
    {:background colors/active-bg
-    :border-radius "5px"
-    :color colors/text-hover}])
+    :border-radius "5px"}])
 
-(defclass content-container []
+(defattrs editor-container []
   {:width "100%"
    :height "100%"
    :margin 0
@@ -27,8 +26,45 @@
    :overflow "hidden"
    :transition "background 1s ease-in-out"})
 
+(defattrs content-container []
+  {:display :flex
+   :flex 1
+   :overflow :hidden
+   :position :relative})
+
+(defattrs side-bar []
+  {:flex-shrink 0
+   :width "200px"
+   :border-right (str "1px solid " colors/panel-border)
+   :box-sizing :border-box
+   :box-shadow :none
+   :display :flex
+   :position :relative
+   :flex-direction :column})
+
+(defattrs options-bar []
+  {:width "340px"
+   :z-index "5000"
+   :display :flex
+   :flex-direction :column
+   :overflow :hidden
+   :border-left (str "1px solid " colors/panel-border)
+   :box-sizing :border-box})
+
 (defclass canvas-container []
   {:box-sizing "border-box"})
+
+(defclass canvas-wrapper []
+  {:display :flex
+   :flex 1
+   :flex-direction :column
+   :position :relative
+   :overflow :hidden
+   ;; TODO add those when show no UI
+   ;; :justify-content "center"
+   ;; :align-items "center"
+   :box-sizing :border-box
+   :box-shadow :none})
 
 (defclass canvas []
   {:width "100%"
@@ -78,6 +114,7 @@
 (defattrs title-label []
   {:overflow :hidden
    :font-size typography/l
+   :font-weight typography/medium
    :color colors/text-primary
    :text-overflow :ellipsis
    :white-space :nowrap
@@ -114,11 +151,11 @@
 
 (defattrs presentation-component-label []
   {:font-size typography/s
-   :font-weight typography/regular
+   :font-weight typography/light
    :color colors/text-primary})
 
 (defclass presentation-component-cube []
-  {:width :max-content})
+  {:width (str "max-content !important")})
 
 (defattrs header-right []
   {:flex "1 1 50%"

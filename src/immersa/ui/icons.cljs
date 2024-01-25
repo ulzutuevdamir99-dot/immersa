@@ -11,6 +11,7 @@
     ["@phosphor-icons/react/dist/csr/Image" :refer [Image]]
     ["@phosphor-icons/react/dist/csr/Lightbulb" :refer [Lightbulb]]
     ["@phosphor-icons/react/dist/csr/List" :refer [List]]
+    ["@phosphor-icons/react/dist/csr/Play" :refer [Play]]
     ["@phosphor-icons/react/dist/csr/ShareNetwork" :refer [ShareNetwork]]
     ["@phosphor-icons/react/dist/csr/SmileySticker" :refer [SmileySticker]]
     ["@phosphor-icons/react/dist/csr/TextT" :refer [TextT]]
@@ -30,3 +31,4 @@
 (def cube (r/adapt-react-class Cube))
 (def light (r/adapt-react-class Lightbulb))
 (def share (r/adapt-react-class ShareNetwork))
+(def play (r/adapt-react-class Play))

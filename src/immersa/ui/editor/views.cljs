@@ -3,6 +3,7 @@
     [applied-science.js-interop :as j]
     [goog.functions :as functions]
     [immersa.scene.core :as scene.core]
+    [immersa.ui.editor.components.button :refer [button]]
     [immersa.ui.editor.events :as event]
     [immersa.ui.editor.styles :as styles]
     [immersa.ui.editor.subs :as subs]
@@ -50,16 +51,7 @@
                          [:div
                           {:id "canvas-wrapper"
                            :ref #(reset! ref %)
-                           :style {:display "flex"
-                                   :flex 1
-                                   :flex-direction "column"
-                                   :position "relative"
-                                   :overflow "hidden"
-                                   ;; TODO add those when show no UI
-                                   ;; :justify-content "center"
-                                   ;; :align-items "center"
-                                   :box-sizing "border-box"
-                                   :box-shadow "none"}}
+                           :class (styles/canvas-wrapper)}
                           (when @ref
                             [canvas-container])])})))
 
@@ -87,28 +79,21 @@
    [presentation-component {:icon icon/cube
                             :text "3D Model"
                             :class (styles/presentation-component-cube)}]
-   [presentation-component {:icon icon/image
+   [presentation-component {:icon icon/light
                             :text "Light"}]])
 
 (defn- header-right-panel []
   [:div (styles/header-right)
    [:div (styles/header-right-container)
-    [:button
-     {:style {:padding "0 8px"
-              :height "30px"
-              :border-radius "5px"
-              :border "1px solid rgba(13, 14, 19, 0.1)"}}
-     "Present"]
-    [:button
-     {:style {:display "flex"
-              :align-items "center"
-              :gap "4px"
-              :padding "0 8px"
-              :height "30px"
-              :border-radius "8px"
-              :border "1px solid rgba(13, 14, 19, 0.1)"}}
-     [:span "Share"]
-     [icon/share]]]])
+    [button {:text "Present"
+             :type :outline
+             :icon-left [icon/play {:size 18
+                                    :weight "fill"
+                                    :color colors/button-outline-text}]}]
+    [button {:text "Share"
+             :icon-right [icon/share {:size 18
+                                      :weight "fill"
+                                      :color colors/button-text}]}]]])
 
 (defn- header []
   [:div (styles/header-container)
@@ -117,43 +102,9 @@
    [header-right-panel]])
 
 (defn editor-panel []
-  [:div
-   {:id "editor-container"
-    :class (styles/content-container)}
+  [:div (styles/editor-container)
    [header]
-
-   [:div
-    {:id "content-container"
-     :style {:display "flex"
-             :flex 1
-             :overflow "hidden"
-             :position "relative"}}
-    [:div
-     {:id "side-bar"
-      :style {:flex-shrink "0"
-              :width "200px"
-              :border-right "1px solid rgb(239, 241, 244)"
-              :box-sizing "border-box"
-              :box-shadow "none"
-              :display "flex"
-              :position "relative"
-              :flex-direction "column"}}]
-
+   [:div (styles/content-container)
+    [:div (styles/side-bar)]
     [canvas-wrapper]
-
-    [:div
-     {:id "options-bar"
-      :style {;; :background "white"
-              :width "340px"
-              :z-index "5000"
-              :display "flex"
-              :flex-direction "column"
-              :overflow "hidden"
-              ;; :border-radius "8px"
-              ;; :margin-right "8px"
-              ;; :margin-top "4px"
-              ;; :margin-bottom "12px"
-              :border-left "1px solid rgb(239, 241, 244)"
-              :box-sizing "border-box"}}]]
-
-   #_[canvas-container]])
+    [:div (styles/options-bar)]]])
