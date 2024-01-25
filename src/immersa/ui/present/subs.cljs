@@ -18,6 +18,18 @@
         {:width height-based-width :height max-height}))))
 
 (reg-sub
+  ::calculated-dimensions
+  (fn [_ [_ screen-width screen-height]]
+    (let [max-height (- screen-height 64)
+          aspect-ratio (/ 16 9)
+          max-width screen-width
+          height-based-width (* max-height aspect-ratio)
+          width-based-height (/ max-width aspect-ratio)]
+      (if (> height-based-width max-width)
+        {:width max-width :height width-based-height}
+        {:width height-based-width :height max-height}))))
+
+(reg-sub
   ::slide-info
   (fn [db]
     {:current-slide-index (-> db :present :current-slide-index (or "-"))

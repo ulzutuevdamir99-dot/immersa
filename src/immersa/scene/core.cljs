@@ -27,7 +27,7 @@
       (f))))
 
 (defn switch-camera-if-needed [scene]
-  (let [wasd? (boolean (seq (filter true? (map #(j/get-in api.core/db [:keyboard %]) ["w" "a" "s" "d"]))))
+  (let [wasd? (boolean (seq (filter true? (map #(j/get-in api.core/db [:keyboard %]) ["w" "a" "s" "d" "e" "q"]))))
         left-click? (j/get-in api.core/db [:mouse :left-click?])
         switch-type (cond
                       wasd? :free
@@ -58,7 +58,7 @@
         (j/call arc-camera :attachControl canvas true)))))
 
 (defn- register-scene-mouse-events [scene]
-  (let [wasd #{"w" "a" "s" "d"}]
+  (let [wasd #{"w" "a" "s" "d" "e" "q"}]
     (j/call-in scene [:onPointerObservable :add]
                (fn [info]
                  (cond
@@ -130,6 +130,7 @@
   (api.gui/advanced-dynamic-texture)
   (j/call scene :registerBeforeRender (fn [] (register-before-render)))
   (when-not start-slide-show?
+    (api.core/hide-loading-ui)
     (register-scene-mouse-events scene))
   (when start-slide-show?
     (slide/start-slide-show)
@@ -166,7 +167,7 @@
                                          :width 50
                                          :height 50
                                          :mat ground-material)
-          _ (api.component/create-sky-box)
+          ;; _ (api.component/create-sky-box)
           _ (api.component/create-sky-sphere)
           _ (api.material/create-environment-helper)
           _ (api.material/init-nme-materials)]

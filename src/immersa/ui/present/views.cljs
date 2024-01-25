@@ -1,31 +1,15 @@
 (ns immersa.ui.present.views
   (:require
-    ["@phosphor-icons/react" :refer [CaretLeft
-                                     CaretRight
-                                     DotsThreeVertical
-                                     ChatCenteredText
-                                     SmileySticker
-                                     Command
-                                     ArrowFatRight
-                                     ArrowFatLeft]]
     ["progressbar.js" :as ProgressBar]
     [applied-science.js-interop :as j]
     [immersa.common.utils :as common.utils]
     [immersa.scene.core :as scene.core]
+    [immersa.ui.icons :as icon]
     [immersa.ui.present.events :as events]
     [immersa.ui.present.styles :as styles]
     [immersa.ui.present.subs :as subs]
     [re-frame.core :refer [dispatch subscribe]]
     [reagent.core :as r]))
-
-(def icon-prev (r/adapt-react-class CaretLeft))
-(def icon-next (r/adapt-react-class CaretRight))
-(def icon-dots (r/adapt-react-class DotsThreeVertical))
-(def icon-chat (r/adapt-react-class ChatCenteredText))
-(def icon-smiley (r/adapt-react-class SmileySticker))
-(def icon-control (r/adapt-react-class Command))
-(def icon-arrow-left (r/adapt-react-class ArrowFatLeft))
-(def icon-arrow-right (r/adapt-react-class ArrowFatRight))
 
 (defn- canvas []
   (r/create-class
@@ -47,10 +31,10 @@
          [:div (styles/arrow-keys-text)
           [:h1 "Use arrow keys to navigate"]
           [:div
-           [icon-arrow-left {:size 32
+           [icon/arrow-left {:size 32
                              :color "white"
                              :weight "bold"}]
-           [icon-arrow-right {:size 32
+           [icon/arrow-right {:size 32
                               :color "white"
                               :weight "bold"}]]])
        (when @(subscribe [::subs/show-pre-warm-text?])
@@ -132,7 +116,7 @@
      [:div
       {:id "slide-controls"
        :class (styles/slide-controls)}
-      [icon-prev {:size 24
+      [icon/prev {:size 24
                   :color "white"
                   :weight "bold"
                   :cursor "pointer"}]
@@ -140,23 +124,23 @@
               :class (styles/current-slide-indicator)}
        (let [{:keys [current-slide-index slide-count]} @(subscribe [::subs/slide-info])]
          (str current-slide-index " / " slide-count))]
-      [icon-next {:size 24
+      [icon/next {:size 24
                   :color "white"
                   :weight "bold"
                   :cursor "pointer"}]]
      [:div {:id "right-controls"
             :class (styles/right-controls)}
       [wait-list-button]
-      [icon-control {:size 24
+      [icon/control {:size 24
                      :color "white"
                      :cursor "pointer"}]
-      [icon-smiley {:size 24
+      [icon/smiley {:size 24
                     :color "white"
                     :cursor "pointer"}]
-      [icon-chat {:size 24
+      [icon/chat {:size 24
                   :color "white"
                   :cursor "pointer"}]
-      [icon-dots {:size 24
+      [icon/dots {:size 24
                   :color "white"
                   :weight "bold"
                   :cursor "pointer"}]]]]])
