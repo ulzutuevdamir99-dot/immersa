@@ -1,10 +1,10 @@
 (ns immersa.ui.editor.views
   (:require
-    ["@radix-ui/react-scroll-area" :as ScrollArea]
     [applied-science.js-interop :as j]
     [goog.functions :as functions]
     [immersa.scene.core :as scene.core]
     [immersa.ui.editor.components.button :refer [button]]
+    [immersa.ui.editor.components.scroll-area :refer [scroll-area]]
     [immersa.ui.editor.events :as event]
     [immersa.ui.editor.styles :as styles]
     [immersa.ui.editor.subs :as subs]
@@ -120,65 +120,29 @@
                :class (styles/add-slide-button)
                :icon-left [icon/plus {:size 18
                                       :color colors/text-primary}]}]]
-     [:> ScrollArea/Root
-      {:style {:width "170px"
-               :height "100%"
-               :border-radius "4px"
-               :overflow "hidden"
-               ;; :background-color "white"
-               :--scrollbar-size "10px"}}
-      [:> ScrollArea/Viewport
-       {:style {:width "100%"
-                :height "100%"
-                :border-radius "inherit"}}
-       [:div {:style {:padding-top "8px"}}
-        (for [i (range 1 15)]
-          [:div {:style {:display "flex"
-                         :align-items "flex-start"
-                         :padding-left "8px"
-                         :padding-bottom "8px"}}
-           [:span {:style {:width "22px"
-                           :color (if (= i 1)
-                                    colors/button-outline-border
-                                    colors/text-primary)
-                           :font-size typography/s
-                           :font-weight (if (= i 1)
-                                          typography/medium
-                                          typography/regular)}} i]
-           [:div
-            {:style {:width "123px"
-                     :height "70px"
-                     :border-radius "5px"
-                     :border (if (= i 1)
-                               (str "2px solid " colors/button-outline-border)
-                               (str "1px solid " colors/border2))}}]])]]
-      [:> ScrollArea/Scrollbar
-       {:orientation "vertical"}
-       [:> ScrollArea/Thumb]]
-      [:> ScrollArea/Corner]]
-     #_[:div {:style {:display "flex"
-                      :flex-direction "column"
-                      :gap "16px"
-                      :padding-top "16px"
-                      :padding-bottom "16px"
-                      :overflow-y "auto"}}
-        (for [i (range 1 15)]
-          [:div {:style {:display "flex"
-                         :align-items "flex-start"}}
-           [:span {:style {:padding "0px 8px 0px 8px"
-                           :color (if (= i 1)
-                                    colors/button-outline-border
-                                    colors/text-primary)
-                           :font-size typography/s
-                           :font-weight (if (= i 1)
-                                          typography/medium
-                                          typography/regular)}} i]
-           [:div
-            {:style {:width "123px"
-                     :height "70px"
-                     :border-radius "5px"
-                     :border (if (= i 1)
-                               (str "2px solid " colors/button-outline-border)
-                               (str "1px solid " colors/border2))}}]])]]
+
+     [scroll-area
+      {:class (styles/slides-scroll-area)
+       :children [:div {:style {:padding-top "8px"}}
+                  (for [i (range 1 15)]
+                    [:div {:style {:display "flex"
+                                   :align-items "flex-start"
+                                   :padding-left "8px"
+                                   :padding-bottom "8px"}}
+                     [:span {:style {:width "22px"
+                                     :color (if (= i 1)
+                                              colors/button-outline-border
+                                              colors/text-primary)
+                                     :font-size typography/s
+                                     :font-weight (if (= i 1)
+                                                    typography/medium
+                                                    typography/regular)}} i]
+                     [:div
+                      {:style {:width "123px"
+                               :height "70px"
+                               :border-radius "5px"
+                               :border (if (= i 1)
+                                         (str "2px solid " colors/button-outline-border)
+                                         (str "1px solid " colors/border2))}}]])]}]]
     [canvas-wrapper]
     [:div (styles/options-bar)]]])

@@ -4,6 +4,8 @@
     [immersa.ui.theme.typography :as typography]
     [spade.core :refer [defclass defattrs]]))
 
+(def slides-panel-size "170px")
+
 (def hover-style
   [:&:hover
    {:background colors/hover-bg
@@ -34,7 +36,7 @@
 
 (defattrs side-bar []
   {:flex-shrink 0
-   :width "170px"
+   :width slides-panel-size
    :border-right (str "1px solid " colors/panel-border)
    :box-sizing :border-box
    :box-shadow :none
@@ -189,3 +191,15 @@
 (defattrs private-badge-label []
   {:font-size typography/s
    :font-weight "300"})
+
+(defclass slides-scroll-area []
+  {:width slides-panel-size
+   :height "100%"
+   :overflow :hidden}
+  ;; Fade out effect
+  [:&:before
+   {:content "''"
+    :position "fixed"
+    :width "170px"
+    :height "8px"
+    :background "linear-gradient(180deg,#ffffff 0%,rgba(252,252,253,0) 100%)"}])

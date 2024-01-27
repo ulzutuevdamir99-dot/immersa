@@ -10,8 +10,8 @@
 ;; (def text-primary "rgb(107, 111, 118)")
 
 (def text-hover "rgb(40, 42, 48)")
-(def hover-bg "rgb(240, 243, 249)")
-(def active-bg "rgb(221, 224, 230)")
+(def hover-bg "rgba(13, 14, 19, 0.05)")
+(def active-bg "rgba(13, 14, 19, 0.1)")
 
 ;; Regular
 (def button-bg "rgb(101, 112, 202)")
