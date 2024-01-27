@@ -17,8 +17,6 @@
    :padding "2px"
    :background "transparent"
    :transition "background 160ms ease-out"}
-  [:&:hover
-   {:background "rgba(0, 0, 0, 0.6)"}]
   ["&[data-orientation='vertical']"
    {:width scroll-size}]
   ["&[data-orientation='horizontal']"

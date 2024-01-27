@@ -1,8 +1,10 @@
 (ns immersa.ui.editor.components.input
   (:require
+    [clojure.string :as str]
     [immersa.ui.editor.components.text :refer [text]]
     [immersa.ui.theme.colors :as colors]
     [immersa.ui.theme.typography :as typography]
+    [reagent.core :as r]
     [spade.core :refer [defclass defattrs]]))
 
 (defattrs input-wrapper []
@@ -24,6 +26,8 @@
   [:&:focus
    {:box-shadow (str colors/button-box-shadow " 0px 1px 2px")
     :border (str "1px solid " colors/button-outline-border)}]
+  [:&.invalid
+   {:border (str "1px solid " colors/error)}]
   ["&[type=\"number\"]::-webkit-outer-spin-button"
    "&[type=\"number\"]::-webkit-inner-spin-button"
    {:height "25px"
@@ -51,15 +55,22 @@
                      :or {min "-Infinity"
                           max "Infinity"
                           step "1"}}]
-  [:div (input-wrapper)
-   [:input {:class [(input-number-style) class]
-            :style (merge {:width "56px"
-                           :height "24px"} style)
-            :type "number"
-            :min min
-            :max max
-            :default-value 0
-            :step step
-            :on-change on-change}]
-   [:label (label-style)
-    [text {:size :s} label]]])
+  (r/with-let [error? (r/atom false)]
+    [:div (input-wrapper)
+     [:input {:class [(input-number-style) class (when @error? "invalid")]
+              :style (merge {:width "56px"
+                             :height "24px"} style)
+              :type "number"
+              :min min
+              :max max
+              :default-value 0
+              :step step
+              :on-change (fn [e]
+                           (let [v (-> e .-target .-value)]
+                             (if (str/blank? v)
+                               (reset! error? true)
+                               (do
+                                 (reset! error? false)
+                                 (when on-change (on-change (js/parseFloat v)))))))}]
+     [:label (label-style)
+      [text {:size :s} label]]]))

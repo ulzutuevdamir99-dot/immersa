@@ -124,6 +124,7 @@
    :font-size typography/l
    :font-weight typography/medium
    :color colors/text-primary
+   :user-select :none
    :text-overflow :ellipsis
    :white-space :nowrap
    :margin-right "4px"})
@@ -148,6 +149,7 @@
   {:display :flex
    :gap "2px"
    :width "45px"
+   :height :auto
    :padding "5px"
    :user-select :none
    :opacity (if disabled? 0.5 1)
@@ -204,3 +206,13 @@
 
 (defclass present-share-width []
   {:width "88px"})
+
+(defattrs pos-rot-scale-comp-container []
+  {:display :flex
+   :align-items :center
+   :gap "8px"})
+
+(defclass pos-rot-scale-comp-label []
+  {:width "56px"
+   :padding-right "5px"
+   :user-select :none})

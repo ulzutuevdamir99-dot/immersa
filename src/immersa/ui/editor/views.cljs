@@ -4,8 +4,10 @@
     [goog.functions :as functions]
     [immersa.scene.core :as scene.core]
     [immersa.ui.editor.components.button :refer [button]]
+    [immersa.ui.editor.components.dropdown :refer [dropdown dropdown-item dropdown-separator]]
     [immersa.ui.editor.components.input :refer [input-number]]
     [immersa.ui.editor.components.scroll-area :refer [scroll-area]]
+    [immersa.ui.editor.components.separator :refer [separator]]
     [immersa.ui.editor.components.text :refer [text]]
     [immersa.ui.editor.events :as event]
     [immersa.ui.editor.styles :as styles]
@@ -84,8 +86,18 @@
 
 (defn- header-center-panel []
   [:div (styles/header-center-panel)
-   [presentation-component {:icon icon/text
-                            :text "Text"}]
+   [dropdown
+    [presentation-component {:icon icon/text
+                             :text "Text"}]
+    [:<>
+     [dropdown-item
+      [text {:size :xl} "Normal text"]]
+     [dropdown-separator]
+     [dropdown-item
+      [text {:size :xl} "Greased line text"]]
+     [dropdown-separator]
+     [dropdown-item
+      [text {:size :xl} "Info text"]]]]
    [presentation-component {:icon icon/image
                             :text "Image"}]
    [presentation-component {:icon icon/cube
@@ -120,6 +132,13 @@
    [header-center-panel]
    [header-right-panel]])
 
+(defn pos-rot-scale-comp [{:keys [label type]}]
+  [:div (styles/pos-rot-scale-comp-container)
+   [text {:class (styles/pos-rot-scale-comp-label)} label]
+   [input-number {:label "X" :prop-to-update [type :x]}]
+   [input-number {:label "Y" :prop-to-update [type :y]}]
+   [input-number {:label "Z" :prop-to-update [type :z]}]])
+
 (defn editor-panel []
   [:div (styles/editor-container)
    [header]
@@ -138,6 +157,7 @@
       {:class (styles/slides-scroll-area)
        :children [:div {:style {:padding-top "8px"}}
                   (for [i (range 1 15)]
+                    ^{:key i}
                     [:div {:style {:display "flex"
                                    :align-items "flex-start"
                                    :padding-left "8px"
@@ -165,33 +185,13 @@
                :padding-top "8px"}}
       [:div {:style {:display "flex"
                      :flex-direction "column"
-                     :align-items "center"
                      :gap "12px"
                      :padding "16px"}}
 
-       [:div {:style {:display "flex"
-                      :gap "8px"
-                      :align-items "center"}}
-        [text {:style {:width "56px"
-                       :padding-right "5px"}} "Position"]
-        [input-number {:label "X"}]
-        [input-number {:label "Y"}]
-        [input-number {:label "Z"}]]
+       [text {:size :xxl
+              :weight :semi-bold} "3D Model"]
+       [separator]
 
-       [:div {:style {:display "flex"
-                      :gap "8px"
-                      :align-items "center"}}
-        [text {:style {:width "56px"
-                       :padding-right "5px"}} "Rotation"]
-        [input-number {:label "X"}]
-        [input-number {:label "Y"}]
-        [input-number {:label "Z"}]]
-
-       [:div {:style {:display "flex"
-                      :gap "8px"
-                      :align-items "center"}}
-        [text {:style {:width "56px"
-                       :padding-right "5px"}} "Scale"]
-        [input-number {:label "X"}]
-        [input-number {:label "Y"}]
-        [input-number {:label "Z"}]]]]]]])
+       [pos-rot-scale-comp {:label "Position" :type :position}]
+       [pos-rot-scale-comp {:label "Rotation" :type :rotation}]
+       [pos-rot-scale-comp {:label "Scale" :type :scale}]]]]]])

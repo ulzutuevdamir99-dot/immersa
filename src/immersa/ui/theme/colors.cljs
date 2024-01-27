@@ -8,6 +8,8 @@
 
 (def text-primary "rgb(63, 66, 80)")
 
+(def error "#fa6c80")
+
 ;; (def text-primary "rgb(107, 111, 118)")
 
 (def text-hover "rgb(40, 42, 48)")

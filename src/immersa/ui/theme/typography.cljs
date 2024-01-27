@@ -22,6 +22,7 @@
 (def l "14px")
 (def xl "15px")
 (def xxl "18px")
+(def xxxl "21px")
 
 (def light 300)
 (def regular 400)

@@ -15,6 +15,7 @@
                      :l typography/l
                      :xl typography/xl
                      :xxl typography/xxl
+                     :xxxl typography/xxxl
                      typography/m)
          font-weight (case weight
                        :light typography/light

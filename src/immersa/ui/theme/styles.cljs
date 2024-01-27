@@ -9,7 +9,10 @@
    :height "100%"
    :margin 0})
 
-(def body (assoc defaults :font-family typography/font))
+(def body
+  (assoc defaults
+         :font-family typography/font
+         :overscroll-behavior :none))
 
 (defglobal theme
   [:html defaults]
