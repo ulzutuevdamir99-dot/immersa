@@ -4,6 +4,7 @@
 
 (def panel-border "rgb(239, 241, 244)")
 (def border2 "#E0E0E0")
+(def border3 "#C7C7C7FF")
 
 (def text-primary "rgb(63, 66, 80)")
 

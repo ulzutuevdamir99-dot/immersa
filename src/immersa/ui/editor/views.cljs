@@ -4,7 +4,9 @@
     [goog.functions :as functions]
     [immersa.scene.core :as scene.core]
     [immersa.ui.editor.components.button :refer [button]]
+    [immersa.ui.editor.components.input :refer [input-number]]
     [immersa.ui.editor.components.scroll-area :refer [scroll-area]]
+    [immersa.ui.editor.components.text :refer [text]]
     [immersa.ui.editor.events :as event]
     [immersa.ui.editor.styles :as styles]
     [immersa.ui.editor.subs :as subs]
@@ -67,13 +69,18 @@
      [:span (styles/title-label) "My 3D Presentation"]
      [:div (styles/private-badge)
       [icon/lock {:size 12}]
-      [:span (styles/private-badge-label) "Private"]]]]])
+      [text {:size :s
+             :weight :light} "Private"]]]]])
 
-(defn presentation-component [{:keys [icon class text]}]
-  [:div {:class [(styles/presentation-component) class]}
+(defn presentation-component [{:keys [icon class disabled?]
+                               :or {disabled? false}
+                               :as opts}]
+  [:div {:class [(styles/presentation-component disabled?) class]
+         :disabled disabled?}
    [icon {:size 24
           :color colors/text-primary}]
-   [:span (styles/presentation-component-label) text]])
+   [text {:size :s
+          :weight :light} (:text opts)]])
 
 (defn- header-center-panel []
   [:div (styles/header-center-panel)
@@ -84,19 +91,25 @@
    [presentation-component {:icon icon/cube
                             :text "3D Model"
                             :class (styles/presentation-component-cube)}]
+   [presentation-component {:icon icon/books
+                            :text "Library"
+                            :disabled? true}]
    [presentation-component {:icon icon/light
-                            :text "Light"}]])
+                            :text "Light"
+                            :disabled? true}]])
 
 (defn- header-right-panel []
   [:div (styles/header-right)
    [:div (styles/header-right-container)
     [button {:text "Present"
              :type :outline
+             :class (styles/present-share-width)
              :icon-left [icon/play {:size 18
                                     :weight "fill"
                                     :color colors/button-outline-text}]}]
     [button {:text "Share"
              :type :regular
+             :class (styles/present-share-width)
              :icon-right [icon/share {:size 18
                                       :weight "fill"
                                       :color colors/button-text}]}]]])
@@ -145,4 +158,40 @@
                                          (str "2px solid " colors/button-outline-border)
                                          (str "1px solid " colors/border2))}}]])]}]]
     [canvas-wrapper]
-    [:div (styles/options-bar)]]])
+    [:div (styles/options-bar)
+     [:div
+      {:style {:display "flex"
+               :justify-content "center"
+               :padding-top "8px"}}
+      [:div {:style {:display "flex"
+                     :flex-direction "column"
+                     :align-items "center"
+                     :gap "12px"
+                     :padding "16px"}}
+
+       [:div {:style {:display "flex"
+                      :gap "8px"
+                      :align-items "center"}}
+        [text {:style {:width "56px"
+                       :padding-right "5px"}} "Position"]
+        [input-number {:label "X"}]
+        [input-number {:label "Y"}]
+        [input-number {:label "Z"}]]
+
+       [:div {:style {:display "flex"
+                      :gap "8px"
+                      :align-items "center"}}
+        [text {:style {:width "56px"
+                       :padding-right "5px"}} "Rotation"]
+        [input-number {:label "X"}]
+        [input-number {:label "Y"}]
+        [input-number {:label "Z"}]]
+
+       [:div {:style {:display "flex"
+                      :gap "8px"
+                      :align-items "center"}}
+        [text {:style {:width "56px"
+                       :padding-right "5px"}} "Scale"]
+        [input-number {:label "X"}]
+        [input-number {:label "Y"}]
+        [input-number {:label "Z"}]]]]]]])

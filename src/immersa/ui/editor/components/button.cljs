@@ -40,6 +40,9 @@
   [:&:hover {:background colors/hover-bg}]
   [:&:active {:background colors/active-bg}])
 
+(defattrs button-text []
+  {:user-select :none})
+
 (defn button [{:keys [text
                       on-click
                       icon-left
@@ -54,5 +57,5 @@
               (button-primary))
             class]}
    (when icon-left icon-left)
-   [:span text]
+   [:span (button-text) text]
    (when icon-right icon-right)])

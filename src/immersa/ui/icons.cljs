@@ -2,6 +2,7 @@
   (:require
     ["@phosphor-icons/react/dist/csr/ArrowFatLeft" :refer [ArrowFatLeft]]
     ["@phosphor-icons/react/dist/csr/ArrowFatRight" :refer [ArrowFatRight]]
+    ["@phosphor-icons/react/dist/csr/Books" :refer [Books]]
     ["@phosphor-icons/react/dist/csr/CaretLeft" :refer [CaretLeft]]
     ["@phosphor-icons/react/dist/csr/CaretRight" :refer [CaretRight]]
     ["@phosphor-icons/react/dist/csr/ChatCenteredText" :refer [ChatCenteredText]]
@@ -36,3 +37,4 @@
 (def play (r/adapt-react-class Play))
 (def lock (r/adapt-react-class LockSimple))
 (def plus (r/adapt-react-class PlusCircle))
+(def books (r/adapt-react-class Books))

@@ -144,23 +144,21 @@
    :position :relative
    :gap "16px"})
 
-(defclass presentation-component []
+(defclass presentation-component [disabled?]
   {:display :flex
    :gap "2px"
    :width "45px"
    :padding "5px"
    :user-select :none
-   :cursor :default
+   :opacity (if disabled? 0.5 1)
+   :cursor (if disabled?
+             :not-allowed
+             :default)
    :flex-direction :column
    :justify-content :center
    :align-items :center}
   hover-style
-  active-style)
-
-(defattrs presentation-component-label []
-  {:font-size typography/s
-   :font-weight typography/light
-   :color colors/text-primary})
+  (when-not disabled? active-style))
 
 (defclass presentation-component-cube []
   {:width (str "max-content !important")})
@@ -203,3 +201,6 @@
     :width "170px"
     :height "8px"
     :background "linear-gradient(180deg,#ffffff 0%,rgba(252,252,253,0) 100%)"}])
+
+(defclass present-share-width []
+  {:width "88px"})
