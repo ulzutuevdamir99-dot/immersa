@@ -260,10 +260,9 @@
                                       stroke?
                                       inner-glow?
                                       outer-glow?]}]
-  (let [opts #js {}]
-    (cond-> opts
-      (some? stroke?) (j/assoc! :isStroke stroke?)
-      main-texture-ratio (j/assoc! :mainTextureRatio main-texture-ratio))
+  (let [opts (cond-> #js {}
+               (some? stroke?) (j/assoc! :isStroke stroke?)
+               main-texture-ratio (j/assoc! :mainTextureRatio main-texture-ratio))]
     (m/cond-doto (HighlightLayer. name (get-scene) opts)
       blur-horizontal-size (j/assoc! :blurHorizontalSize blur-horizontal-size)
       blur-vertical-size (j/assoc! :blurVerticalSize blur-vertical-size)

@@ -35,7 +35,6 @@
               :positionGizmoEnabled true
               :rotationGizmoEnabled true
               :gizmos.rotationGizmo.updateGizmoRotationToMatchAttachedMesh false
-              :gizmos.rotationGizmo.updateGizmoPositionToMatchAttachedMesh true
               :gizmos.positionGizmo.updateGizmoRotationToMatchAttachedMesh false
               :gizmos.positionGizmo.xGizmo.scaleRatio 1.5
               :gizmos.positionGizmo.yGizmo.scaleRatio 1.5

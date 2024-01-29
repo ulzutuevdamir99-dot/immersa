@@ -253,7 +253,7 @@
     model))
 
 (comment
-  (glb->mesh "porche" :path "model/porche_911.glb")
+  (j/assoc! (glb->mesh "porche" :path "model/porche_911.glb") :scaling (v3 1))
   )
 
 (defn- get-points-from-text [& {:keys [text size resolution font]}]
