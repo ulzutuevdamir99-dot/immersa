@@ -4,10 +4,15 @@ on:
       - master
 
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Build and Publish to Cloudflare Pages
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
 
       # Install Java
       - name: Set up JDK
@@ -33,9 +38,15 @@ jobs:
       - name: Update Index.html with Commit SHA
         run: sed -i "s/__COMMIT_SHA__/${GITHUB_SHA}/g" resources/public/index.html
 
-      - name: Build & Deploy Worker
-        uses: cloudflare/wrangler-action@v3
+      # Publish to Cloudflare Pages
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1.5.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ff2ff2769c72a0ad2a2bab364aa064dd
-        run: npx wrangler pages deploy resources/public --project-name immersa-editor
+          projectName: immersa-editor
+          directory: resources/public
+#          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: master
+#          workingDirectory: my-site
+          wranglerVersion: '3'
