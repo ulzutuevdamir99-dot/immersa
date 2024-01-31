@@ -57,7 +57,7 @@
     (fn [{:keys [min max step class style label on-change value]
           :or {min "-Infinity"
                max "Infinity"
-               step "any"}}]
+               step "0.1"}}]
       [:div (input-wrapper)
        [:input {:class [(input-number-style) class (when @error? "invalid")]
                 :style (merge {:width "56px"

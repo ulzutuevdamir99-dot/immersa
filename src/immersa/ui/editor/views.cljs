@@ -156,8 +156,7 @@
                     :on-change #(dispatch [event type 2 %])}]]))
 
 (defn color-picker []
-  (r/with-let [open? (r/atom false)
-               color (r/atom "#fff")]
+  (r/with-let [open? (r/atom false)]
     [:div {:style {:display "flex"
                    :flex-direction "column"
                    :gap "12px"}}
@@ -174,11 +173,19 @@
                         :background @(subscribe [::subs/scene-background-color])}
                 :on-click #(swap! open? not)}]]
      (when @open?
-       [color-picker* {:disable-alpha true
-                       :color @color
-                       :on-change #(let [{:keys [r g b]} (j/lookup (j/get % :rgb))]
-                                     (dispatch [::events/update-scene-background-color [r g b]])
-                                     (reset! color (str "rgb(" r "," g "," b ")")))}])]))
+       [:div {:style {:position "relative"}}
+        [button {:style {:position "absolute"
+                         :z-index 3
+                         :right "44px"}
+                 :on-click #(reset! open? false)
+                 :icon-right [icon/x {:size 12
+                                      :weight "bold"
+                                      :color colors/text-primary}]}]
+        [:div {:style {:margin-top "1px"}}
+         [color-picker* {:disable-alpha true
+                         :color @(subscribe [::subs/scene-background-color])
+                         :on-change #(let [{:keys [r g b]} (j/lookup (j/get % :rgb))]
+                                       (dispatch [::events/update-scene-background-color [r g b]]))}]]])]))
 
 (defn editor-panel []
   [:div (styles/editor-container)

@@ -18,6 +18,7 @@
     ["@phosphor-icons/react/dist/csr/ShareNetwork" :refer [ShareNetwork]]
     ["@phosphor-icons/react/dist/csr/SmileySticker" :refer [SmileySticker]]
     ["@phosphor-icons/react/dist/csr/TextT" :refer [TextT]]
+    ["@phosphor-icons/react/dist/csr/X" :refer [X]]
     [reagent.core :as r]))
 
 (def prev (r/adapt-react-class CaretLeft))
@@ -38,3 +39,4 @@
 (def lock (r/adapt-react-class LockSimple))
 (def plus (r/adapt-react-class PlusCircle))
 (def books (r/adapt-react-class Books))
+(def x (r/adapt-react-class X))

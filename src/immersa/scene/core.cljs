@@ -105,7 +105,8 @@
 
 (defn- add-camera-view-matrix-listener []
   (let [free-camera (api.core/get-object-by-name "free-camera")
-        f #(dispatch [::editor.events/set-camera (utils/v3->v-data free-camera [:position :rotation])])]
+        f #(when-not (j/get api.core/db :lock-view-matrix-change?)
+             (dispatch [::editor.events/set-camera (utils/v3->v-data free-camera [:position :rotation])]))]
     (j/call-in free-camera [:onViewMatrixChangedObservable :add] f)
     (dispatch [::editor.events/set-camera (utils/v3->v-data free-camera [:position :rotation])])))
 

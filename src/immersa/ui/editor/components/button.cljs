@@ -48,6 +48,7 @@
                       icon-left
                       icon-right
                       class
+                      style
                       type]}]
   [:button
    {:on-click on-click
@@ -55,7 +56,8 @@
               :regular (button-regular)
               :outline (button-outline)
               (button-primary))
-            class]}
+            class]
+    :style style}
    (when icon-left icon-left)
-   [:span (button-text) text]
+   (when text [:span (button-text) text])
    (when icon-right icon-right)])

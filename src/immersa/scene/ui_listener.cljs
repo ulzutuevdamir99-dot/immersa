@@ -16,11 +16,19 @@
       :rotation (j/assoc! mesh :rotation (api.core/v->v3 (mapv api.core/to-rad value)))
       :scaling (j/assoc! mesh :scaling (api.core/v->v3 value)))))
 
-(defmethod handle-ui-update :update-camera [{{:keys [update value]} :data}]
-  (when-let [camera (api.camera/active-camera)]
-    (case update
-      :position (j/assoc! camera :position (api.core/v->v3 value))
-      :rotation (j/assoc! camera :rotation (api.core/v->v3 (mapv api.core/to-rad value))))))
+(let [lock-fn-id (atom nil)]
+  (defmethod handle-ui-update :update-camera [{{:keys [update value]} :data}]
+    (when-let [camera (api.camera/active-camera)]
+      (j/assoc! api.core/db :lock-view-matrix-change? true)
+      (case update
+        :position (j/assoc! camera :position (api.core/v->v3 value))
+        :rotation (j/assoc! camera :rotation (api.core/v->v3 (mapv api.core/to-rad value))))
+      (some-> @lock-fn-id js/clearTimeout)
+      (reset! lock-fn-id (js/setTimeout
+                           (fn []
+                             (reset! lock-fn-id nil)
+                             (j/assoc! api.core/db :lock-view-matrix-change? false))
+                           100)))))
 
 (defmethod handle-ui-update :update-background-color [{{:keys [value]} :data}]
   (let [skybox-material (j/get-in api.core/db [:environment-helper :skybox :material])
