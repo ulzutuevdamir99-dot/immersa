@@ -50,3 +50,9 @@
   ::camera-rotation
   (fn [db]
     (-> db :editor :camera :rotation)))
+
+(reg-sub
+  ::scene-background-color
+  (fn [db]
+    (let [[r g b] (or (-> db :editor :scene :background-color) [255 255 255])]
+      (str "rgb(" r "," g "," b ")"))))

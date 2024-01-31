@@ -23,6 +23,7 @@
     "@radix-ui/react-scroll-area": "^1.0.5",
     "@radix-ui/react-separator": "^1.0.3",
     "earcut": "^2.2.4",
+    "react-color": "^2.19.3",
     "highlight.js": "11.5.1",
     "p5": "^1.9.0",
     "progressbar.js": "^1.1.1",

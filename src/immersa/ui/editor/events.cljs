@@ -55,6 +55,13 @@
                        :data {:update type
                               :value (mapv parse-double updated-attr)}})))))
 
+(reg-event-fx
+  ::update-scene-background-color
+  (fn [{:keys [db]} [_ rgb]]
+    {:db (assoc-in db [:editor :scene :background-color] rgb)
+     :scene {:type :update-background-color
+             :data {:value rgb}}}))
+
 (reg-fx
   :scene
   (fn [data]

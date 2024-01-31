@@ -1,5 +1,6 @@
 (ns immersa.ui.editor.views
   (:require
+    ["react-color" :refer [SketchPicker]]
     [applied-science.js-interop :as j]
     [goog.functions :as functions]
     [immersa.scene.core :as scene.core]
@@ -17,6 +18,8 @@
     [immersa.ui.theme.typography :as typography]
     [re-frame.core :refer [dispatch subscribe]]
     [reagent.core :as r]))
+
+(def ^:private color-picker* (r/adapt-react-class SketchPicker))
 
 (defn- canvas [state]
   (r/create-class
@@ -152,6 +155,31 @@
                     :value z
                     :on-change #(dispatch [event type 2 %])}]]))
 
+(defn color-picker []
+  (r/with-let [open? (r/atom false)
+               color (r/atom "#fff")]
+    [:div {:style {:display "flex"
+                   :flex-direction "column"
+                   :gap "12px"}}
+     [:div
+      {:style {:display "flex"
+               :align-items "center"
+               :justify-content "space-between"}}
+      [text "Background color"]
+      [:button {:style {:border (str "1px solid " colors/border2)
+                        :border-radius "5px"
+                        :cursor "pointer"
+                        :width "24px"
+                        :height "24px"
+                        :background @(subscribe [::subs/scene-background-color])}
+                :on-click #(swap! open? not)}]]
+     (when @open?
+       [color-picker* {:disable-alpha true
+                       :color @color
+                       :on-change #(let [{:keys [r g b]} (j/lookup (j/get % :rgb))]
+                                     (dispatch [::events/update-scene-background-color [r g b]])
+                                     (reset! color (str "rgb(" r "," g "," b ")")))}])]))
+
 (defn editor-panel []
   [:div (styles/editor-container)
    [header]
@@ -196,29 +224,39 @@
       {:style {:display "flex"
                :justify-content "center"
                :padding-top "8px"}}
-      [:div {:style {:display "flex"
-                     :flex-direction "column"
-                     :gap "12px"
-                     :padding "16px"}}
-
-       (if @(subscribe [::subs/selected-mesh])
-         [:<>
+      (if @(subscribe [::subs/selected-mesh])
+        [:div {:style {:display "flex"
+                       :flex-direction "column"
+                       :gap "12px"
+                       :padding "16px"}}
+         [text {:size :xxl
+                :weight :semi-bold} "3D Model"]
+         [separator]
+         [pos-rot-scale-comp {:label "Position"
+                              :type :position
+                              :event ::events/update-selected-mesh
+                              :value @(subscribe [::subs/selected-mesh-position])}]
+         [pos-rot-scale-comp {:label "Rotation"
+                              :type :rotation
+                              :event ::events/update-selected-mesh
+                              :value @(subscribe [::subs/selected-mesh-rotation])}]
+         [pos-rot-scale-comp {:label "Scale"
+                              :type :scaling
+                              :event ::events/update-selected-mesh
+                              :value @(subscribe [::subs/selected-mesh-scaling])}]]
+        [:div {:style {:user-select "none"}}
+         [:div {:style {:display "flex"
+                        :flex-direction "column"
+                        :gap "12px"
+                        :padding "16px"}}
           [text {:size :xxl
-                 :weight :semi-bold} "3D Model"]
+                 :weight :semi-bold} "Scene"]
           [separator]
-          [pos-rot-scale-comp {:label "Position"
-                               :type :position
-                               :event ::events/update-selected-mesh
-                               :value @(subscribe [::subs/selected-mesh-position])}]
-          [pos-rot-scale-comp {:label "Rotation"
-                               :type :rotation
-                               :event ::events/update-selected-mesh
-                               :value @(subscribe [::subs/selected-mesh-rotation])}]
-          [pos-rot-scale-comp {:label "Scale"
-                               :type :scaling
-                               :event ::events/update-selected-mesh
-                               :value @(subscribe [::subs/selected-mesh-scaling])}]]
-         [:<>
+          [color-picker]]
+         [:div {:style {:display "flex"
+                        :flex-direction "column"
+                        :gap "12px"
+                        :padding "16px"}}
           [text {:size :xxl
                  :weight :semi-bold} "Camera"]
           [separator]
@@ -229,4 +267,4 @@
           [pos-rot-scale-comp {:label "Rotation"
                                :type :rotation
                                :event ::events/update-camera
-                               :value @(subscribe [::subs/camera-rotation])}]])]]]]])
+                               :value @(subscribe [::subs/camera-rotation])}]]])]]]])

@@ -22,6 +22,13 @@
       :position (j/assoc! camera :position (api.core/v->v3 value))
       :rotation (j/assoc! camera :rotation (api.core/v->v3 (mapv api.core/to-rad value))))))
 
+(defmethod handle-ui-update :update-background-color [{{:keys [value]} :data}]
+  (let [skybox-material (j/get-in api.core/db [:environment-helper :skybox :material])
+        ground-material (j/get-in api.core/db [:environment-helper :ground :material])
+        new-color (apply api.core/color-rgb value)]
+    (j/assoc! skybox-material :primaryColor new-color)
+    (j/assoc! ground-material :primaryColor new-color)))
+
 (defn init-ui-update-listener []
   (go-loop-sub event-bus-pub :get-ui-update [_ data]
     (handle-ui-update data)))
