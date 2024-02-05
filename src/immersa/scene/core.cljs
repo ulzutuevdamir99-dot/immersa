@@ -9,6 +9,7 @@
     [immersa.common.utils :as common.utils]
     [immersa.scene.api.animation :as api.anim]
     [immersa.scene.api.camera :as api.camera]
+    [immersa.scene.api.component :as api.component]
     [immersa.scene.api.constant :as api.const]
     [immersa.scene.api.core :as api.core :refer [v2 v3 v4]]
     [immersa.scene.api.gizmo :as api.gizmo]
@@ -175,6 +176,7 @@
       ;; (api.mesh/box "box1")
       (api.mesh/text "test" {:text "Text"
                              :depth 0.001
+                             :color (api.const/color-teal)
                              ;; :emissive-color :color/white
                              ;; :size 1
                              })
@@ -208,4 +210,6 @@
 
   (restart-engine)
 
-  (restart-engine :start-slide-show? false))
+  (restart-engine :start-slide-show? true)
+  (restart-engine :start-slide-show? false)
+  )

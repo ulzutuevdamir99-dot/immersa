@@ -72,7 +72,38 @@
   (fn [data]
     (fire :get-ui-update data)))
 
-(reg-fx
-  ::update-selected-mesh-color
-  (fn [{:keys [db]}]
-    {:db db}))
+(reg-event-fx
+  ::update-selected-mesh-main-color
+  (fn [{:keys [db]} [_ rgb]]
+    {:db (assoc-in db [:editor :selected-mesh :color] rgb)
+     :scene {:type :update-selected-mesh-color
+             :data {:value rgb}}}))
+
+(reg-event-fx
+  ::update-selected-mesh-emissive-color
+  (fn [{:keys [db]} [_ rgb]]
+    {:db (assoc-in db [:editor :selected-mesh :emissive-color] rgb)
+     :scene {:type :update-selected-mesh-emissive-color
+             :data {:value rgb}}}))
+
+(reg-event-db
+  ::set-selected-text3D-data
+  (fn [db [_ data]]
+    (update-in db [:editor :selected-mesh] merge data)))
+
+(reg-event-fx
+  ::update-selected-mesh-slider-value
+  (fn [{:keys [db]} [_ type value]]
+    (let [value (/ (first value) 100)
+          selected-mesh (-> db :editor :selected-mesh (assoc type value))]
+      {:db (assoc-in db [:editor :selected-mesh] selected-mesh)
+       :scene {:type :update-selected-mesh-slider-value
+               :data {:update type
+                      :value value}}})))
+
+(reg-event-fx
+  ::update-selected-mesh-text-content
+  (fn [{:keys [db]} [_ value]]
+    {:db (assoc-in db [:editor :selected-mesh :text] value)
+     :scene {:type :update-selected-mesh-text-content
+             :data {:value value}}}))

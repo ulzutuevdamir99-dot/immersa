@@ -21,9 +21,24 @@
     (j/call child-meshes :forEach #(j/call hl :addMesh % outline-color)))
   (j/call hl :addMesh mesh outline-color))
 
+(defn- update-ui-by-selected-mesh-type [type mesh]
+  (case type
+    "text3D" (dispatch [::events/set-selected-text3D-data
+                        {:type "text3D"
+                         :text (api.core/get-node-attr (j/get mesh :name) :text)
+                         :opacity (j/get mesh :visibility)
+                         :color (-> (j/get-in mesh [:material :albedoColor]) api.core/color->v)
+                         :emissive-color (some-> (j/get-in mesh [:material :emissiveColor]) api.core/color->v)
+                         :emissive-intensity (j/get-in mesh [:material :emissiveIntensity])
+                         :alpha (j/get-in mesh [:material :alpha])
+                         :metallic (j/get-in mesh [:material :metallic])
+                         :roughness (j/get-in mesh [:material :roughness])}])))
+
 (defn- notify-ui-selected-mesh [mesh]
-  (let [name (j/get mesh :immersa-id)]
-    (dispatch [::events/set-selected-mesh (assoc (utils/v3->v-data mesh [:position :rotation :scaling]) :name name)])))
+  (let [name (j/get mesh :immersa-id)
+        type (api.core/get-object-type-by-name name)]
+    (dispatch [::events/set-selected-mesh (assoc (utils/v3->v-data mesh [:position :rotation :scaling]) :name name)])
+    (update-ui-by-selected-mesh-type type mesh)))
 
 (defn- on-attached-to-mesh [mesh]
   (j/call hl :removeAllMeshes)

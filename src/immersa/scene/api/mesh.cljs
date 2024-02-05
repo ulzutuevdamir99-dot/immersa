@@ -188,8 +188,14 @@
                            position
                            rotation
                            scale
+                           color
                            emissive-color
+                           emissive-intensity
+                           metallic
+                           roughness
+                           alpha
                            mat
+                           mat-type
                            billboard-mode
                            hl-color
                            hl-blur
@@ -197,16 +203,17 @@
                     :or {size 1
                          resolution 8
                          depth 0.2
-                         mat (api.material/standard-mat (str name "-mat"))
+                         mat (api.material/pbr-mat (str name "-mat"))
+                         mat-type :pbr
                          hl-blur 1.0}
                     :as opts}]
-  (let [text (j/call MeshBuilder :CreateText name
+  (let [mesh (j/call MeshBuilder :CreateText name
                      text
                      font/droid
                      #js {:size size
                           :resolution resolution
                           :depth depth
-                          :sideOrientation api.const/mesh-double-side}
+                          :sideOrientation api.const/mesh-default-side}
                      nil
                      earcut)
         mat (or (some-> nme api.material/get-nme-material) mat)]
@@ -214,12 +221,18 @@
       (let [hl (api.core/highlight-layer (str name "-hl")
                                          :blur-vertical-size hl-blur
                                          :blur-horizontal-size hl-blur)]
-        (j/call hl :addMesh text hl-color)))
-    (api.core/add-node-to-db name text (assoc opts :type :text3D))
-    (when-not nme
+        (j/call hl :addMesh mesh hl-color)))
+    (api.core/add-node-to-db name mesh (assoc opts :type :text3D))
+    (when (= mat-type :pbr)
       (cond-> mat
-        emissive-color (j/assoc! :emissiveColor emissive-color)))
-    (cond-> text
+        true (j/assoc! :reflectivityColor (api.const/color-black))
+        color (j/assoc! :albedoColor color)
+        emissive-color (j/assoc! :emissiveColor emissive-color)
+        emissive-intensity (j/assoc! :emissiveIntensity emissive-intensity)
+        roughness (j/assoc! :roughness roughness)
+        metallic (j/assoc! :metallic metallic)
+        alpha (j/assoc! :alpha alpha)))
+    (cond-> mesh
       billboard-mode (j/assoc! :billboardMode (j/get Mesh billboard-mode))
       mat (j/assoc! :material mat)
       visibility (j/assoc! :visibility visibility)
@@ -228,16 +241,17 @@
       scale (j/assoc! :scaling scale))))
 
 (comment
+
   (text "test" {:text "Text2"
                 :depth 0.1
                 ;:emissive-color (api.const/color-teal)
                 :size 1
-                :visibility 0.001
+                ;:visibility 0.001
                 :mat (api.material/pbr-mat "pbr"
-                                           :alpha 0.5
-                                           :albedo-color (api.const/color-teal)
-                                           :emissive-color (api.const/color-teal)
-                                           :emissive-intensity 0
+                                           ;:alpha 0
+                                           :albedo-color (api.const/color-red)
+                                           ;:emissive-color (api.const/color-teal)
+                                           ;:emissive-intensity 0
                                            :metallic 1
                                            :roughness 1
                                            )

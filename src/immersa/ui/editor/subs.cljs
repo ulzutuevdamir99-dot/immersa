@@ -51,14 +51,56 @@
   (fn [db]
     (-> db :editor :camera :rotation)))
 
+(defn- color->rgb-str [color]
+  (let [[r g b] (or color [255 255 255])]
+    (str "rgb(" r "," g "," b ")")))
+
 (reg-sub
   ::scene-background-color
   (fn [db]
-    (let [[r g b] (or (-> db :editor :scene :background-color) [255 255 255])]
-      (str "rgb(" r "," g "," b ")"))))
+    (-> db :editor :scene :background-color color->rgb-str)))
 
 (reg-sub
   ::selected-mesh-color
   (fn [db]
-    (-> db :editor :selected-mesh :color)))
+    (-> db :editor :selected-mesh :color color->rgb-str)))
 
+(reg-sub
+  ::selected-mesh-emissive-color
+  (fn [db]
+    (-> db :editor :selected-mesh :emissive-color color->rgb-str)))
+
+(reg-sub
+  ::selected-mesh-emissive-intensity
+  (fn [db]
+    (-> db :editor :selected-mesh :emissive-intensity (* 100) int)))
+
+(reg-sub
+  ::selected-mesh-alpha
+  (fn [db]
+    (-> db :editor :selected-mesh :alpha (* 100) int)))
+
+(reg-sub
+  ::selected-mesh-metallic
+  (fn [db]
+    (-> db :editor :selected-mesh :metallic (or 0) (* 100) int)))
+
+(reg-sub
+  ::selected-mesh-roughness
+  (fn [db]
+    (-> db :editor :selected-mesh :roughness (or 0) (* 100) int)))
+
+(reg-sub
+  ::selected-mesh-opacity
+  (fn [db]
+    (-> db :editor :selected-mesh :opacity (* 100) int)))
+
+(reg-sub
+  ::selected-mesh-type
+  (fn [db]
+    (-> db :editor :selected-mesh :type)))
+
+(reg-sub
+  ::selected-mesh-text-content
+  (fn [db]
+    (-> db :editor :selected-mesh :text)))

@@ -123,8 +123,17 @@
 (defn color->color-rgb [[r g b]]
   [(* 255.0 r) (* 255.0 g) (* 255.0 b)])
 
+(defn color->v [c]
+  (let [r (j/get c :r)
+        g (j/get c :g)
+        b (j/get c :b)]
+    [(* 255.0 r) (* 255.0 g) (* 255.0 b)]))
+
 (defn get-node-by-name [name]
   (j/get-in db [:nodes name]))
+
+(defn get-node-attr [name & ks]
+  (j/get-in db (concat [:nodes name] ks)))
 
 (defn get-object-by-name [name]
   (j/get-in db [:nodes name :obj]))

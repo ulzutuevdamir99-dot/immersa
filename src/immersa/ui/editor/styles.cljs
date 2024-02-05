@@ -263,4 +263,6 @@
   {:position "relative"})
 
 (defattrs color-picker-component-wrapper []
-  {:margin-top "1px"})
+  {:margin-top "1px"
+   :user-select :none})
+

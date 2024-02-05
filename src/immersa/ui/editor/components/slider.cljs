@@ -39,17 +39,18 @@
   [:&:focus
    {:box-shadow (str colors/button-box-shadow " 0px 2px 3px")}])
 
-(defn slider [{:keys [value min max step]
+(defn slider [{:keys [value min max step on-change]
                :or {max 100
                     min 0
                     step 1
                     value 0}}]
   [:> Slider/Root
    {:class (slider-root)
-    ;; :value [value]
+    :value [value]
     :min min
     :max max
-    :step step}
+    :step step
+    :on-value-change on-change}
    [:> Slider/Track
     {:class (slider-track)}
     [:> Slider/Range

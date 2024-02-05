@@ -165,26 +165,27 @@
                     :value z
                     :on-change #(dispatch [event type 2 %])}]]))
 
-(defn color-picker [{:keys [sub-key event-key] :as opts}]
-  (r/with-let [open? (r/atom false)]
-    [:div (styles/color-picker-container)
-     [:div (styles/color-picker-button-container)
-      [text (:text opts)]
-      [:button {:class (styles/color-picker-button)
-                :style {:background @(subscribe [sub-key])}
-                :on-click #(swap! open? not)}]]
-     (when @open?
-       [:div (styles/color-picker-component-container)
-        [button {:class (styles/color-picker-close-button)
-                 :on-click #(reset! open? false)
-                 :icon-right [icon/x {:size 12
-                                      :weight "bold"
-                                      :color colors/text-primary}]}]
-        [:div (styles/color-picker-component-wrapper)
-         [color-picker* {:disable-alpha true
-                         :color @(subscribe [sub-key])
-                         :on-change #(let [{:keys [r g b]} (j/lookup (j/get % :rgb))]
-                                       (dispatch [event-key [r g b]]))}]]])]))
+(defn color-picker [_]
+  (let [open? (r/atom false)]
+    (fn [{:keys [sub-key event-key] :as opts}]
+      [:div (styles/color-picker-container)
+       [:div (styles/color-picker-button-container)
+        [text (:text opts)]
+        [:button {:class (styles/color-picker-button)
+                  :style {:background @(subscribe [sub-key])}
+                  :on-click #(swap! open? not)}]]
+       (when @open?
+         [:div (styles/color-picker-component-container)
+          [button {:class (styles/color-picker-close-button)
+                   :on-click #(reset! open? false)
+                   :icon-right [icon/x {:size 12
+                                        :weight "bold"
+                                        :color colors/text-primary}]}]
+          [:div (styles/color-picker-component-wrapper)
+           [color-picker* {:disable-alpha true
+                           :color @(subscribe [sub-key])
+                           :on-change #(let [{:keys [r g b]} (j/lookup (j/get % :rgb))]
+                                         (dispatch [event-key [r g b]]))}]]])])))
 
 (defn editor-panel []
   [:div (styles/editor-container)
@@ -262,7 +263,9 @@
                                      ;; :justify-content "center"
                                      :gap "12px"}}
                        [text "Content"]
-                       [textarea {:value "This is a 3D model"}]]]
+                       [textarea {:value @(subscribe [::subs/selected-mesh-text-content])
+                                  :on-change #(dispatch [::events/update-selected-mesh-text-content
+                                                         (-> % .-target .-value)])}]]]
                      [separator]
                      [:div {:style {:display "flex"
                                     :justify-content "space-between"}}
@@ -289,10 +292,10 @@
                                :gap "20px"}}
                       [color-picker {:text "Color"
                                      :sub-key ::subs/selected-mesh-color
-                                     :event-key ::events/update-selected-mesh-color}]
+                                     :event-key ::events/update-selected-mesh-main-color}]
                       [color-picker {:text "Emissive color"
-                                     :sub-key ::subs/selected-mesh-color
-                                     :event-key ::events/update-selected-mesh-color}]
+                                     :sub-key ::subs/selected-mesh-emissive-color
+                                     :event-key ::events/update-selected-mesh-emissive-color}]
 
                       [:div {:style {:display "flex"
                                      :flex-direction "column"
@@ -301,9 +304,9 @@
                                       :flex-direction "row"
                                       :justify-content "space-between"}}
                         [text "Emissive intensity"]
-                        [text {:weight :light}
-                         "65%"]]
-                       [slider]]
+                        [text {:weight :light} (str @(subscribe [::subs/selected-mesh-emissive-intensity]) "%")]]
+                       [slider {:value @(subscribe [::subs/selected-mesh-emissive-intensity])
+                                :on-change #(dispatch [::events/update-selected-mesh-slider-value :emissive-intensity %])}]]
                       [:div {:style {:display "flex"
                                      :flex-direction "column"
                                      :gap "8px"}}
@@ -311,9 +314,10 @@
                                       :flex-direction "row"
                                       :justify-content "space-between"}}
                         [text "Opacity"]
-                        [text {:weight :light}
-                         "65%"]]
-                       [slider]]
+                        [text {:weight :light} (str @(subscribe [::subs/selected-mesh-opacity]) "%")]]
+                       [slider {:min 0.001
+                                :value @(subscribe [::subs/selected-mesh-opacity])
+                                :on-change #(dispatch [::events/update-selected-mesh-slider-value :opacity %])}]]
                       [:div {:style {:display "flex"
                                      :flex-direction "column"
                                      :gap "8px"}}
@@ -321,19 +325,19 @@
                                       :flex-direction "row"
                                       :justify-content "space-between"}}
                         [text "Roughness"]
-                        [text {:weight :light}
-                         "65%"]]
-                       [slider]]
+                        [text {:weight :light} (str @(subscribe [::subs/selected-mesh-roughness]) "%")]]
+                       [slider {:value @(subscribe [::subs/selected-mesh-roughness])
+                                :on-change #(dispatch [::events/update-selected-mesh-slider-value :roughness %])}]]
                       [:div {:style {:display "flex"
                                      :flex-direction "column"
                                      :gap "8px"}}
                        [:div {:style {:display "flex"
                                       :flex-direction "row"
                                       :justify-content "space-between"}}
-                        [text "Metalic"]
-                        [text {:weight :light}
-                         "65%"]]
-                       [slider]]
+                        [text "Metalness"]
+                        [text {:weight :light} (str @(subscribe [::subs/selected-mesh-metallic]) "%")]]
+                       [slider {:value @(subscribe [::subs/selected-mesh-metallic])
+                                :on-change #(dispatch [::events/update-selected-mesh-slider-value :metallic %])}]]
                       [:div {:style {:display "flex"
                                      :flex-direction "column"
                                      :gap "8px"}}
@@ -341,9 +345,9 @@
                                       :flex-direction "row"
                                       :justify-content "space-between"}}
                         [text "Alpha"]
-                        [text {:weight :light}
-                         "65%"]]
-                       [slider]]]]
+                        [text {:weight :light} (str @(subscribe [::subs/selected-mesh-alpha]) "%")]]
+                       [slider {:value @(subscribe [::subs/selected-mesh-alpha])
+                                :on-change #(dispatch [::events/update-selected-mesh-slider-value :alpha %])}]]]]
                     [:div {:style {:user-select "none"}}
                      [:div {:style {:display "flex"
                                     :flex-direction "column"
@@ -370,3 +374,6 @@
                                            :type :rotation
                                            :event ::events/update-camera
                                            :value @(subscribe [::subs/camera-rotation])}]]])}]]]]])
+
+(comment
+  @(subscribe [::subs/selected-mesh]))
