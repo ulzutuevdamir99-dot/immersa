@@ -226,7 +226,9 @@
     (when (= mat-type :pbr)
       (cond-> mat
         true (j/assoc! :reflectivityColor (api.const/color-black))
+        ;; We're using the albedo color as the main color and emissive color as the brightness
         color (j/assoc! :albedoColor color)
+        color (j/assoc! :emissiveColor color)
         emissive-color (j/assoc! :emissiveColor emissive-color)
         emissive-intensity (j/assoc! :emissiveIntensity emissive-intensity)
         roughness (j/assoc! :roughness roughness)

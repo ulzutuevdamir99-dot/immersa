@@ -66,19 +66,9 @@
     (-> db :editor :selected-mesh :color color->rgb-str)))
 
 (reg-sub
-  ::selected-mesh-emissive-color
-  (fn [db]
-    (-> db :editor :selected-mesh :emissive-color color->rgb-str)))
-
-(reg-sub
   ::selected-mesh-emissive-intensity
   (fn [db]
     (-> db :editor :selected-mesh :emissive-intensity (* 100) int)))
-
-(reg-sub
-  ::selected-mesh-alpha
-  (fn [db]
-    (-> db :editor :selected-mesh :alpha (* 100) int)))
 
 (reg-sub
   ::selected-mesh-metallic
@@ -104,3 +94,13 @@
   ::selected-mesh-text-content
   (fn [db]
     (-> db :editor :selected-mesh :text)))
+
+(reg-sub
+  ::selected-mesh-text-size
+  (fn [db]
+    (-> db :editor :selected-mesh :size)))
+
+(reg-sub
+  ::selected-mesh-text-depth
+  (fn [db]
+    (-> db :editor :selected-mesh :depth)))

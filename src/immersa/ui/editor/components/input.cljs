@@ -71,7 +71,19 @@
                 :on-wheel (fn [e]
                             (-> e .-target .focus))
                 :on-change (fn [e]
-                             (let [v (-> e .-target .-value)]
+                             (let [v (-> e .-target .-value)
+                                   v (if-not (str/blank? v)
+                                       (cond
+                                         (< (parse-double v)
+                                            (parse-double min))
+                                         min
+
+                                         (> (parse-double v)
+                                            (parse-double max))
+                                         max
+
+                                         :else v)
+                                       v)]
                                (when on-change (on-change v))
                                (reset! error? (str/blank? v))))
                 :on-key-down (fn [e]

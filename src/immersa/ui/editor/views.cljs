@@ -275,7 +275,10 @@
                                      :justify-content "center"
                                      :gap "16px"}}
                        [text "Depth"]
-                       [input-number {:value 0}]]
+                       [input-number {:min "0"
+                                      :max "100"
+                                      :value @(subscribe [::subs/selected-mesh-text-depth])
+                                      :on-change #(dispatch [::events/update-selected-mesh-text-depth-or-size :depth %])}]]
                       [separator {:orientation "vertical"
                                   :style {:height "25px"}}]
                       [:div {:style {:display "flex"
@@ -284,7 +287,10 @@
                                      :justify-content "center"
                                      :gap "16px"}}
                        [text "Size"]
-                       [input-number {:value 0}]]]
+                       [input-number {:min "0"
+                                      :max "100"
+                                      :value @(subscribe [::subs/selected-mesh-text-size])
+                                      :on-change #(dispatch [::events/update-selected-mesh-text-depth-or-size :size %])}]]]
                      [separator]
                      [:div
                       {:style {:display "flex"
@@ -293,17 +299,13 @@
                       [color-picker {:text "Color"
                                      :sub-key ::subs/selected-mesh-color
                                      :event-key ::events/update-selected-mesh-main-color}]
-                      [color-picker {:text "Emissive color"
-                                     :sub-key ::subs/selected-mesh-emissive-color
-                                     :event-key ::events/update-selected-mesh-emissive-color}]
-
                       [:div {:style {:display "flex"
                                      :flex-direction "column"
                                      :gap "8px"}}
                        [:div {:style {:display "flex"
                                       :flex-direction "row"
                                       :justify-content "space-between"}}
-                        [text "Emissive intensity"]
+                        [text "Brightness"]
                         [text {:weight :light} (str @(subscribe [::subs/selected-mesh-emissive-intensity]) "%")]]
                        [slider {:value @(subscribe [::subs/selected-mesh-emissive-intensity])
                                 :on-change #(dispatch [::events/update-selected-mesh-slider-value :emissive-intensity %])}]]
@@ -337,17 +339,7 @@
                         [text "Metalness"]
                         [text {:weight :light} (str @(subscribe [::subs/selected-mesh-metallic]) "%")]]
                        [slider {:value @(subscribe [::subs/selected-mesh-metallic])
-                                :on-change #(dispatch [::events/update-selected-mesh-slider-value :metallic %])}]]
-                      [:div {:style {:display "flex"
-                                     :flex-direction "column"
-                                     :gap "8px"}}
-                       [:div {:style {:display "flex"
-                                      :flex-direction "row"
-                                      :justify-content "space-between"}}
-                        [text "Alpha"]
-                        [text {:weight :light} (str @(subscribe [::subs/selected-mesh-alpha]) "%")]]
-                       [slider {:value @(subscribe [::subs/selected-mesh-alpha])
-                                :on-change #(dispatch [::events/update-selected-mesh-slider-value :alpha %])}]]]]
+                                :on-change #(dispatch [::events/update-selected-mesh-slider-value :metallic %])}]]]]
                     [:div {:style {:user-select "none"}}
                      [:div {:style {:display "flex"
                                     :flex-direction "column"

@@ -25,7 +25,9 @@
   (case type
     "text3D" (dispatch [::events/set-selected-text3D-data
                         {:type "text3D"
-                         :text (api.core/get-node-attr (j/get mesh :name) :text)
+                         :text (api.core/get-node-attr mesh :text)
+                         :depth (api.core/get-node-attr mesh :depth)
+                         :size (api.core/get-node-attr mesh :size)
                          :opacity (j/get mesh :visibility)
                          :color (-> (j/get-in mesh [:material :albedoColor]) api.core/color->v)
                          :emissive-color (some-> (j/get-in mesh [:material :emissiveColor]) api.core/color->v)

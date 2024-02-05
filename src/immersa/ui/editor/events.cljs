@@ -79,13 +79,6 @@
      :scene {:type :update-selected-mesh-color
              :data {:value rgb}}}))
 
-(reg-event-fx
-  ::update-selected-mesh-emissive-color
-  (fn [{:keys [db]} [_ rgb]]
-    {:db (assoc-in db [:editor :selected-mesh :emissive-color] rgb)
-     :scene {:type :update-selected-mesh-emissive-color
-             :data {:value rgb}}}))
-
 (reg-event-db
   ::set-selected-text3D-data
   (fn [db [_ data]]
@@ -104,6 +97,19 @@
 (reg-event-fx
   ::update-selected-mesh-text-content
   (fn [{:keys [db]} [_ value]]
-    {:db (assoc-in db [:editor :selected-mesh :text] value)
-     :scene {:type :update-selected-mesh-text-content
-             :data {:value value}}}))
+    (cond-> {:db (assoc-in db [:editor :selected-mesh :text] value)}
+      (not (str/blank? value)) (assoc :scene {:type :update-selected-mesh-text-content
+                                              :data {:value value}}))))
+
+(reg-event-fx
+  ::update-selected-mesh-text-depth-or-size
+  (fn [{:keys [db]} [_ type value]]
+    (let [selected-mesh (-> db :editor :selected-mesh)
+          selected-mesh (assoc selected-mesh type value)
+          updated-attr (type selected-mesh)]
+      (cond-> {:db (assoc-in db [:editor :selected-mesh] selected-mesh)}
+
+        (not (str/blank? value))
+        (assoc :scene {:type :update-selected-mesh-text-depth-or-size
+                       :data {:update type
+                              :value (parse-double updated-attr)}})))))

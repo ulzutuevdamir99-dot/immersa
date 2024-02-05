@@ -50,30 +50,48 @@
 
 (defmethod handle-ui-update :update-selected-mesh-color [{{:keys [value]} :data}]
   (when-let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
-    (j/assoc-in! mesh [:material :albedoColor] (apply api.core/color-rgb value))))
+    (let [new-color (apply api.core/color-rgb value)]
+      (j/assoc-in! mesh [:material :albedoColor] new-color)
+      (j/assoc-in! mesh [:material :emissiveColor] new-color))))
 
 (defmethod handle-ui-update :update-selected-mesh-emissive-color [{{:keys [value]} :data}]
   (when-let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
     (j/assoc-in! mesh [:material :emissiveColor] (apply api.core/color-rgb value))))
 
-(let [f (functions/debounce
-          (fn [value]
-            (when-let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
-              (let [material (api.core/clone (j/get mesh :material))
-                    position (api.core/clone (j/get mesh :position))
-                    rotation (api.core/clone (j/get mesh :rotation))
-                    scaling (api.core/clone (j/get mesh :scaling))
-                    name (j/get mesh :immersa-id)
-                    _ (api.core/dispose name)
-                    mesh (api.mesh/text name {:text value
-                                              :mat material
-                                              :position position
-                                              :rotation rotation
-                                              :scale scaling})]
-                (j/call-in api.core/db [:gizmo :manager :attachToMesh] mesh))))
-          500)]
-  (defmethod handle-ui-update :update-selected-mesh-text-content [{{:keys [value]} :data}]
-    (f value)))
+(def update-text-mesh
+  (functions/debounce
+    (fn [data]
+      (when-let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
+        (let [material (api.core/clone (j/get mesh :material))
+              position (api.core/clone (j/get mesh :position))
+              rotation (api.core/clone (j/get mesh :rotation))
+              scaling (api.core/clone (j/get mesh :scaling))
+              depth (api.core/get-node-attr mesh :depth)
+              size (api.core/get-node-attr mesh :size)
+              text (api.core/get-node-attr mesh :text)
+              name (j/get mesh :immersa-id)
+              _ (api.core/dispose name)
+              opts (merge
+                     {:mat material
+                      :depth depth
+                      :size size
+                      :position position
+                      :rotation rotation
+                      :scale scaling
+                      :text text}
+                     data)
+              opts (if (= (:depth data) 0)
+                     (assoc opts :depth 0.01)
+                     opts)
+              mesh (api.mesh/text name opts)]
+          (j/call-in api.core/db [:gizmo :manager :attachToMesh] mesh))))
+    500))
+
+(defmethod handle-ui-update :update-selected-mesh-text-content [{{:keys [value]} :data}]
+  (update-text-mesh {:text value}))
+
+(defmethod handle-ui-update :update-selected-mesh-text-depth-or-size [{{:keys [update value]} :data}]
+  (update-text-mesh (hash-map update value)))
 
 (defmethod handle-ui-update :resize [_]
   (j/call (api.core/get-engine) :resize))

@@ -132,8 +132,10 @@
 (defn get-node-by-name [name]
   (j/get-in db [:nodes name]))
 
-(defn get-node-attr [name & ks]
-  (j/get-in db (concat [:nodes name] ks)))
+(defn get-node-attr [mesh-or-name & ks]
+  (j/get-in db (concat [:nodes (if (string? mesh-or-name)
+                                 mesh-or-name
+                                 (j/get mesh-or-name :immersa-id))] ks)))
 
 (defn get-object-by-name [name]
   (j/get-in db [:nodes name :obj]))

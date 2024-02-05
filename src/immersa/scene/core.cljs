@@ -175,11 +175,9 @@
           _ (api.gizmo/init-gizmo-manager)]
       ;; (api.mesh/box "box1")
       (api.mesh/text "test" {:text "Text"
-                             :depth 0.001
-                             :color (api.const/color-teal)
-                             ;; :emissive-color :color/white
-                             ;; :size 1
-                             })
+                             :depth 0.1
+                             :size 1
+                             :color (api.const/color-teal)})
       (when dev?
         (common.utils/remove-element-listeners))
       (common.utils/register-event-listener js/window "resize" (functions/debounce #(j/call engine :resize) 250))
