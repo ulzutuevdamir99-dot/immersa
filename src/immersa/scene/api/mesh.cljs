@@ -1,6 +1,5 @@
 (ns immersa.scene.api.mesh
   (:require
-    ["@babylonjs/core/Maths/math.path" :refer [Curve3]]
     ["@babylonjs/core/Meshes/Builders/greasedLineBuilder" :refer [CreateGreasedLine]]
     ["@babylonjs/core/Meshes/mesh" :refer [Mesh]]
     ["@babylonjs/core/Meshes/meshBuilder" :refer [MeshBuilder]]
@@ -157,6 +156,7 @@
       rotation (j/assoc! :rotation rotation)
       scale (j/assoc! :scaling scale)
       material (j/assoc! :material material))
+    (j/assoc-in! mesh [:rotation :x] (/ Math/PI -2))
     (api.core/add-node-to-db name mesh (assoc opts :type type))))
 
 (defn create-ground-from-hm [name & {:keys [texture subdivisions width height max-height min-height on-ready mat]

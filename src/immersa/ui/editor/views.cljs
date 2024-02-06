@@ -115,6 +115,8 @@
    [presentation-component {:icon icon/cube
                             :text "3D Model"
                             :class (styles/presentation-component-cube)}]
+   [presentation-component {:icon icon/camera
+                            :text "Camera"}]
    [presentation-component {:icon icon/student
                             :text "Tutorial"}]
    [presentation-component {:icon icon/chats-circle

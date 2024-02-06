@@ -3,6 +3,7 @@
     ["@phosphor-icons/react/dist/csr/ArrowFatLeft" :refer [ArrowFatLeft]]
     ["@phosphor-icons/react/dist/csr/ArrowFatRight" :refer [ArrowFatRight]]
     ["@phosphor-icons/react/dist/csr/Books" :refer [Books]]
+    ["@phosphor-icons/react/dist/csr/Camera" :refer [Camera]]
     ["@phosphor-icons/react/dist/csr/CaretLeft" :refer [CaretLeft]]
     ["@phosphor-icons/react/dist/csr/CaretRight" :refer [CaretRight]]
     ["@phosphor-icons/react/dist/csr/ChatCenteredText" :refer [ChatCenteredText]]
@@ -44,3 +45,4 @@
 (def x (r/adapt-react-class X))
 (def chats-circle (r/adapt-react-class ChatsCircle))
 (def student (r/adapt-react-class Student))
+(def camera (r/adapt-react-class Camera))

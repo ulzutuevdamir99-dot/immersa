@@ -58,6 +58,16 @@
   (when-let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
     (j/assoc-in! mesh [:material :emissiveColor] (apply api.core/color-rgb value))))
 
+;; bb (j/get (j/call mesh :getBoundingInfo) :boundingBox)
+;;              center (j/get bb :center)
+;;              scale-factor 1.2
+;;              width (* scale-factor (- (j/get-in bb [:maximum :x]) (j/get-in bb [:minimum :x])))
+;;              height (* scale-factor (- (j/get-in bb [:maximum :y]) (j/get-in bb [:minimum :y])))
+;;              plane (api.mesh/plane-rounded "p" {:radius 0.1
+;;                                       :width width
+;;                                       :height height
+;;                                       :position center})
+
 (def update-text-mesh
   (functions/debounce
     (fn [data]

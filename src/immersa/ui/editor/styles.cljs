@@ -237,7 +237,7 @@
 (defattrs color-picker-container []
   {:display :flex
    :flex-direction :column
-   :gap "12px"})
+   :gap "8px"})
 
 (defattrs color-picker-button-container []
   {:display :flex
@@ -257,10 +257,10 @@
 (defclass color-picker-close-button []
   {:position :absolute
    :z-index 3
-   :right "44px"})
+   :left "223px"})
 
 (defattrs color-picker-component-container []
-  {:position "relative"})
+  {:position :relative})
 
 (defattrs color-picker-component-wrapper []
   {:margin-top "1px"

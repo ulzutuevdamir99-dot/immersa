@@ -112,6 +112,9 @@
     (j/call-in free-camera [:onViewMatrixChangedObservable :add] f)
     (dispatch [::editor.events/set-camera (utils/v3->v-data free-camera [:position :rotation])])))
 
+(defn- update-bounding-box-renderer [scene]
+  (j/assoc! (j/call scene :getBoundingBoxRenderer) :showBackLines false))
+
 (defn when-scene-ready [engine scene mode]
   (api.core/clear-scene-color (api.const/color-white))
   (j/assoc-in! (api.core/get-object-by-name "sky-box") [:rotation :y] js/Math.PI)
@@ -122,7 +125,8 @@
               (api.core/hide-loading-ui)
               (register-scene-mouse-events scene)
               (ui-listener/init-ui-update-listener)
-              (add-camera-view-matrix-listener))
+              (add-camera-view-matrix-listener)
+              (update-bounding-box-renderer scene))
     :present (do
                (slide/start-slide-show)
                (start-background-lighting engine))))
@@ -177,6 +181,7 @@
       (api.mesh/text "test" {:text "Text"
                              :depth 0.1
                              :size 1
+                             :billboard-mode api.const/mesh-billboard-mode-all
                              :color (api.const/color-teal)})
       (when dev?
         (common.utils/remove-element-listeners))
