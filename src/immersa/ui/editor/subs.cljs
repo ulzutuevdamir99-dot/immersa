@@ -104,3 +104,13 @@
   ::selected-mesh-text-depth
   (fn [db]
     (-> db :editor :selected-mesh :depth)))
+
+(reg-sub
+  ::slides-current-index
+  (fn [db]
+    (-> db :editor :slides :current-index)))
+
+(reg-sub
+  ::slides-all
+  (fn [db]
+    (-> db :editor :slides :all)))

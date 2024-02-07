@@ -2,8 +2,7 @@
   (:require
     ["@radix-ui/react-dropdown-menu" :as DropdownMenu]
     [immersa.ui.theme.colors :as colors]
-    [reagent.core :as r]
-    [spade.core :refer [defclass defattrs]]))
+    [spade.core :refer [defclass]]))
 
 (defclass content-style []
   {:min-width "200px"

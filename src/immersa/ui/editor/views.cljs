@@ -25,7 +25,9 @@
 
 (defn- canvas [state]
   (r/create-class
-    {:component-did-mount #(scene.core/start-scene (js/document.getElementById "renderCanvas") :mode :editor)
+    {:component-did-mount #(scene.core/start-scene (js/document.getElementById "renderCanvas")
+                                                   {:mode :editor
+                                                    :slides @(subscribe [::subs/slides-all])})
      :reagent-render (fn []
                        [:canvas
                         {:id "renderCanvas"
@@ -75,8 +77,8 @@
 (defn- header-left-panel []
   [:div (styles/title-bar)
    [:div (styles/menubar-list-icon)
-    [icon/list {:size 24
-                :color colors/text-primary}]]
+    [icon/list-menu {:size 24
+                     :color colors/text-primary}]]
    [:div (styles/title-bar-full-width)
     [:div (styles/title-container)
      [:span (styles/title-label) "My 3D Presentation"]
@@ -194,6 +196,31 @@
                            :on-change #(let [{:keys [r g b]} (j/lookup (j/get % :rgb))]
                                          (dispatch [event-key [r g b]]))}]]])])))
 
+(defn- slide [index]
+  (let [current-index @(subscribe [::subs/slides-current-index])
+        selected? (= index current-index)]
+    [:div {:style {:display "flex"
+                   :align-items "flex-start"
+                   :padding-left "8px"
+                   :padding-bottom "8px"
+                   :user-select "none"}
+           :on-click #(dispatch [::events/go-to-slide index])}
+     [:span {:style {:width "22px"
+                     :color (if selected?
+                              colors/button-outline-border
+                              colors/text-primary)
+                     :font-size typography/s
+                     :font-weight (if selected?
+                                    typography/medium
+                                    typography/regular)}} (inc index)]
+     [:div
+      {:style {:width "123px"
+               :height "70px"
+               :border-radius "5px"
+               :border (if selected?
+                         (str "2px solid " colors/button-outline-border)
+                         (str "1px solid " colors/border2))}}]]))
+
 (defn editor-panel []
   [:div (styles/editor-container)
    [header]
@@ -211,27 +238,9 @@
      [scroll-area
       {:class (styles/slides-scroll-area)
        :children [:div {:style {:padding-top "8px"}}
-                  (for [i (range 1 15)]
-                    ^{:key i}
-                    [:div {:style {:display "flex"
-                                   :align-items "flex-start"
-                                   :padding-left "8px"
-                                   :padding-bottom "8px"}}
-                     [:span {:style {:width "22px"
-                                     :color (if (= i 1)
-                                              colors/button-outline-border
-                                              colors/text-primary)
-                                     :font-size typography/s
-                                     :font-weight (if (= i 1)
-                                                    typography/medium
-                                                    typography/regular)}} i]
-                     [:div
-                      {:style {:width "123px"
-                               :height "70px"
-                               :border-radius "5px"
-                               :border (if (= i 1)
-                                         (str "2px solid " colors/button-outline-border)
-                                         (str "1px solid " colors/border2))}}]])]}]]
+                  (for [{:keys [id index]} (map-indexed #(assoc %2 :index %1) @(subscribe [::subs/slides-all]))]
+                    ^{:key id}
+                    [slide index])]}]]
     [canvas-wrapper]
     [:div (styles/options-bar)
      [:div

@@ -5,6 +5,7 @@
     [applied-science.js-interop :as j]
     [cljs.core.async :as a]
     [cljs.core.async :as a :refer [go-loop <!]]
+    [cljs.reader :as reader]
     [clojure.string :as str]
     [goog.functions :as functions]
     [immersa.common.utils :as common.utils]
@@ -12,7 +13,7 @@
     [immersa.scene.api.camera :as api.camera]
     [immersa.scene.api.component :as api.component]
     [immersa.scene.api.constant :as api.const]
-    [immersa.scene.api.core :as api.core :refer [v2 v3 v4]]
+    [immersa.scene.api.core :as api.core :refer [v3]]
     [immersa.scene.api.gizmo :as api.gizmo]
     [immersa.scene.api.gui :as api.gui]
     [immersa.scene.api.light :as api.light]
@@ -62,7 +63,28 @@
                      (and (= key "f") (j/get-in api.core/db [:gizmo :selected-mesh]))
                      (api.anim/run-camera-focus-anim (j/get-in api.core/db [:gizmo :selected-mesh]))
                      #_(j/call (api.camera/active-camera)
-                               :setTarget (api.core/clone (j/get-in api.core/db [:gizmo :selected-mesh :position]))))
+                               :setTarget (api.core/clone (j/get-in api.core/db [:gizmo :selected-mesh :position])))
+
+                     (and (= key "c")
+                          (j/get-in info [:event :metaKey])
+                          (j/get-in api.core/db [:gizmo :selected-mesh]))
+                     (-> (j/get-in api.core/db [:gizmo :selected-mesh])
+                         api.core/get-object-name
+                         (#(vector % (get-in @slide/all-slides [@slide/current-slide-index :data %])))
+                         common.utils/copy-to-clipboard)
+
+                     (and (= key "v")
+                          (j/get-in info [:event :metaKey]))
+                     (-> (j/call-in js/navigator [:clipboard :readText])
+                         (j/call :then (fn [text]
+                                         (when-not (str/blank? text)
+                                           (try
+                                             (slide/duplicate-slide-data (reader/read-string text))
+                                             (catch js/Error e
+                                               (js/console.warn "Clipboard data is not in EDN format.")
+                                               (js/console.warn e))))))
+                         (j/call :catch (fn []
+                                          (js/console.error "Clipboard failed.")))))
                    (api.camera/switch-camera-if-needed scene))))))
 
 (defn- read-pixels [engine]
@@ -116,20 +138,23 @@
 (defn- update-bounding-box-renderer [scene]
   (j/assoc! (j/call scene :getBoundingBoxRenderer) :showBackLines false))
 
-(defn when-scene-ready [engine scene mode]
+(defn when-scene-ready [engine scene mode slides]
   (api.core/clear-scene-color (api.const/color-white))
   (j/assoc-in! (api.core/get-object-by-name "sky-box") [:rotation :y] js/Math.PI)
   (api.gui/advanced-dynamic-texture)
   (j/call scene :registerBeforeRender (fn [] (register-before-render)))
   (case mode
     :editor (do
-              (api.core/hide-loading-ui)
+              (api.gizmo/init-gizmo-manager)
               (register-scene-mouse-events scene)
               (ui-listener/init-ui-update-listener)
               (add-camera-view-matrix-listener)
-              (update-bounding-box-renderer scene))
+              (update-bounding-box-renderer scene)
+              (slide/start-slide-show {:mode mode
+                                       :slides slides}))
     :present (do
-               (slide/start-slide-show)
+               (slide/start-slide-show {:mode mode
+                                        :slides slides})
                (start-background-lighting engine))))
 
 (defn- update-draco-url []
@@ -140,7 +165,8 @@
 
 (defn start-scene [canvas & {:keys [start-slide-show?
                                     mode
-                                    dev?]
+                                    dev?
+                                    slides]
                              :or {start-slide-show? true}}]
   (a/go
     (let [engine (api.core/create-engine canvas)
@@ -172,18 +198,10 @@
                                          :height 50
                                          :mat ground-material
                                          :pickable? false)
-          ;; _ (api.component/create-sky-box)
+          _ (api.component/create-sky-box)
           ;; _ (api.component/create-sky-sphere)
           _ (api.material/create-environment-helper)
-          _ (api.material/init-nme-materials)
-          ;; TODO only in editor mode, update here
-          _ (api.gizmo/init-gizmo-manager)]
-      ;; (api.mesh/box "box1")
-      (api.mesh/text "test" {:text "Text"
-                             :depth 0.1
-                             :size 1
-                             :billboard-mode api.const/mesh-billboard-mode-all
-                             :color (api.const/color-teal)})
+          _ (api.material/init-nme-materials)]
       (when dev?
         (common.utils/remove-element-listeners))
       (common.utils/register-event-listener js/window "resize" (functions/debounce #(j/call engine :resize) 250))
@@ -191,7 +209,7 @@
       (j/call free-camera :setTarget (v3))
       (j/call free-camera :attachControl canvas false)
       (j/call engine :runRenderLoop #(j/call scene :render))
-      (j/call scene :executeWhenReady #(when-scene-ready engine scene mode)))))
+      (j/call scene :executeWhenReady #(when-scene-ready engine scene mode slides)))))
 
 (defn restart-engine [& {:keys [start-slide-show?
                                 dev?]

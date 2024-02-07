@@ -21,6 +21,7 @@
                           wrap?
                           visibility
                           position
+                          pickable?
                           skybox?
                           infinite-distance?
                           alpha-index
@@ -40,6 +41,7 @@
       mat (j/assoc! :material mat)
       position (j/assoc! :position position)
       visibility (j/assoc! :visibility visibility)
+      (some? pickable?) (j/assoc! :isPickable pickable?)
       (some? infinite-distance?) (j/assoc! :infiniteDistance infinite-distance?))))
 
 (defn sphere [name & {:keys [diameter

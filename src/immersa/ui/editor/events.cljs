@@ -118,3 +118,10 @@
   ::add-text-mesh
   (fn []
     {:scene {:type :add-text-mesh}}))
+
+(reg-event-fx
+  ::go-to-slide
+  (fn [{:keys [db]} [_ index]]
+    {:db (assoc-in db [:editor :slides :current-index] index)
+     :scene {:type :go-to-slide
+             :data {:index index}}}))

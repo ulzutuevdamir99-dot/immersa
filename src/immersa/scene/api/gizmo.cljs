@@ -5,6 +5,7 @@
     [immersa.common.utils :as common.utils]
     [immersa.scene.api.core :as api.core]
     [immersa.scene.macros :as m]
+    [immersa.scene.slide :as slide]
     [immersa.scene.utils :as utils]
     [immersa.ui.editor.events :as events]
     [re-frame.core :refer [dispatch]]))
@@ -55,12 +56,20 @@
     (dispatch [::events/clear-selected-mesh])))
 
 (defn- add-drag-observables [gizmo-manager]
-  (let [f (fn [_]
+  (let [f (fn []
             (some-> (j/get-in api.core/db [:gizmo :selected-mesh]) notify-ui-selected-mesh))]
-    (j/call-in gizmo-manager [:gizmos :positionGizmo :onDragEndObservable :add] f)
+    (j/call-in gizmo-manager [:gizmos :positionGizmo :onDragEndObservable :add]
+               (fn []
+                 (f)
+                 (let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
+                   (some-> mesh (slide/update-slide-data :position (api.core/v3->v (j/get mesh :position)))))))
     (j/call-in gizmo-manager [:gizmos :positionGizmo :onDragObservable :add] f)
     (j/call-in gizmo-manager [:gizmos :rotationGizmo :onDragObservable :add] f)
-    (j/call-in gizmo-manager [:gizmos :rotationGizmo :onDragEndObservable :add] f)))
+    (j/call-in gizmo-manager [:gizmos :rotationGizmo :onDragEndObservable :add]
+               (fn []
+                 (f)
+                 (let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
+                   (some-> mesh (slide/update-slide-data :rotation (api.core/v3->v (j/get mesh :rotation)))))))))
 
 (defn init-gizmo-manager []
   (let [gizmo-manager (GizmoManager. (api.core/get-scene))]

@@ -1,10 +1,6 @@
 (ns immersa.scene.api.component
   (:require
-    ["@babylonjs/core/Materials/Textures/cubeTexture" :refer [CubeTexture]]
-    ["@babylonjs/core/Meshes/meshBuilder" :refer [MeshBuilder]]
-    ["earcut" :as earcut]
     [applied-science.js-interop :as j]
-    [immersa.scene.api.constant :as api.const]
     [immersa.scene.api.constant :as api.const]
     [immersa.scene.api.core :as api.core :refer [v2 v3 v4]]
     [immersa.scene.api.gui :as api.gui]
@@ -26,6 +22,7 @@
                              :size 1000.0
                              :skybox? true
                              :infinite-distance? false
+                             :pickable? false
                              :alpha-index 0)
         mat (api.material/shader-mat
               "skybox-shader"

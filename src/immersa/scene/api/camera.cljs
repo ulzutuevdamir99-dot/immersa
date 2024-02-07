@@ -19,11 +19,11 @@
 (defn set-pos [pos]
   (j/call-in (active-camera) [:position :copyFrom] pos))
 
-(defn reset-camera []
+(defn reset-camera [position rotation]
   (let [cam (active-camera)]
     (j/assoc! cam
-              :position (api.core/clone (j/get cam :init-position))
-              :rotation (api.core/clone (j/get cam :init-rotation)))))
+              :position (api.core/clone position)
+              :rotation (api.core/clone rotation))))
 
 (defn create-free-camera [name & {:keys [position speed min-z]
                                   :or {position (v3 0 2 -10)

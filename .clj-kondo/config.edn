@@ -1,0 +1,56 @@
+{:hooks {:analyze-call {
+                        ;re-frame.core/reg-event-db immersa.linters/reg-db-linter
+                        ;re-frame.core/reg-event-fx immersa.linters/reg-fx-linter
+                        spade.core/defattrs immersa.linters/spade-linter
+                        spade.core/defclass immersa.linters/spade-linter
+                        cljs.core/defn immersa.linters/defn-linter
+                        cljs.core/ns immersa.linters/restrict-phosphor-icons-require-linter}}
+ :linters {:consistent-alias {:aliases {reitit.coercion.malli rcm
+                                        immersa.common.tags tags}}
+           :not-empty? {:level :off}
+           :deprecated-var {:level :info}
+           :unresolved-var {:exclude [com.rpl.specter/ALL
+                                      com.rpl.specter/cond-path
+                                      com.rpl.specter/MAP-KEYS
+                                      com.rpl.specter/MAP-VALS
+                                      com.rpl.specter/multi-path
+                                      garden.units/px]}
+           :line-length {:max-line-length 129
+                         :level :error}
+           :unresolved-symbol {:exclude [(cljs.core.match/match [_])
+                                         (spade.core/defattrs [at-media])
+                                         (spade.core/defclass [at-media])
+                                         (spade.core/defglobal [at-media])
+                                         (spade.core/defkeyframes [at-media])]}
+           :re-frame/keyword {:level :info}
+           :immersa.linters/missing-schema-check {:level :error}
+           :immersa.linters/function-arguments {:level :error}
+           :immersa.linters/incorrect-style-usage {:level :error}
+           :immersa.linters/restrict-phosphor-icons-require {:level :error}
+           :discouraged-namespace {:level :info
+                                   soda-ash.core {:message "Use or create radix components"}
+                                   vimsical.re-frame.fx.track {:message "Use plain function instead"}}}
+ :config-in-ns {immersa-ui.test-utils.test-utils
+                {:linters {:immersa.linters/missing-schema-check {:level :off}}}}
+ :lint-as {com.rpl.specter/defcollector clojure.core/defn
+           com.rpl.specter/defdynamicnav clojure.core/defn
+           com.rpl.specter/defmacroalias clojure.core/def
+           com.rpl.specter/defnav clojure.core/defn
+           com.rpl.specter/defrichnav clojure.core/defn
+           garden.def/defkeyframes clojure.core/def
+           garden.def/defstyles clojure.core/def
+           immersa-ui.components.lottie-animation/defanimations clojure.core/def
+           portfolio.reagent/defscene clj-kondo.lint-as/def-catch-all
+           reagent.core/with-let clojure.core/let
+           snitch.core/*fn clojure.core/fn
+           snitch.core/*let clojure.core/let
+           snitch.core/defn* clojure.core/defn
+           spade.core/defattrs clojure.core/defn
+           spade.core/defclass clojure.core/defn
+           spade.core/defglobal clojure.core/def
+           spade.core/defkeyframes clojure.core/defn}
+ :skip-comments true
+ :output {:exclude-files [".clj-kondo/immersa/linters.clj"
+                          "resources/aero_config.edn"
+                          "resources/public/js/manifest.edn"]
+          :pattern "\u001b[31m| {{LEVEL}} |\u001b[33m {{message}} |\u001b[36m {{filename}} | \u001b[32mL{{row}} C{{col}}"}}

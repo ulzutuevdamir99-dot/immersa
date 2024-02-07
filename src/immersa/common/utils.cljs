@@ -27,3 +27,6 @@
 
 (defn number->fixed [n]
   (j/call n :toFixed 2))
+
+(defn copy-to-clipboard [value]
+  (.writeText (.-clipboard js/navigator) value))

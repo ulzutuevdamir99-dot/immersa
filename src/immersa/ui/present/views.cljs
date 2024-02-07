@@ -4,6 +4,7 @@
     [applied-science.js-interop :as j]
     [immersa.common.utils :as common.utils]
     [immersa.scene.core :as scene.core]
+    [immersa.ui.editor.subs :as editor.subs]
     [immersa.ui.icons :as icon]
     [immersa.ui.present.events :as events]
     [immersa.ui.present.styles :as styles]
@@ -13,7 +14,9 @@
 
 (defn- canvas []
   (r/create-class
-    {:component-did-mount #(scene.core/start-scene (js/document.getElementById "renderCanvas") :mode :present)
+    {:component-did-mount #(scene.core/start-scene (js/document.getElementById "renderCanvas")
+                                                   {:mode :present
+                                                    :slides @(subscribe [::editor.subs/slides-all])})
      :reagent-render (fn []
                        [:canvas
                         {:id "renderCanvas"

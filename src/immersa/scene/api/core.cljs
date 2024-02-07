@@ -146,6 +146,9 @@
                                  mesh-or-name
                                  (j/get mesh-or-name :immersa-id))] ks)))
 
+(defn get-object-name [mesh]
+  (j/get mesh :immersa-id))
+
 (defn get-object-by-name [name]
   (j/get-in db [:nodes name :obj]))
 
