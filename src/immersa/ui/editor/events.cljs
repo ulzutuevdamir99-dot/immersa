@@ -62,6 +62,11 @@
      :scene {:type :update-background-color
              :data {:value rgb}}}))
 
+#_(reg-event-db
+  ::update-scene-background-color-success
+  (fn [db [_ rgb]]
+    (assoc-in db [:editor :scene :background-color] rgb)))
+
 (reg-event-fx
   ::resize-scene
   (fn []
@@ -129,3 +134,15 @@
   ::set-current-slide-index
   (fn [db [_ current-index]]
     (assoc-in db [:editor :slides :current-index] current-index)))
+
+(reg-event-fx
+  ::add-slide
+  (fn []
+    {:scene {:type :add-slide}}))
+
+(reg-event-db
+  ::sync-slides-info
+  (fn [db [_ {:keys [current-index slides]}]]
+    (-> db
+        (assoc-in [:editor :slides :current-index] current-index)
+        (assoc-in [:editor :slides :all] slides))))

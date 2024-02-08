@@ -58,7 +58,9 @@
 (reg-sub
   ::scene-background-color
   (fn [db]
-    (-> db :editor :scene :background-color color->rgb-str)))
+    (let [current-index (-> db :editor :slides :current-index)
+          slides (-> db :editor :slides :all)]
+      (-> (nth slides current-index nil) :data :skybox :background :color color->rgb-str))))
 
 (reg-sub
   ::selected-mesh-color

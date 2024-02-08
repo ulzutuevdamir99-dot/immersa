@@ -554,15 +554,32 @@
       (sp/setval [sp/ATOM index :data id] params all-slides)
       (sp/setval [sp/ATOM id] params prev-slide))))
 
-(defn add-slide-data [mesh params]
-  (let [index @current-slide-index]
-    (sp/setval [sp/ATOM index :data (api.core/get-object-name mesh)] params all-slides)
-    (sp/setval [sp/ATOM (api.core/get-object-name mesh)] params prev-slide)))
+(defn vec-insert [lst elem index]
+  (let [[l r] (split-at index lst)]
+    (vec (concat l [elem] r))))
 
-(defn update-slide-data [mesh k v]
+(defn add-slide []
   (let [index @current-slide-index]
-    (sp/setval [sp/ATOM index :data (api.core/get-object-name mesh) k] v all-slides)
-    (sp/setval [sp/ATOM (api.core/get-object-name mesh) k] v prev-slide)))
+    (api.core/clear-selected-mesh)
+    (swap! all-slides (fn [slides]
+                        (vec-insert slides (assoc (get slides index) :id (str (random-uuid))) (inc index))))
+    (swap! current-slide-index inc)
+    (dispatch [::editor.events/sync-slides-info {:current-index @current-slide-index
+                                                 :slides @all-slides}])))
+
+(defn add-slide-data [obj params]
+  (let [index @current-slide-index]
+    (sp/setval [sp/ATOM index :data (api.core/get-object-name obj)] params all-slides)
+    (sp/setval [sp/ATOM (api.core/get-object-name obj)] params prev-slide)))
+
+(defn update-slide-data [obj k v]
+  (let [index @current-slide-index
+        object-id (if (keyword? obj) obj (api.core/get-object-name obj))
+        path (if (vector? k)
+               (apply sp/comp-paths k)
+               k)]
+    (sp/setval [sp/ATOM index :data object-id path] v all-slides)
+    (sp/setval [sp/ATOM object-id path] v prev-slide)))
 
 (defn start-slide-show [{:keys [mode slides]}]
   (let [_ (init-slide-show-state)

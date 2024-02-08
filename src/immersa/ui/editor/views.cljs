@@ -231,6 +231,7 @@
                :align-items "center"
                :padding "8px 16px 0 16px"}}
       [button {:text "Add slide"
+               :on-click #(dispatch [::events/add-slide])
                :class (styles/add-slide-button)
                :icon-left [icon/plus {:size 18
                                       :color colors/text-primary}]}]]

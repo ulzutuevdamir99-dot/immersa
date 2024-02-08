@@ -58,7 +58,7 @@
                      (j/assoc-in! api.core/db [:keyboard key] false)
 
                      (= key "escape")
-                     (api.gizmo/clear-selected-mesh)
+                     (api.core/clear-selected-mesh)
 
                      (and (= key "f") (j/get-in api.core/db [:gizmo :selected-mesh]))
                      (api.anim/run-camera-focus-anim (j/get-in api.core/db [:gizmo :selected-mesh]))

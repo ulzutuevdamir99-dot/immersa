@@ -8,7 +8,9 @@
     [immersa.scene.api.constant :as api.const]
     [immersa.scene.api.core :as api.core :refer [v3]]
     [immersa.scene.api.mesh :as api.mesh]
-    [immersa.scene.slide :as slide])
+    [immersa.scene.slide :as slide]
+    [immersa.ui.editor.events :as editor.events]
+    [re-frame.core :refer [dispatch]])
   (:require-macros
     [immersa.common.macros :refer [go-loop-sub]]))
 
@@ -16,13 +18,16 @@
 
 (defmethod handle-ui-update :update-selected-mesh [{{:keys [update value]} :data}]
   (when-let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
-    (if (= update :rotation)
-      (slide/update-slide-data mesh update (mapv api.core/to-rad value))
-      (slide/update-slide-data mesh update value))
     (case update
-      :position (j/assoc! mesh :position (api.core/v->v3 value))
-      :rotation (j/assoc! mesh :rotation (api.core/v->v3 (mapv api.core/to-rad value)))
-      :scaling (j/assoc! mesh :scaling (api.core/v->v3 value)))))
+      :position (do
+                  (slide/update-slide-data mesh :position value)
+                  (j/assoc! mesh :position (api.core/v->v3 value)))
+      :rotation (do
+                  (slide/update-slide-data mesh :rotation (mapv api.core/to-rad value))
+                  (j/assoc! mesh :rotation (api.core/v->v3 (mapv api.core/to-rad value))))
+      :scaling (do
+                 (slide/update-slide-data mesh :scale value)
+                 (j/assoc! mesh :scaling (api.core/v->v3 value))))))
 
 (let [lock-fn-id (atom nil)]
   (defmethod handle-ui-update :update-camera [{{:keys [update value]} :data}]
@@ -43,7 +48,10 @@
         ground-material (j/get-in api.core/db [:environment-helper :ground :material])
         new-color (apply api.core/color-rgb value)]
     (j/assoc! skybox-material :primaryColor new-color)
-    (j/assoc! ground-material :primaryColor new-color)))
+    (j/assoc! ground-material :primaryColor new-color)
+    (slide/update-slide-data :skybox [:background :color] value)
+    (dispatch [::editor.events/sync-slides-info {:current-index @slide/current-slide-index
+                                                 :slides @slide/all-slides}])))
 
 (defmethod handle-ui-update :update-selected-mesh-slider-value [{{:keys [update value]} :data}]
   (when-let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
@@ -120,9 +128,12 @@
   (j/call (api.core/get-engine) :resize))
 
 (defmethod handle-ui-update :go-to-slide [{{:keys [index]} :data}]
-  (j/call-in api.core/db [:gizmo :manager :attachToMesh] nil)
+  (api.core/clear-selected-mesh)
   (api.camera/switch-camera-if-needed (api.core/get-scene))
   (slide/go-to-slide index))
+
+(defmethod handle-ui-update :add-slide [_]
+  (slide/add-slide))
 
 (defmethod handle-ui-update :add-text-mesh [_]
   (let [camera (api.camera/active-camera)

@@ -511,3 +511,6 @@
 
 (defn selected-mesh []
   (j/get-in db [:gizmo :selected-mesh]))
+
+(defn clear-selected-mesh []
+  (j/call-in db [:gizmo :manager :attachToMesh] nil))

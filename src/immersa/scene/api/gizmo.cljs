@@ -14,9 +14,6 @@
 
 (def outline-color (api.core/color 0.3 0.74 0.94))
 
-(defn clear-selected-mesh []
-  (j/call-in api.core/db [:gizmo :manager :attachToMesh] nil))
-
 (defn- render-outline-selected-mesh [mesh]
   (when-let [child-meshes (j/call mesh :getChildMeshes)]
     (j/call child-meshes :forEach #(j/call hl :addMesh % outline-color)))
