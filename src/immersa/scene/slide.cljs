@@ -5,6 +5,7 @@
     [clojure.set :as set]
     [clojure.walk :as walk]
     [com.rpl.specter :as sp]
+    [goog.functions :as functions]
     [immersa.common.utils :as common.utils]
     [immersa.presentations.intro-immersa :refer [immersa-intro-slides]]
     [immersa.scene.api.animation :as api.animation]
@@ -523,6 +524,10 @@
 (defonce prev-slide (atom nil))
 (defonce current-slide-index (atom 0))
 
+(defonce thumbnails (atom {:thumbnails {}
+                           :last-time-slide-updated (js/Date.now)
+                           :last-time-thumbnail-updated (js/Date.now)}))
+
 (defn- init-slide-show-state []
   (set! command-ch (a/chan (a/dropping-buffer 1)))
   (reset! current-running-anims [])
@@ -559,10 +564,11 @@
     (vec (concat l [elem] r))))
 
 (defn add-slide []
-  (let [index @current-slide-index]
+  (let [index @current-slide-index
+        uuid (str (random-uuid))]
     (api.core/clear-selected-mesh)
     (swap! all-slides (fn [slides]
-                        (vec-insert slides (assoc (get slides index) :id (str (random-uuid))) (inc index))))
+                        (vec-insert slides (assoc (get slides index) :id uuid) (inc index))))
     (swap! current-slide-index inc)
     (dispatch [::editor.events/sync-slides-info {:current-index @current-slide-index
                                                  :slides @all-slides}])))
@@ -581,10 +587,31 @@
     (sp/setval [sp/ATOM index :data object-id path] v all-slides)
     (sp/setval [sp/ATOM object-id path] v prev-slide)))
 
+(defn update-thumbnail []
+  (let [base64 (j/call-in api.core/db [:canvas :toDataURL] "image/webp" 0.2)
+        index @current-slide-index
+        id (get-in @all-slides [index :id])]
+    (sp/setval [sp/ATOM :thumbnails id] base64 thumbnails)
+    (dispatch [::editor.events/sync-thumbnails {:thumbnails (:thumbnails @thumbnails)}])))
+
+(defn- capture-thumbnail-changes []
+  (add-watch all-slides :slide-update
+             (fn [_ _ old-val new-val]
+               (when-not (= old-val new-val)
+                 (swap! thumbnails assoc :last-time-slide-updated (js/Date.now)))))
+  (go-loop []
+    (<! (a/timeout 500))
+    (let [{:keys [last-time-slide-updated last-time-thumbnail-updated]} @thumbnails]
+      (when (> last-time-slide-updated last-time-thumbnail-updated)
+        (update-thumbnail)
+        (swap! thumbnails assoc :last-time-thumbnail-updated (js/Date.now))))
+    (recur)))
+
 (defn start-slide-show [{:keys [mode slides]}]
   (let [_ (init-slide-show-state)
         slides (reset! all-slides slides)
         slides (get-slides slides)]
+    (capture-thumbnail-changes)
     (a/put! command-ch :next)
     (api.camera/reset-camera (-> slides first :data :camera :position)
                              (-> slides first :data :camera :rotation))

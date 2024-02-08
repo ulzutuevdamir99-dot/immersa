@@ -127,6 +127,9 @@
 ;; 931 522
 ;; 1026 576
 (comment
+  ;canvas.toDataURL('image/webp', 0.5);
+  (j/call-in api.core/db [:canvas :toDataURL] "image/webp" 0.2)
+  (create-screenshot (fn [s] (println "S: " s)))
   (j/get (active-camera) :fov)
   (j/assoc! (active-camera) :fov 0.8)
   (j/assoc! (active-camera) :fov 1.1578)

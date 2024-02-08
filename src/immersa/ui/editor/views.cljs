@@ -198,6 +198,7 @@
 
 (defn- slide [index]
   (let [current-index @(subscribe [::subs/slides-current-index])
+        thumbnail @(subscribe [::subs/slide-thumbnail index])
         selected? (= index current-index)]
     [:div {:style {:display "flex"
                    :align-items "flex-start"
@@ -219,7 +220,11 @@
                :border-radius "5px"
                :border (if selected?
                          (str "2px solid " colors/button-outline-border)
-                         (str "1px solid " colors/border2))}}]]))
+                         (str "1px solid " colors/border2))}}
+      [:img {:src thumbnail
+             :style {:width "100%"
+                     :height "100%"
+                     :border-radius "3px"}}]]]))
 
 (defn editor-panel []
   [:div (styles/editor-container)
@@ -238,7 +243,17 @@
 
      [scroll-area
       {:class (styles/slides-scroll-area)
-       :children [:div {:style {:padding-top "8px"}}
+       :children [:div {:tabIndex "0"
+                        :on-key-down (fn [e]
+                                       (when-not (j/get e :repeat)
+                                         (when (or (= "ArrowDown" (j/get e :code))
+                                                   (= "ArrowRight" (j/get e :code)))
+                                           (dispatch [::events/go-to-slide :next]))
+                                         (when (or (= "ArrowUp" (j/get e :code))
+                                                   (= "ArrowLeft" (j/get e :code)))
+                                           (dispatch [::events/go-to-slide :prev]))))
+                        :style {:padding-top "8px"
+                                :outline "none"}}
                   (for [{:keys [id index]} (map-indexed #(assoc %2 :index %1) @(subscribe [::subs/slides-all]))]
                     ^{:key id}
                     [slide index])]}]]

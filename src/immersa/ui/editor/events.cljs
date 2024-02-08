@@ -146,3 +146,8 @@
     (-> db
         (assoc-in [:editor :slides :current-index] current-index)
         (assoc-in [:editor :slides :all] slides))))
+
+(reg-event-db
+  ::sync-thumbnails
+  (fn [db [_ {:keys [thumbnails]}]]
+    (assoc-in db [:editor :slides :thumbnails] thumbnails)))
