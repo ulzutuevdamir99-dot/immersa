@@ -85,7 +85,7 @@
      [:div (styles/private-badge)
       [icon/lock {:size 12}]
       [text {:size :s
-             :weight :light} "Private"]]]]])
+             :weight :light} "Beta"]]]]])
 
 (defn presentation-component [{:keys [icon class disabled? color text-weight on-click]
                                :or {disabled? false}

@@ -129,10 +129,25 @@
           (recur))))))
 
 (defn- add-camera-view-matrix-listener []
-  (let [free-camera (api.core/get-object-by-name "free-camera")
+  (let [arc-camera (api.core/get-object-by-name "arc-camera")
+        free-camera (api.core/get-object-by-name "free-camera")
         f #(when-not (j/get api.core/db :lock-view-matrix-change?)
-             (dispatch [::editor.events/set-camera (utils/v3->v-data free-camera [:position :rotation])]))]
+             (dispatch [::editor.events/set-camera (utils/v3->v-data free-camera [:position :rotation])]))
+        update-camera-on-slide (functions/debounce
+                                 (fn []
+                                   (when (= (api.camera/active-camera) arc-camera)
+                                     (let [position (api.core/clone (j/get arc-camera :position))
+                                           target (j/call arc-camera :getTarget)]
+                                       (j/call-in free-camera [:position :copyFrom] position)
+                                       (j/call free-camera :setTarget (api.core/clone target))))
+                                   (let [position (api.core/v3->v (j/get free-camera :position))
+                                         rotation (api.core/v3->v (j/get free-camera :rotation))]
+                                     (slide/update-slide-data :camera :position position)
+                                     (slide/update-slide-data :camera :rotation rotation)))
+                                 200)]
     (j/call-in free-camera [:onViewMatrixChangedObservable :add] f)
+    (j/call-in free-camera [:onViewMatrixChangedObservable :add] update-camera-on-slide)
+    (j/call-in arc-camera [:onViewMatrixChangedObservable :add] update-camera-on-slide)
     (dispatch [::editor.events/set-camera (utils/v3->v-data free-camera [:position :rotation])])))
 
 (defn- update-bounding-box-renderer [scene]
