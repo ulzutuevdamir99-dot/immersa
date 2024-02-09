@@ -220,10 +220,12 @@
                :border-radius "5px"
                :border (if selected?
                          (str "2px solid " colors/button-outline-border)
-                         (str "1px solid " colors/border2))}}
+                         (str "2px solid " colors/border2))}}
       [:img {:src thumbnail
              :style {:width "100%"
                      :height "100%"
+                     :box-sizing "border-box"
+                     :border "2px solid transparent"
                      :border-radius "3px"}}]]]))
 
 (defn editor-panel []
