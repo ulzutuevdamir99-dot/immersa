@@ -8,6 +8,7 @@
     [cljs.reader :as reader]
     [clojure.string :as str]
     [goog.functions :as functions]
+    [immersa.common.firebase :as firebase]
     [immersa.common.utils :as common.utils]
     [immersa.scene.api.animation :as api.anim]
     [immersa.scene.api.camera :as api.camera]
@@ -190,7 +191,8 @@
           _ (api.core/create-assets-manager :on-finish #(do
                                                           (dispatch [::events/set-show-arrow-keys-text? false])
                                                           (dispatch [::events/set-show-pre-warm-text? true])))
-          _ (a/<! (api.core/load-async))
+          _ (firebase/init-app)
+          _ (a/<! (api.core/load-async slides))
           _ (api.core/init-p5)
           free-camera (api.camera/create-free-camera "free-camera" :position (v3 0 0 -10))
           arc-camera (api.camera/create-arc-camera "arc-camera"
@@ -216,7 +218,8 @@
           _ (api.component/create-sky-box)
           ;; _ (api.component/create-sky-sphere)
           _ (api.material/create-environment-helper)
-          _ (api.material/init-nme-materials)]
+          ;; _ (api.material/init-nme-materials)
+          ]
       (when dev?
         (common.utils/remove-element-listeners))
       (common.utils/register-event-listener js/window "resize" (functions/debounce #(j/call engine :resize) 250))

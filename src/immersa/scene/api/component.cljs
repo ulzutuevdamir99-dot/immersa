@@ -16,7 +16,8 @@
                                 speed-factor]
                          :or {speed-factor 1
                               skybox1 "img/skybox/black/black"
-                              skybox2 "img/skybox/space/space"
+                              skybox2 "img/skybox/black_copy/black"
+                              ;; skybox2 "img/skybox/space/space"
                               noise "img/texture/noise/ac.jpg"}}]
   (let [skybox (api.mesh/box "sky-box"
                              :size 1000.0

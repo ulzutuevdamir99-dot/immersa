@@ -40,12 +40,14 @@
     (dispatch [::events/set-selected-mesh (assoc (utils/v3->v-data mesh [:position :rotation :scaling]) :name name)])
     (update-ui-by-selected-mesh-type type mesh)))
 
+(def bb-types #{"text3D" "image"})
+
 (defn- on-attached-to-mesh [mesh]
   (j/call hl :removeAllMeshes)
   (some-> (api.core/selected-mesh) (j/assoc! :showBoundingBox false))
   (j/assoc-in! api.core/db [:gizmo :selected-mesh] mesh)
   (when mesh
-    (if (= "text3D" (api.core/get-object-type-by-name (j/get mesh :immersa-id)))
+    (if (bb-types (api.core/get-object-type-by-name (j/get mesh :immersa-id)))
       (j/assoc! mesh :showBoundingBox true)
       (render-outline-selected-mesh mesh))
     (notify-ui-selected-mesh mesh))

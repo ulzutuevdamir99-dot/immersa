@@ -30,6 +30,7 @@
     ["p5" :as p5]
     [applied-science.js-interop :as j]
     [cljs.core.async :as a]
+    [clojure.walk :as walk]
     [immersa.scene.api.assets :refer [assets]])
   (:require-macros
     [immersa.scene.macros :as m]))
@@ -213,15 +214,10 @@
                                              (clj->js (update params :trigger #(j/get ActionManager (name %)))))
                                            callback)))
 
-(defn- check-if-not-exists-in-assets [type path]
-  (when-not (get-in assets [type path])
-    (throw (ex-info (str "Path not found in Assets Manager, path: " path " - Type: " type) {}))))
-
 (defn texture [path & {:keys [u-scale
                               v-scale
                               on-load
                               on-error]}]
-  (check-if-not-exists-in-assets :textures path)
   (let [tex (Texture. path)]
     (m/cond-doto tex
       u-scale (j/assoc! :uScale u-scale)
@@ -374,7 +370,6 @@
                               on-load
                               on-error]
                        :or {root-url ""}}]
-  (check-if-not-exists-in-assets :cube-textures root-url)
   (let [cb (CubeTexture. root-url nil extensions no-mipmaps? (clj->js files))]
     (m/cond-doto cb
       coordinates-mode (j/assoc! :coordinatesMode (j/get Texture coordinates-mode))
@@ -409,15 +404,23 @@
                              (js/console.warn "Failed meshes: " meshes)
                              (j/call meshes :forEach dispose)))))))
 
-(defn load-async []
-  (let [p (a/promise-chan)]
-    (doseq [[type assets] assets]
-      (doseq [[index path] (map-indexed vector assets)]
-        (case type
-          :texts (add-text-task (str "text-" index) path)
-          :textures (add-texture-task (str "texture-" index) path)
-          :cube-textures (add-cube-texture-task (str "cube-texture-" index) path)
-          :models (add-mesh-task (str "mesh-" index) "" path))))
+(defn load-async [slides]
+  (let [p (a/promise-chan)
+        assets (atom [])]
+    (walk/prewalk
+      (fn [form]
+        (if (and (map? form) (:asset-type form))
+          (do
+            (swap! assets conj (select-keys form [:asset-type :path]))
+            form)
+          form))
+      slides)
+    (doseq [[index {:keys [asset-type path]}] (map-indexed vector @assets)]
+      (case asset-type
+        :text (add-text-task (str "text-" index) path)
+        :texture (add-texture-task (str "texture-" index) path)
+        :cube-texture (add-cube-texture-task (str "cube-texture-" index) path)
+        :model (add-mesh-task (str "mesh-" index) "" path)))
     (j/call (j/call-in db [:assets-manager :loadAsync]) :then #(a/put! p true))
     p))
 

@@ -13,7 +13,8 @@
            "world" {:type :earth
                     :position [0 -0.7 -9.5]
                     :visibility 0}}}
-   {:data {:skybox {:background {:image "img/skybox/space/space"}
+   {:data {:skybox {:background {:asset-type :cube-texture
+                                 :path "img/skybox/space/space"}
                     :duration 1.5}
            "wave" {:type :wave}
            "immersa-text" {:type :billboard

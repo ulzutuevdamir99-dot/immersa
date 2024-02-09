@@ -598,15 +598,12 @@
   (add-watch all-slides :slide-update
              (fn [_ _ old-val new-val]
                (when-not (= old-val new-val)
-                 (println "slide updated")
-                 (cljs.pprint/pprint old-val)
-                 (cljs.pprint/pprint new-val)
                  (swap! thumbnails assoc :last-time-slide-updated (js/Date.now)))))
   (go-loop []
     (<! (a/timeout 500))
     (let [{:keys [last-time-slide-updated last-time-thumbnail-updated]} @thumbnails]
       (when (> last-time-slide-updated last-time-thumbnail-updated)
-        (update-thumbnail)
+        ;; (update-thumbnail)
         (swap! thumbnails assoc :last-time-thumbnail-updated (js/Date.now))))
     (recur)))
 
