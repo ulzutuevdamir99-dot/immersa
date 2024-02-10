@@ -72,33 +72,33 @@
                                                                            :scale 5
                                                                            :update-speed 0.01}}}
                            #_{:id "10e4ee76-bb27-4904-9d30-360a40d8abb0"
-                            :data {:camera {:position [0 0 -10]
-                                            :rotation [0 0 0]}
-                                   :skybox {:background {:color [1000 1000 1000]}}
-                                   "1a8ac149-35cc-402d-8bde-a2287261930e" {:rotation [0 -0.0003164062503844267 0]
-                                                                           :delay 500
-                                                                           :color [0 0 0]
-                                                                           :scale [1 1 1]
-                                                                           :roughness 1
-                                                                           :metallic 0
-                                                                           :type :text3D
-                                                                           :size 1
-                                                                           :position [0 -3.48 14.6]
-                                                                           :depth 0.01
-                                                                           :visibility 1
-                                                                           :emissive-intensity 1
-                                                                           :text "• Konnektörler \n• Ani hareket anahtarları (Snap action switch)\n• AC ve DC kontaktörler\n• Demiryolu bileşenleri "}
-                                   "22e09fae-b39f-4901-9283-bc1cdb7374bb" {:type :particle
-                                                                           :particle-type :cloud
-                                                                           :position [0 -7 0]
-                                                                           :scale 5
-                                                                           :update-speed 0.01}
-                                   "55k4ee76-bb27-4904-9d30-360a40d8ab00" {:type :glb
-                                                                           :asset-type :model
-                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2Ftrain.glb?alt=media&token=5059924a-b432-4c9a-9711-3c401259083b"
-                                                                           :position [-65 2 75]
-                                                                           :rotation [0 2.44 0]
-                                                                           :scale [0.001 0.001 0.001]}}}
+                              :data {:camera {:position [0 0 -10]
+                                              :rotation [0 0 0]}
+                                     :skybox {:background {:color [1000 1000 1000]}}
+                                     "1a8ac149-35cc-402d-8bde-a2287261930e" {:rotation [0 -0.0003164062503844267 0]
+                                                                             :delay 500
+                                                                             :color [0 0 0]
+                                                                             :scale [1 1 1]
+                                                                             :roughness 1
+                                                                             :metallic 0
+                                                                             :type :text3D
+                                                                             :size 1
+                                                                             :position [0 -3.48 14.6]
+                                                                             :depth 0.01
+                                                                             :visibility 1
+                                                                             :emissive-intensity 1
+                                                                             :text "• Konnektörler \n• Ani hareket anahtarları (Snap action switch)\n• AC ve DC kontaktörler\n• Demiryolu bileşenleri "}
+                                     "22e09fae-b39f-4901-9283-bc1cdb7374bb" {:type :particle
+                                                                             :particle-type :cloud
+                                                                             :position [0 -7 0]
+                                                                             :scale 5
+                                                                             :update-speed 0.01}
+                                     "55k4ee76-bb27-4904-9d30-360a40d8ab00" {:type :glb
+                                                                             :asset-type :model
+                                                                             :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2Ftrain.glb?alt=media&token=5059924a-b432-4c9a-9711-3c401259083b"
+                                                                             :position [-65 2 75]
+                                                                             :rotation [0 2.44 0]
+                                                                             :scale [0.001 0.001 0.001]}}}
                            {:id "3bc5da96-f729-4ca1-a5e4-ab22fecd29b7"
                             :data {:camera {:position [0 1.7 -10]
                                             :rotation [0 0 0]}
@@ -186,7 +186,7 @@
                            {:id "99bc7d52-eecc-4c69-b020-4bb366ad4594",
                             :data {:camera {:position [-0.0011328124975828636 0 21.272332594691633],
                                             :rotation [0.0021289062499999997 -1.7224036360377644 0]},
-                                   :skybox {:background {:color [234 204 145]}}
+                                   :skybox {:background {:color [247 255 186]}}
                                    "581c8ea9-262f-4d5d-ab63-7f6bf29d2705" {:rotation [0 4.560781667210461 0], :color [255 255 255], :scale [1 1 1], :roughness 1, :metallic 0, :type :text3D, :size 0.35, :position [-9.890000343322754 -1.9507310390472412 15.564252853393555], :depth 0.01, :visibility 1, :emissive-intensity 1, :text "• Elektrikli araçlar\n• Elektrikli gemiler / denizaltılar\n• İç lojistik için elektrikli araçlar\n• Pil şarj istasyonları\n• Pil test standları\n• Deniz şarj ve tahrik sistemleri"}
                                    "22a4ee76-bb27-4904-9d30-360a40d8ab00" {:type :glb,
                                                                            :asset-type :model,
@@ -194,19 +194,74 @@
                                                                            :position [-7.15240478515625 -1.1018229722976685 22.277658462524414]
                                                                            :rotation [0 2.1019629985152637 0]
                                                                            :update-materials {"Energy_Station" {:use-alpha-from-albedo? false}}
+                                                                           :scale [1 1 1]}
+                                   "95z3ee76-bb27-4904-9d30-360a40d8ab44" {:type :glb,
+                                                                           :asset-type :model,
+                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2Fpanel_solar_comp.glb?alt=media&token=e86a2324-89bf-41f2-88c7-b177096cc974",
+                                                                           :position [12 -1.8574519157409668 10.833869934082031]
+                                                                           :rotation [0 0.8674111074663644 0]
                                                                            :scale [1 1 1]}}}
                            {:id "56zc7d52-eecc-4c69-b020-4bb366ad4594",
                             :data {:camera {:position [-0.0011328124975828636 0 21.272332594691633],
                                             :rotation [0.0020943951023931952 -3.144908779168582 0]},
                                    :skybox {:background {:color [177 241 255]}}
-                                   "581c8ea9-262f-4d5d-ab63-7f6bf29d2705" {:rotation [0 4.560781667210461 0], :color [255 255 255], :scale [1 1 1], :roughness 1, :metallic 0, :type :text3D, :size 0.35, :position [-9.890000343322754 -1.9507310390472412 15.564252853393555], :depth 0.01, :visibility 1, :emissive-intensity 1, :text "• Elektrikli araçlar\n• Elektrikli gemiler / denizaltılar\n• İç lojistik için elektrikli araçlar\n• Pil şarj istasyonları\n• Pil test standları\n• Deniz şarj ve tahrik sistemleri"}
-                                   "22a4ee76-bb27-4904-9d30-360a40d8ab00" {:type :glb,
+                                   "95z3ee76-bb27-4904-9d30-360a40d8ab44" {:type :glb,
+                                                                           :duration 2.0
                                                                            :asset-type :model,
-                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2Fstation.glb?alt=media&token=f9a3cec6-fa24-409e-b7be-c3f33c78e508",
-                                                                           :position [-7.15240478515625 -1.1018229722976685 22.277658462524414]
-                                                                           :rotation [0 2.1019629985152637 0]
-                                                                           :update-materials {"Energy_Station" {:use-alpha-from-albedo? false}}
-                                                                           :scale [1 1 1]}}}]}}
+                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2Fpanel_solar_comp.glb?alt=media&token=e86a2324-89bf-41f2-88c7-b177096cc974",
+                                                                           :position [3.592869281768799 -1.8574519157409668 10.833869934082031]
+                                                                           :rotation [0 7.1370003772552115 0]
+                                                                           :scale [1 1 1]}
+                                   "cab626c0-695a-44c4-a2fc-88484b5eb1dd" {:rotation [0 3.135921059200114 0], :color [255 255 255], :scale [1 1 1], :roughness 1, :metallic 0, :type :text3D, :size 0.3, :position [-3.6639790534973145 -2.1218996047973633 11.270173072814941], :depth 0.01, :visibility 1, :emissive-intensity 1, :text "• Güneş panelleri\n• Rüzgar türbinleri\n• izleme sistemleri\n• Yakıt hücreleri\n• Pil şarj istasyonları\n• Enerji dönüşümü\n• Pil yenileme\n• Sabit pil enerji depoları"}}}
+                           {:id "1166656e-5d43-4f2a-a15d-cd5b6617b7c6",
+                            :data {:camera {:position [-0.001132812497582604 -5.447031714567174e-16 21.272332594691633],
+                                            :rotation [0.0020943951023931952 -3.1382765280110037 0]},
+                                   :skybox {:background {:color [255 255 255]}},
+                                   "95z3ee76-bb27-4904-9d30-360a40d8ab44" {:type :glb,
+                                                                           :asset-type :model,
+                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2Fpanel_solar_comp.glb?alt=media&token=e86a2324-89bf-41f2-88c7-b177096cc974",
+                                                                           :position [3.59 -1.86 22.05],
+                                                                           :rotation [0 7.1370003772552115 0],
+                                                                           :scale [1 1 1]},
+                                   "cab626c0-695a-44c4-a2fc-88484b5eb1dd" {:rotation [0 3.135921059200114 0],
+                                                                           :color [255 255 255],
+                                                                           :scale [1 1 1],
+                                                                           :roughness 1,
+                                                                           :metallic 0,
+                                                                           :type :text3D,
+                                                                           :size 0.3,
+                                                                           :position [-10.143378257751465
+                                                                                      -2.1218996047973633
+                                                                                      11.270173072814941],
+                                                                           :depth 0.01,
+                                                                           :visibility 1,
+                                                                           :emissive-intensity 1,
+                                                                           :text "• Güneş panelleri
+                                                                      • Rüzgar türbinleri
+                                                                      • izleme sistemleri
+                                                                      • Yakıt hücreleri
+                                                                      • Pil şarj istasyonları
+                                                                      • Enerji dönüşümü
+                                                                      • Pil yenileme
+                                                                      • Sabit pil enerji depoları"}
+                                   "00d4ss76-bb27-4904-9d30-360a40d8abc1" {:type :image, :asset-type :texture, :visibility 1, :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2Fc1.png?alt=media&token=faa6102a-e15e-430d-9203-8e1df538a094", :transparent? true, :position [-0.03429393470287323 1.6224138736724854 11.272409439086914], :rotation [0 3.141592653589793 0], :scale [4 4 4]}
+                                   "dfcc126f-3c9d-489f-8784-0fc0dbc448f9" {:rotation [0 3.1449087792603736 0], :color [255 255 255], :scale [1 1 1], :roughness 1, :metallic 0, :type :text3D, :size 0.4, :position [-0.03429393470287323 -1.5883097648620605 11.272409439086914], :depth 0.01, :visibility 1, :emissive-intensity 1, :text "Patentli Ark Sönümleme Teknolojisi"}}}
+                           {:id "1166656e-5d43-4f2a-a15d-cd5b6617b7c6",
+                            :data {:camera {:position [-0.001132812497582604 -5.447031714567174e-16 21.272332594691633],
+                                            :rotation [0.0020943951023931952 -3.1382765280110037 0]},
+                                   :skybox {:background {:color [255 255 255]}}
+                                   "27o4ss76-bb27-4904-9d30-360a40d8abc1" {:type :image, :asset-type :texture, :visibility 1, :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2Fc2.png?alt=media&token=cab78695-3d3b-4fd0-9751-8eca41c64554", :transparent? true, :position [-0.03429393470287323 1.6224138736724854 11.272409439086914], :rotation [0 3.141592653589793 0], :scale [4 4 4]}
+                                   "dfcc126f-3c9d-489f-8784-0fc0dbc448f9" {:rotation [0 3.1449087792603736 0], :color [255 255 255], :scale [1 1 1], :roughness 1, :metallic 0, :type :text3D, :size 0.4, :position [-0.03429393470287323 -1.5883097648620605 11.272409439086914], :depth 0.01, :visibility 1, :emissive-intensity 1, :text "Patentli Ark Sönümleme Teknolojisi"}
+                                   "kfcc126f-3c9d-489f-8784-0fc0dbc448f9" {:rotation [0 3.1449087792603736 0], :color [255 255 255], :scale [1 1 1], :roughness 1, :metallic 0, :type :text3D, :size 0.4, :position [-0.03429393470287323 -2.3460140228271484 11.272409439086914], :depth 0.01, :visibility 1, :emissive-intensity 1, :text "Kaynak/Yapışma Direnci"}}}
+                           {:id "1166656e-5d43-4f2a-a15d-cd5b6617b7c6",
+                            :data {:camera {:position [-0.001132812497582604 -5.447031714567174e-16 21.272332594691633],
+                                            :rotation [0.0020943951023931952 -3.1382765280110037 0]},
+                                   :skybox {:background {:color [255 255 255]}}
+                                   "97o4ss76-bb27-4904-9d30-360a40d8abc1" {:type :image, :asset-type :texture, :visibility 1, :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2Fc3.png?alt=media&token=94f10dfc-2952-4fe3-ad28-ba07bcaf24a2", :transparent? true, :position [-0.03429393470287323 1.6224138736724854 11.272409439086914], :rotation [0 3.141592653589793 0], :scale [4 4 4]}
+                                   "dfcc126f-3c9d-489f-8784-0fc0dbc448f9" {:rotation [0 3.1449087792603736 0], :color [255 255 255], :scale [1 1 1], :roughness 1, :metallic 0, :type :text3D, :size 0.4, :position [-0.03429393470287323 -1.5883097648620605 11.272409439086914], :depth 0.01, :visibility 1, :emissive-intensity 1, :text "Patentli Ark Sönümleme Teknolojisi"}
+                                   "kfcc126f-3c9d-489f-8784-0fc0dbc448f9" {:rotation [0 3.1449087792603736 0], :color [255 255 255], :scale [1 1 1], :roughness 1, :metallic 0, :type :text3D, :size 0.4, :position [-0.03429393470287323 -2.3460140228271484 11.272409439086914], :depth 0.01, :visibility 1, :emissive-intensity 1, :text "Kaynak/Yapışma Direnci"}
+                                   "zlcc126f-3c9d-489f-8784-0fc0dbc448f9" {:rotation [0 3.1449087792603736 0], :color [255 255 255], :scale [1 1 1], :roughness 1, :metallic 0, :type :text3D, :size 0.4, :position [-0.03429393470287323 -3.1403250694274902 11.272409439086914], :depth 0.01, :visibility 1, :emissive-intensity 1, :text "Çıkarılabilir Anahtarlama Haznesi*"}
+                                   "xkcc126f-3c9d-489f-8784-0fc0dbc448f9" {:rotation [0 3.1449087792603736 0], :color [255 255 255], :scale [1 1 1], :roughness 1, :metallic 0, :type :text3D, :size 0.25, :position [-0.03429393470287323 -3.857837438583374 11.272409439086914], :depth 0.01, :visibility 1, :emissive-intensity 1, :text "(Sadece C310 modelinde mevcuttur*)"}}}]}}
    :present {:show-arrow-keys-text? true
              :show-pre-warm-text? false
              :background-color "rgb(0,0,0)"}})

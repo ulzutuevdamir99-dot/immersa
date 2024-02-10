@@ -40,16 +40,21 @@
   (let [wasd #{"w" "a" "s" "d" "e" "q"}]
     (j/call-in scene [:onPointerObservable :add]
                (fn [info]
-                 (when (and (= api.const/pointer-type-tap (j/get info :type))
-                            (not (j/get-in info [:pickInfo :hit])))
-                   (api.core/clear-selected-mesh))
-                 (cond
-                   (= (j/get info :type) api.const/pointer-type-down)
-                   (j/assoc-in! api.core/db [:mouse :left-click?] true)
+                 (let [click-type (case (j/get-in info [:event :button])
+                                    0 :left-click?
+                                    1 :middle-click?
+                                    2 :right-click?
+                                    nil)]
+                   (when (and (= api.const/pointer-type-tap (j/get info :type))
+                              (not (j/get-in info [:pickInfo :hit])))
+                     (api.core/clear-selected-mesh))
+                   (cond
+                     (and click-type (= (j/get info :type) api.const/pointer-type-down))
+                     (j/assoc-in! api.core/db [:mouse click-type] true)
 
-                   (= (j/get info :type) api.const/pointer-type-up)
-                   (j/assoc-in! api.core/db [:mouse :left-click?] false))
-                 (api.camera/switch-camera-if-needed scene)))
+                     (and click-type (= (j/get info :type) api.const/pointer-type-up))
+                     (j/assoc-in! api.core/db [:mouse click-type] false))
+                   (api.camera/switch-camera-if-needed scene))))
     (j/call-in scene [:onKeyboardObservable :add]
                (fn [info]
                  (let [key (str/lower-case (j/get-in info [:event :key]))]

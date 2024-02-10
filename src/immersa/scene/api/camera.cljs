@@ -99,6 +99,7 @@
         switch-type (cond
                       wasd? :free
                       (api.core/selected-mesh) :arc
+                      (j/get-in api.core/db [:mouse :right-click?]) :arc
                       :else :free)
         camera (active-camera)
         camera-type (j/get camera :type)

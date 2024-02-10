@@ -36,7 +36,8 @@
                              :alpha (j/get-in mesh [:material :alpha])
                              :metallic (j/get-in mesh [:material :metallic])
                              :roughness (j/get-in mesh [:material :roughness])})])
-      "glb" (dispatch [::events/set-selected-glb-data (merge pos-rot-scale-name {:type "glb"})]))))
+      "glb" (dispatch [::events/set-selected-glb-data (merge pos-rot-scale-name {:type "glb"})])
+      "image" (dispatch [::events/set-selected-image-data (merge pos-rot-scale-name {:type "image"})]))))
 
 (defn- notify-ui-selected-mesh [mesh]
   (let [name (j/get mesh :immersa-id)

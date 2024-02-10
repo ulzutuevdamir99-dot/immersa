@@ -89,6 +89,11 @@
   (fn [db [_ data]]
     (assoc-in db [:editor :selected-mesh] data)))
 
+(reg-event-db
+  ::set-selected-image-data
+  (fn [db [_ data]]
+    (assoc-in db [:editor :selected-mesh] data)))
+
 (reg-event-fx
   ::update-selected-mesh-slider-value
   (fn [{:keys [db]} [_ type value]]
