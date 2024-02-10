@@ -51,6 +51,10 @@
 
 (def pointer-type-down (j/get PointerEventTypes :POINTERDOWN))
 (def pointer-type-up (j/get PointerEventTypes :POINTERUP))
+(def pointer-type-double-tap (j/get PointerEventTypes :POINTERDOUBLETAP))
+(def pointer-type-move (j/get PointerEventTypes :POINTERMOVE))
+(def pointer-type-tap (j/get PointerEventTypes :POINTERTAP))
+(def pointer-type-pick (j/get PointerEventTypes :POINTERPICK))
 
 (def keyboard-type-key-down (j/get KeyboardEventTypes :KEYDOWN))
 (def keyboard-type-key-up (j/get KeyboardEventTypes :KEYUP))

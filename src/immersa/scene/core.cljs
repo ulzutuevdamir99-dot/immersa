@@ -40,6 +40,9 @@
   (let [wasd #{"w" "a" "s" "d" "e" "q"}]
     (j/call-in scene [:onPointerObservable :add]
                (fn [info]
+                 (when (and (= api.const/pointer-type-tap (j/get info :type))
+                            (not (j/get-in info [:pickInfo :hit])))
+                   (api.core/clear-selected-mesh))
                  (cond
                    (= (j/get info :type) api.const/pointer-type-down)
                    (j/assoc-in! api.core/db [:mouse :left-click?] true)

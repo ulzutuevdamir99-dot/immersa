@@ -280,10 +280,11 @@
                                          :init-rotation (api.core/clone (j/get model :rotation))
                                          :init-scaling (api.core/clone (j/get model :scaling))})
     ;; TODO this apply to all meshes in the glb,it is not per mesh! fix it
-    (doseq [[name {:keys [albedo-color]}] update-materials]
+    (doseq [[name {:keys [albedo-color use-alpha-from-albedo?]}] update-materials]
       (let [mat (api.core/get-mat-by-name name)]
         (m/cond-doto mat
-          albedo-color (j/assoc! :albedoColor albedo-color))))
+          albedo-color (j/assoc! :albedoColor albedo-color)
+          (some? use-alpha-from-albedo?) (j/assoc! :useAlphaFromAlbedoTexture use-alpha-from-albedo?))))
     (m/cond-doto model
       position (j/assoc! :position position)
       rotation (j/assoc! :rotation rotation)
