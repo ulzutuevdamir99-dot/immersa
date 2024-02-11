@@ -26,6 +26,8 @@
     (rdom/render [views/main-panel] root-el)))
 
 (defn init []
+  (println "init...")
+  (js/console.log (j/get js/location :patname))
   (when-not (some-> (j/get js/location :patname) (= "/schaltbau"))
     (j/assoc! js/location :href "https://immersa.app"))
   (re-frame/dispatch-sync [::events/initialize-db])
