@@ -27,7 +27,8 @@
   (r/create-class
     {:component-did-mount #(scene.core/start-scene (js/document.getElementById "renderCanvas")
                                                    {:mode :editor
-                                                    :slides @(subscribe [::subs/slides-all])})
+                                                    :slides @(subscribe [::subs/slides-all])
+                                                    :thumbnails @(subscribe [::subs/slides-thumbnails])})
      :reagent-render (fn []
                        [:canvas
                         {:id "renderCanvas"

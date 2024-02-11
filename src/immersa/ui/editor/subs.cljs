@@ -118,6 +118,11 @@
     (-> db :editor :slides :all)))
 
 (reg-sub
+  ::slides-thumbnails
+  (fn [db]
+    (-> db :editor :slides :thumbnails)))
+
+(reg-sub
   ::slide-thumbnail
   (fn [db [_ index]]
     (let [thumbnails (-> db :editor :slides :thumbnails)]

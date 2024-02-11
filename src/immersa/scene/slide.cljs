@@ -613,10 +613,11 @@
         (swap! thumbnails assoc :last-time-thumbnail-updated (js/Date.now))))
     (recur)))
 
-(defn start-slide-show [{:keys [mode slides]}]
+(defn start-slide-show [{:keys [mode slides] :as opts}]
   (let [_ (init-slide-show-state)
         slides (reset! all-slides slides)
-        slides (get-slides slides)]
+        slides (get-slides slides)
+        _ (reset! thumbnails (:thumbnails opts))]
     (api.camera/reset-camera (-> slides first :data :camera :position)
                              (-> slides first :data :camera :rotation))
     (pre-warm-the-scene slides)

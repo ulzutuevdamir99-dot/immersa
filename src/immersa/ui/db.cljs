@@ -6,7 +6,8 @@
   {:name "re-frame"
    :mode :editor
    :editor {:slides {:current-index 0
-                     :all schaltbau/slides}}
+                     :all schaltbau/slides
+                     :thumbnails schaltbau/thumbnails}}
 
    :present {:show-arrow-keys-text? true
              :show-pre-warm-text? false
