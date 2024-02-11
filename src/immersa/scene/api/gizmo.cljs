@@ -108,7 +108,7 @@
   (fn []
     (when-let [mesh (api.core/selected-mesh)]
       (j/assoc-in! mesh [:rotation axis] (+ (j/get-in mesh [:initial-rotation axis]) (j/get mesh :accumulated-rotation)))
-      (let [[axis1 axis2] (case axis
+      #_(let [[axis1 axis2] (case axis
                             :x [:y :z]
                             :y [:x :z]
                             :z [:x :y])]

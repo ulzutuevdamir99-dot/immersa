@@ -116,6 +116,8 @@
                      :else opts)
               mesh (api.mesh/text name opts)]
           (slide/update-slide-data mesh :text (:text opts))
+          (slide/update-slide-data mesh :size (:size opts))
+          (slide/update-slide-data mesh :color (:color opts))
           (j/call-in api.core/db [:gizmo :manager :attachToMesh] mesh))))
     500))
 

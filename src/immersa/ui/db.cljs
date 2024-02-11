@@ -266,15 +266,14 @@
                                                                            :asset-type :model
                                                                            :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC320.glb?alt=media&token=2a2d7138-e5d8-4da1-bf4d-58ddedb192e5"
                                                                            :position [2.0005428791046143 -15 0]
-                                                                           :visibility 1
                                                                            :rotation [0 0 0]
                                                                            :scale [0.01 0.01 0.01]}
                                    "77z4xe76-bb27-4904-9d30-360a40d8ab00" {:type :glb
                                                                            :asset-type :model
                                                                            :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC310.glb?alt=media&token=af315c76-ea0b-4e8c-8931-48e6d9b17ba2"
                                                                            :position [0.007200113032013178 -15 0]
-                                                                           :rotation [0 0 4.71238898038469]
-                                                                           :scale [0.01 0.01 0.01]}
+                                                                           :rotation [0 0 0]
+                                                                           :scale [0.01 0.01 -0.01]}
                                    "11z4xe26-bb27-4904-9d30-360a40d8ab00" {:type :glb
                                                                            :asset-type :model
                                                                            :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC300.glb?alt=media&token=37f3680a-07be-439c-b082-7fdba1d288c2"
@@ -282,32 +281,190 @@
                                                                            :rotation [0 0 0]
                                                                            :scale [0.01 0.01 0.01]}}}
                            {:id "2233656e-5d43-4f2a-a15d-cd5b6617b7c6",
-                            :data {:camera {:delay 500
-                                            :duration 2
-                                            :position [0 1 5]
-                                            :rotation [0 -3.1382765280110037 0]}
-                                   :skybox {:background {:color [500 500 500]}}
-                                   "87z4ee76-bb27-4904-9d30-360a40d8ab00" {:type :glb
-                                                                           :asset-type :model
-                                                                           :duration 2.5
-                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC320.glb?alt=media&token=2a2d7138-e5d8-4da1-bf4d-58ddedb192e5"
-                                                                           :position [2.0005428791046143 0.2 0]
-                                                                           :rotation [(* 2 (* 3.14 2)) (* 2 3.14) 0]
-                                                                           :scale [0.01 0.01 0.01]}
-                                   "77z4xe76-bb27-4904-9d30-360a40d8ab00" {:type :glb
-                                                                           :asset-type :model
-                                                                           :duration 2.5
-                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC310.glb?alt=media&token=af315c76-ea0b-4e8c-8931-48e6d9b17ba2"
-                                                                           :position [0.007200113032013178 0.2 0]
-                                                                           :rotation [(* 2 (* 3.14 2)) (* 2 3.14) 4.71238898038469]
-                                                                           :scale [0.01 0.01 0.01]}
-                                   "11z4xe26-bb27-4904-9d30-360a40d8ab00" {:type :glb
-                                                                           :asset-type :model
-                                                                           :duration 2.5
-                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC300.glb?alt=media&token=37f3680a-07be-439c-b082-7fdba1d288c2"
-                                                                           :position [-1.892021656036377 0.7 0]
-                                                                           :rotation [(* 2 (* 3.14 2)) (* 2 3.14) 0]
-                                                                           :scale [0.01 0.01 0.01]}}}]}}
+                            :data {:camera {:delay 500,
+                                            :duration 2,
+                                            :position [4.3021142204224816e-16 1.0000000000000007 5],
+                                            :rotation [6.661337221303573e-17 -3.1382765280147797 0]},
+                                   :skybox {:background {:color [500 500 500]}},
+                                   "87z4ee76-bb27-4904-9d30-360a40d8ab00" {:type :glb,
+                                                                           :asset-type :model,
+                                                                           :duration 2.5,
+                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC320.glb?alt=media&token=2a2d7138-e5d8-4da1-bf4d-58ddedb192e5",
+                                                                           :position [2.125737428665161 0.20000000298023224 0],
+                                                                           :rotation [0 3.141592653589793 0],
+                                                                           :scale [0.01 0.01 0.01]},
+                                   "77z4xe76-bb27-4904-9d30-360a40d8ab00" {:type :glb,
+                                                                           :asset-type :model,
+                                                                           :duration 2.5,
+                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC310.glb?alt=media&token=af315c76-ea0b-4e8c-8931-48e6d9b17ba2",
+                                                                           :position [0.007200113032013178 0.2 0],
+                                                                           :rotation [0 3.141592653589793 -1.5707963267948966],
+                                                                           :scale [0.01 0.01 -0.01]},
+                                   "11z4xe26-bb27-4904-9d30-360a40d8ab00" {:type :glb,
+                                                                           :asset-type :model,
+                                                                           :duration 2.5,
+                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC300.glb?alt=media&token=37f3680a-07be-439c-b082-7fdba1d288c2",
+                                                                           :position [-1.892021656036377 0.7 0],
+                                                                           :rotation [0 3.141592653589793 0],
+                                                                           :scale [0.01 0.01 0.01]}}}
+                           {:id "d0e30d94-61f7-467e-a5f2-46c071938887",
+                            :data {"77z4xe76-bb27-4904-9d30-360a40d8ab00" {:type :glb,
+                                                                           :asset-type :model,
+                                                                           :duration 2.5,
+                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC310.glb?alt=media&token=af315c76-ea0b-4e8c-8931-48e6d9b17ba2",
+                                                                           :position [-0.25690165162086487 0.20000000298023224 1.4501289129257202],
+                                                                           :rotation [0.08270623264164967 -0.8555043084843956 -1.7044942195554162],
+                                                                           :scale [0.01 0.01 -0.01]},
+                                   "0e623eb0-cdb1-4108-a977-711c1dcd92a4" {:rotation [0.001660971510399293
+                                                                                      -3.1387224800576603
+                                                                                      -0.5246100874717244],
+                                                                           :color [0 0 0],
+                                                                           :scale [1 1 1],
+                                                                           :roughness 1,
+                                                                           :metallic 0,
+                                                                           :type :text3D,
+                                                                           :size 0.2,
+                                                                           :position [0.3736768662929535 -1.375217080116272 -2.651867628097534],
+                                                                           :depth 0.01,
+                                                                           :delay 2000,
+                                                                           :visibility 1,
+                                                                           :emissive-intensity 1,
+                                                                           :text "_ 81 mm __"},
+                                   "7339136f-2994-4e1e-8758-38c1a0267da0" {:rotation [-0.0013938410282869661
+                                                                                      -3.14151043641562
+                                                                                      0.37200395354472643],
+                                                                           :color [0 0 0],
+                                                                           :scale [1 1 1],
+                                                                           :roughness 1,
+                                                                           :metallic 0,
+                                                                           :type :text3D,
+                                                                           :size 0.2,
+                                                                           :position [2.5603132247924805 -1.2463653087615967 -2.680000066757202],
+                                                                           :depth 0.01,
+                                                                           :delay 2000,
+                                                                           :visibility 1,
+                                                                           :emissive-intensity 1,
+                                                                           :text "_______ 190 mm _______"},
+                                   "6747ca9c-4adb-4ac7-a174-c714f196438e" {:rotation [0.001660971510399293
+                                                                                      -3.1387224800576603
+                                                                                      -0.5246100874717244],
+                                                                           :color [0 0 0],
+                                                                           :scale [1 1 1],
+                                                                           :roughness 1,
+                                                                           :metallic 0,
+                                                                           :type :text3D,
+                                                                           :size 0.2,
+                                                                           :position [4.574224472045898 -1.375217080116272 -2.651867628097534],
+                                                                           :depth 0.01,
+                                                                           :delay 2000,
+                                                                           :visibility 1,
+                                                                           :emissive-intensity 1,
+                                                                           :text "__ 89 mm __"},
+                                   :skybox {:background {:color [500 500 500]}},
+                                   "3af8b0ba-83f5-41c8-afcd-a3021924f78e" {:rotation [-0.0013962634015954637
+                                                                                      -3.141592653589793
+                                                                                      0.3719296635999916],
+                                                                           :color [0 0 0],
+                                                                           :scale [1 1 1],
+                                                                           :roughness 1,
+                                                                           :metallic 0,
+                                                                           :type :text3D,
+                                                                           :size 0.2,
+                                                                           :position [-1.314905047416687 -1.3217108249664307 -2.680000066757202],
+                                                                           :depth 0.01,
+                                                                           :delay 2000,
+                                                                           :visibility 1,
+                                                                           :emissive-intensity 1,
+                                                                           :text "____ 146,2 mm ___"},
+                                   "01522ac8-e71d-41e4-9397-cf5466fb53cf" {:rotation [-0.0013764070602549628
+                                                                                      -3.1413580127054153
+                                                                                      0.20307907678926837],
+                                                                           :color [0 0 0],
+                                                                           :scale [1 1 1],
+                                                                           :roughness 1,
+                                                                           :metallic 0,
+                                                                           :type :text3D,
+                                                                           :size 0.2,
+                                                                           :position [-4.608361721038818 -1.2752928733825684 -2.680000066757202],
+                                                                           :depth 0.01,
+                                                                           :delay 2000,
+                                                                           :visibility 1,
+                                                                           :emissive-intensity 1,
+                                                                           :text "___ 121 mm __"},
+                                   "11z4xe26-bb27-4904-9d30-360a40d8ab00" {:type :glb,
+                                                                           :asset-type :model,
+                                                                           :duration 2.5,
+                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC300.glb?alt=media&token=37f3680a-07be-439c-b082-7fdba1d288c2",
+                                                                           :position [-2.1096208095550537 0.699999988079071 1.1705044507980347],
+                                                                           :rotation [0.01623159117090591 -0.3208284022080041 -0.0696385969888865],
+                                                                           :scale [0.01 0.01 0.01]},
+                                   "87z4ee76-bb27-4904-9d30-360a40d8ab00" {:type :glb,
+                                                                           :asset-type :model,
+                                                                           :duration 2.5,
+                                                                           :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/models%2Fschaltbau%2FC320.glb?alt=media&token=2a2d7138-e5d8-4da1-bf4d-58ddedb192e5",
+                                                                           :position [1.5318732261657715 0.20000000298023224 0.5806358456611633],
+                                                                           :rotation [0.05889475630790639
+                                                                                      -0.9555484008560188
+                                                                                      -0.07518087025799675],
+                                                                           :scale [0.01 0.01 0.01]},
+                                   "34c88fa5-061f-41b6-95cc-d9661db397cf" {:rotation [-0.003316125578789226 3.141592653589793 1.5707963267948966],
+                                                                           :color [0 0 0],
+                                                                           :scale [1 1 1],
+                                                                           :roughness 1,
+                                                                           :metallic 0,
+                                                                           :type :text3D,
+                                                                           :size 0.2,
+                                                                           :position [5.243363380432129 0.823275625705719 -2.676748752593994],
+                                                                           :depth 0.01,
+                                                                           :delay 2000,
+                                                                           :visibility 1,
+                                                                           :emissive-intensity 1,
+                                                                           :text "_________ 165,7 mm _________"},
+                                   "f76c561f-f04a-47d0-a9bf-42ef23be6bd2" {:rotation [-0.003316125578789226 3.141592653589793 1.5707963267948966],
+                                                                           :color [0 0 0],
+                                                                           :scale [1 1 1],
+                                                                           :roughness 1,
+                                                                           :metallic 0,
+                                                                           :type :text3D,
+                                                                           :size 0.2,
+                                                                           :position [0.9734572172164917 0.33525413274765015 -2.680000066757202],
+                                                                           :depth 0.01,
+                                                                           :delay 2000,
+                                                                           :visibility 1,
+                                                                           :emissive-intensity 1,
+                                                                           :text "______ 99,9 mm ______"},
+                                   :camera {:delay 500,
+                                            :duration 2,
+                                            :position [0 1 5],
+                                            :rotation [6.661337221303573e-17 -3.1382765280147797 0]},
+                                   "04c88fa5-061f-41b6-95cc-d9661db397cf" {:rotation [-0.003316125578789226 3.141592653589793 1.5707963267948966],
+                                                                           :color [0 0 0],
+                                                                           :scale [1 1 1],
+                                                                           :roughness 1,
+                                                                           :metallic 0,
+                                                                           :type :text3D,
+                                                                           :size 0.2,
+                                                                           :position [-2.526470184326172 0.21405090391635895 -2.680000066757202],
+                                                                           :depth 0.01,
+                                                                           :delay 2000,
+                                                                           :visibility 1,
+                                                                           :emissive-intensity 1,
+                                                                           :text "____ 91,5 mm ____"},
+                                   "9047ca9c-4adb-4ac7-a174-c714f196438e" {:rotation [0.0013709230454753618
+                                                                                      -3.1385731679548643
+                                                                                      -0.4261954440952545],
+                                                                           :color [0 0 0],
+                                                                           :scale [1 1 1],
+                                                                           :roughness 1,
+                                                                           :metallic 0,
+                                                                           :type :text3D,
+                                                                           :size 0.2,
+                                                                           :position [-3.103299617767334 -1.179179310798645 -2.651867628097534],
+                                                                           :depth 0.01,
+                                                                           :delay 2000,
+                                                                           :visibility 1,
+                                                                           :emissive-intensity 1,
+                                                                           :text "_ 49 mm _"}}}]}}
    :present {:show-arrow-keys-text? true
              :show-pre-warm-text? false
              :background-color "rgb(0,0,0)"}})

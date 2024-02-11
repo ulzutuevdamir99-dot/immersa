@@ -243,7 +243,8 @@
       visibility (j/assoc! :visibility visibility)
       position (j/assoc! :position position)
       rotation (j/assoc! :rotation rotation)
-      scale (j/assoc! :scaling scale))))
+      scale (j/assoc! :scaling scale))
+    (j/assoc! mesh :initial-rotation (api.core/clone (j/get mesh :rotation)))))
 
 (comment
 
