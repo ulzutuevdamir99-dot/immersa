@@ -169,7 +169,14 @@
               :gizmos.positionGizmo.updateGizmoRotationToMatchAttachedMesh false
               :gizmos.positionGizmo.xGizmo.scaleRatio 1.5
               :gizmos.positionGizmo.yGizmo.scaleRatio 1.5
-              :gizmos.positionGizmo.zGizmo.scaleRatio 1.5)
+              :gizmos.positionGizmo.zGizmo.scaleRatio 1.5
+              :gizmos.positionGizmo.planarGizmoEnabled true
+              :gizmos.positionGizmo.xPlaneGizmo._gizmoMesh.position.y 0.05
+              :gizmos.positionGizmo.xPlaneGizmo._gizmoMesh.position.z 0.05
+              :gizmos.positionGizmo.yPlaneGizmo._gizmoMesh.position.x 0.05
+              :gizmos.positionGizmo.yPlaneGizmo._gizmoMesh.position.z 0.05
+              :gizmos.positionGizmo.zPlaneGizmo._gizmoMesh.position.x 0.05
+              :gizmos.positionGizmo.zPlaneGizmo._gizmoMesh.position.y 0.05)
     (add-drag-observables gizmo-manager)
     (j/call-in gizmo-manager [:onAttachedToMeshObservable :add] #(on-attached-to-mesh %))
     (j/assoc-in! api.core/db [:gizmo :manager] gizmo-manager)
