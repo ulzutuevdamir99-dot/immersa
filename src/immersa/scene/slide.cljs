@@ -451,7 +451,8 @@
           params (dissoc params :type)]
       (case type
         :glb (api.mesh/glb->mesh name params)
-        :wave (api.component/wave name)
+        ;; TODO wave mesh is async, so we need to wait for it to be created
+        :wave (api.component/wave name params)
         :box (api.component/create-box-with-numbers name params)
         :earth (api.component/earth name params)
         :text3D (api.mesh/text name params)
@@ -559,6 +560,7 @@
                         (parse-colors :color))]
         (case (:type params)
           :text3D (api.mesh/text id params)
+          :image (api.component/image id params)
           :glb (api.mesh/glb->mesh id params))))
     (sp/setval [sp/ATOM index :data id] params all-slides)
     (sp/setval [sp/ATOM id] params prev-slide)))
