@@ -163,5 +163,7 @@
 
 (reg-event-db
   ::sync-thumbnails
-  (fn [db [_ {:keys [thumbnails]}]]
-    (assoc-in db [:editor :slides :thumbnails] thumbnails)))
+  (fn [db [_ thumbnails]]
+    (let [slide-ids (->> db :editor :slides :all (map :id))
+          thumbnails (-> db :editor :slides :thumbnails (merge thumbnails) (select-keys slide-ids))]
+      (assoc-in db [:editor :slides :thumbnails] thumbnails))))

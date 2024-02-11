@@ -598,7 +598,7 @@
         index @current-slide-index
         id (get-in @all-slides [index :id])]
     (sp/setval [sp/ATOM :thumbnails id] base64 thumbnails)
-    (dispatch [::editor.events/sync-thumbnails {:thumbnails (:thumbnails @thumbnails)}])))
+    (dispatch [::editor.events/sync-thumbnails (:thumbnails @thumbnails)])))
 
 (defn- capture-thumbnail-changes []
   (add-watch all-slides :slide-update
