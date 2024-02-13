@@ -314,7 +314,24 @@
               :scale scale
               :billboard-mode billboard-mode
               :material mat
-              :type :image}]
-    (if (and radius (> radius 0))
-      (api.mesh/plane-rounded name opts)
-      (api.mesh/plane name opts))))
+              :type :image}
+        mesh (if (and radius (> radius 0))
+               (api.mesh/plane-rounded name opts)
+               (api.mesh/plane name opts))]
+    (j/assoc! mesh :initial-rotation (api.core/clone (j/get mesh :rotation)))))
+
+(comment
+  (j/assoc-in! (api.core/get-object-by-name "img") [:position :z] 3)
+  (api.core/get-object-by-name "33e4ee76-bb27-4904-9d30-360a40d8abc1")
+  (j/assoc! (api.core/get-object-by-name "33e4ee76-bb27-4904-9d30-360a40d8abc1") :renderingGroupId 1)
+
+  (j/call (api.core/get-object-by-name "33e4ee76-bb27-4904-9d30-360a40d8abc1")
+          :setParent (immersa.scene.api.camera/active-camera))
+
+  (j/call (api.core/get-object-by-name "33e4ee76-bb27-4904-9d30-360a40d8abc1")
+          :setParent nil)
+
+  (image "img"
+         :transparent? true
+         :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/images%2Fschaltbau%2Flogo.png?alt=media&token=2afccb59-5489-4553-9a98-0425f0bac1db")
+  )
