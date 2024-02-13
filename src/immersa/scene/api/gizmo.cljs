@@ -109,11 +109,11 @@
     (when-let [mesh (api.core/selected-mesh)]
       (j/assoc-in! mesh [:rotation axis] (+ (j/get-in mesh [:initial-rotation axis]) (j/get mesh :accumulated-rotation)))
       #_(let [[axis1 axis2] (case axis
-                            :x [:y :z]
-                            :y [:x :z]
-                            :z [:x :y])]
-        (j/assoc-in! mesh [:rotation axis1] (j/get-in mesh [:initial-rotation axis1]))
-        (j/assoc-in! mesh [:rotation axis2] (j/get-in mesh [:initial-rotation axis2])))
+                              :x [:y :z]
+                              :y [:x :z]
+                              :z [:x :y])]
+          (j/assoc-in! mesh [:rotation axis1] (j/get-in mesh [:initial-rotation axis1]))
+          (j/assoc-in! mesh [:rotation axis2] (j/get-in mesh [:initial-rotation axis2])))
       (j/assoc-in! mesh [:initial-rotation axis] (j/get-in mesh [:rotation axis]))
       (notify-ui-selected-mesh mesh)
       (slide/update-slide-data mesh :rotation (api.core/v3->v (j/get mesh :rotation))))))
@@ -165,7 +165,7 @@
                                        :inner-glow? true
                                        :outer-glow? false))
     ;; TODO add more meshes to exclude
-    (j/call hl :addExcludedMesh (api.core/get-object-by-name "ground"))
+    #_(j/call hl :addExcludedMesh (api.core/get-object-by-name "ground"))
     (j/call hl :addExcludedMesh (j/get-in api.core/db [:environment-helper :skybox]))
     (j/call hl :addExcludedMesh (j/get-in api.core/db [:environment-helper :ground]))
     (m/assoc! gizmo-manager
@@ -194,3 +194,9 @@
                                                                    (on-attached-to-mesh %)))
     (j/assoc-in! api.core/db [:gizmo :manager] gizmo-manager)
     gizmo-manager))
+
+(comment
+  (j/assoc! (api.core/get-object-by-name "22e09fae-b39f-4901-9283-bc1cdb7374bb")
+          :position (api.core/v3 -8.327676773071289 4.2 11.4)
+            :rotation (api.core/v3 (api.core/to-rad 177.2) (api.core/to-rad 70.4) (api.core/to-rad 191))
+            ))

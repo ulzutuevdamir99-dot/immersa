@@ -230,7 +230,7 @@
                                                  :main-color (api.core/color 1 1 1)
                                                  :line-color (api.core/color 1 1 1)
                                                  :opacity 0.98)
-          ground (api.mesh/create-ground "ground"
+          #_#__ (api.mesh/create-ground "ground"
                                          :width 50
                                          :height 50
                                          :mat ground-material
@@ -265,7 +265,6 @@
 
   (j/call (api.camera/active-camera) :attachControl (api.core/canvas) true)
 
-  (api.core/show-debug)
 
   (api.camera/reset-camera)
 
