@@ -544,7 +544,6 @@
   )
 
 (defn duplicate-slide-data [[id params]]
-  (println params)
   (let [mesh (api.core/get-object-by-name id)
         index @current-slide-index
         exists? (boolean (get-in @all-slides [index :data id]))
@@ -598,7 +597,7 @@
         index @current-slide-index
         id (get-in @all-slides [index :id])]
     (sp/setval [sp/ATOM :thumbnails id] base64 thumbnails)
-    (dispatch [::editor.events/sync-thumbnails {:thumbnails (:thumbnails @thumbnails)}])))
+    (dispatch [::editor.events/sync-thumbnails (:thumbnails @thumbnails)])))
 
 (defn- capture-thumbnail-changes []
   (add-watch all-slides :slide-update
@@ -613,10 +612,11 @@
         (swap! thumbnails assoc :last-time-thumbnail-updated (js/Date.now))))
     (recur)))
 
-(defn start-slide-show [{:keys [mode slides]}]
+(defn start-slide-show [{:keys [mode slides] :as opts}]
   (let [_ (init-slide-show-state)
         slides (reset! all-slides slides)
-        slides (get-slides slides)]
+        slides (get-slides slides)
+        _ (reset! thumbnails (:thumbnails opts))]
     (api.camera/reset-camera (-> slides first :data :camera :position)
                              (-> slides first :data :camera :rotation))
     (pre-warm-the-scene slides)

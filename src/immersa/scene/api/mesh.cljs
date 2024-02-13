@@ -182,6 +182,20 @@
       mat (j/assoc! :material mat)
       (some? pickable?) (j/assoc! :isPickable pickable?))))
 
+(defn create-hit-box [name mesh]
+  (let [_ (j/call mesh :computeWorldMatrix true)
+        bounding-info (j/call mesh :getBoundingInfo)
+        extend-size (j/get-in bounding-info [:boundingBox :extendSize])
+        hit-box (j/call MeshBuilder :CreateBox (str name "-hit-box") #js {:width (* 2 (j/get extend-size :x))
+                                                                          :height (* 2 (j/get extend-size :y))
+                                                                          :depth (* 2 (j/get extend-size :z))})]
+    (j/assoc! hit-box
+              :parent mesh
+              :visibility 0
+              :hit-box? true)
+    (j/assoc-in! hit-box [:position :y] (j/get extend-size :y))
+    hit-box))
+
 ;; TODO dispose material when disposing the mesh!!!
 (defn text [name & {:keys [text
                            size
@@ -190,7 +204,6 @@
                            visibility
                            position
                            rotation
-                           scale
                            color
                            emissive-color
                            emissive-intensity
@@ -204,8 +217,8 @@
                            hl-blur
                            nme]
                     :or {size 1
+                         depth 0.01
                          resolution 8
-                         depth 0.2
                          mat (api.material/pbr-mat (str name "-mat"))
                          mat-type :pbr
                          hl-blur 1.0}
@@ -213,13 +226,14 @@
   (let [mesh (j/call MeshBuilder :CreateText name
                      text
                      font/droid
-                     #js {:size size
+                     #js {:size 1
                           :resolution resolution
-                          :depth depth
+                          :depth 0.01
                           :sideOrientation api.const/mesh-default-side}
                      nil
                      earcut)
         mat (or (some-> nme api.material/get-nme-material) mat)]
+    (create-hit-box name mesh)
     (when hl-color
       (let [hl (api.core/highlight-layer (str name "-hl")
                                          :blur-vertical-size hl-blur
@@ -242,9 +256,10 @@
       mat (j/assoc! :material mat)
       visibility (j/assoc! :visibility visibility)
       position (j/assoc! :position position)
-      rotation (j/assoc! :rotation rotation)
-      scale (j/assoc! :scaling scale))
-    (j/assoc! mesh :initial-rotation (api.core/clone (j/get mesh :rotation)))))
+      rotation (j/assoc! :rotation rotation))
+    (j/assoc! mesh
+              :initial-rotation (api.core/clone (j/get mesh :rotation))
+              :scaling (v3 size size (* 100 depth)))))
 
 (comment
 

@@ -26,7 +26,6 @@
     (rdom/render [views/main-panel] root-el)))
 
 (defn init []
-  (println "init...")
   (when-not (some-> (j/get js/location :href) (= "https://present.immersa.app/schaltbau"))
     (j/assoc! js/location :href "https://immersa.app"))
   (re-frame/dispatch-sync [::events/initialize-db])

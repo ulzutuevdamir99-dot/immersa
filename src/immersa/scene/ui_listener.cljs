@@ -66,7 +66,8 @@
   (when-let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
     (let [new-color (apply api.core/color-rgb value)]
       (j/assoc-in! mesh [:material :albedoColor] new-color)
-      (j/assoc-in! mesh [:material :emissiveColor] new-color))))
+      (j/assoc-in! mesh [:material :emissiveColor] new-color)
+      (slide/update-slide-data mesh :color value))))
 
 (defmethod handle-ui-update :update-selected-mesh-emissive-color [{{:keys [value]} :data}]
   (when-let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
@@ -91,34 +92,51 @@
         (let [material (api.core/clone (j/get mesh :material))
               position (api.core/clone (j/get mesh :position))
               rotation (api.core/clone (j/get mesh :rotation))
-              scaling (api.core/clone (j/get mesh :scaling))
               depth (api.core/get-node-attr mesh :depth)
               size (api.core/get-node-attr mesh :size)
               text (api.core/get-node-attr mesh :text)
               name (j/get mesh :immersa-id)
-              _ (api.core/dispose name)
               opts (merge
                      {:mat material
                       :depth depth
                       :size size
                       :position position
                       :rotation rotation
-                      :scale scaling
                       :text text}
                      data)
               opts (cond
-                     (= (:depth data) 0)
+                     (<= (:depth data) 0)
                      (assoc opts :depth 0.01)
 
-                     (= (:size data) 0)
+                     (<= (:size data) 0)
                      (assoc opts :size 0.1)
 
                      :else opts)
-              mesh (api.mesh/text name opts)]
-          (slide/update-slide-data mesh :text (:text opts))
-          (slide/update-slide-data mesh :size (:size opts))
-          (slide/update-slide-data mesh :color (:color opts))
-          (j/call-in api.core/db [:gizmo :manager :attachToMesh] mesh))))
+              mesh (cond
+                     (:depth data) (j/assoc-in! mesh [:scaling :z] (:depth data))
+                     (:size data) (-> mesh
+                                      (j/assoc-in! [:scaling :x] (:size data))
+                                      (j/assoc-in! [:scaling :y] (:size data)))
+                     (:text data) (let [x (j/get-in mesh [:scaling :x])
+                                        y (j/get-in mesh [:scaling :y])
+                                        z (j/get-in mesh [:scaling :z])]
+                                    (api.core/dispose name)
+                                    (api.mesh/text name opts)
+                                    (some-> (api.mesh/text name opts)
+                                            (j/assoc-in! [:scaling :x] x)
+                                            (j/assoc-in! [:scaling :y] y)
+                                            (j/assoc-in! [:scaling :z] z))))]
+          (when (:size data)
+            (slide/update-slide-data mesh :scale [(:size opts)
+                                                  (:size opts)
+                                                  (j/get-in mesh [:scaling :z])]))
+          (when (:depth data)
+            (slide/update-slide-data mesh :scale [(j/get-in mesh [:scaling :x])
+                                                  (j/get-in mesh [:scaling :y])
+                                                  (:depth opts)]))
+          (when (:text data)
+            (slide/update-slide-data mesh :text (:text opts))
+            (j/call-in api.core/db [:gizmo :manager :attachToMesh] mesh)))))
     500))
 
 (defmethod handle-ui-update :update-selected-mesh-text-content [{{:keys [value]} :data}]
@@ -126,6 +144,12 @@
 
 (defmethod handle-ui-update :update-selected-mesh-text-depth-or-size [{{:keys [update value]} :data}]
   (update-text-mesh (hash-map update value)))
+
+(defmethod handle-ui-update :update-gizmo-visibility [{{:keys [update value]} :data}]
+  (case update
+    :position (j/assoc! (api.core/gizmo-manager) :positionGizmoEnabled value)
+    :rotation (j/assoc! (api.core/gizmo-manager) :rotationGizmoEnabled value)
+    :scale (j/assoc! (api.core/gizmo-manager) :scaleGizmoEnabled value)))
 
 (defmethod handle-ui-update :resize [_]
   (j/call (api.core/get-engine) :resize))

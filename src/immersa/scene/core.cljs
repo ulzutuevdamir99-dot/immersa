@@ -173,7 +173,7 @@
 (defn- update-bounding-box-renderer [scene]
   (j/assoc! (j/call scene :getBoundingBoxRenderer) :showBackLines false))
 
-(defn when-scene-ready [engine scene mode slides]
+(defn when-scene-ready [engine scene mode slides thumbnails]
   (api.core/clear-scene-color (api.const/color-white))
   (j/assoc-in! (api.core/get-object-by-name "sky-box") [:rotation :y] js/Math.PI)
   (api.gui/advanced-dynamic-texture)
@@ -186,7 +186,8 @@
               (add-camera-view-matrix-listener)
               (update-bounding-box-renderer scene)
               (slide/start-slide-show {:mode mode
-                                       :slides slides}))
+                                       :slides slides
+                                       :thumbnails thumbnails}))
     :present (do
                (slide/start-slide-show {:mode mode
                                         :slides slides})
@@ -201,7 +202,8 @@
 (defn start-scene [canvas & {:keys [start-slide-show?
                                     mode
                                     dev?
-                                    slides]
+                                    slides
+                                    thumbnails]
                              :or {start-slide-show? true}}]
   (a/go
     (let [engine (api.core/create-engine canvas)
@@ -228,7 +230,7 @@
                                                  :main-color (api.core/color 1 1 1)
                                                  :line-color (api.core/color 1 1 1)
                                                  :opacity 0.98)
-          ground (api.mesh/create-ground "ground"
+          #_#__ (api.mesh/create-ground "ground"
                                          :width 50
                                          :height 50
                                          :mat ground-material
@@ -246,7 +248,7 @@
       (j/call free-camera :setTarget (v3))
       (j/call free-camera :attachControl canvas false)
       (j/call engine :runRenderLoop #(j/call scene :render))
-      (j/call scene :executeWhenReady #(when-scene-ready engine scene mode slides)))))
+      (j/call scene :executeWhenReady #(when-scene-ready engine scene mode slides thumbnails)))))
 
 (defn restart-engine [& {:keys [start-slide-show?
                                 dev?]
@@ -263,7 +265,6 @@
 
   (j/call (api.camera/active-camera) :attachControl (api.core/canvas) true)
 
-  (api.core/show-debug)
 
   (api.camera/reset-camera)
 

@@ -10,6 +10,7 @@
     [immersa.ui.editor.components.scroll-area :refer [scroll-area]]
     [immersa.ui.editor.components.separator :refer [separator]]
     [immersa.ui.editor.components.slider :refer [slider]]
+    [immersa.ui.editor.components.switch :refer [switch]]
     [immersa.ui.editor.components.text :refer [text]]
     [immersa.ui.editor.components.textarea :refer [textarea]]
     [immersa.ui.editor.events :as events]
@@ -27,7 +28,8 @@
   (r/create-class
     {:component-did-mount #(scene.core/start-scene (js/document.getElementById "renderCanvas")
                                                    {:mode :editor
-                                                    :slides @(subscribe [::subs/slides-all])})
+                                                    :slides @(subscribe [::subs/slides-all])
+                                                    :thumbnails @(subscribe [::subs/slides-thumbnails])})
      :reagent-render (fn []
                        [:canvas
                         {:id "renderCanvas"
@@ -233,6 +235,12 @@
                      :border "2px solid transparent"
                      :border-radius "3px"}}]]]))
 
+(defn- get-selected-mesh-type-name []
+  (case @(subscribe [::subs/selected-mesh-type])
+    "text3D" "Text"
+    "glb" "3D Model"
+    "image" "Image"))
+
 (defn editor-panel []
   [:div (styles/editor-container)
    [header]
@@ -279,7 +287,7 @@
                                    :padding "22px"
                                    :position "relative"}}
                      [text {:size :xxl
-                            :weight :semi-bold} "3D Model"]
+                            :weight :semi-bold} (get-selected-mesh-type-name)]
                      [separator]
                      [pos-rot-scale-comp {:label "Position"
                                           :type :position
@@ -293,6 +301,39 @@
                                           :type :scaling
                                           :event ::events/update-selected-mesh
                                           :value @(subscribe [::subs/selected-mesh-scaling])}]
+                     [separator]
+                     [:div {:style {:display "flex"
+                                    :flex-direction "column"
+                                    ;; :align-items "center"
+                                    ;; :justify-content "center"
+                                    :gap "15px"}}
+                      [text "Arrow helpers"]
+                      [:div
+                       {:style {:display "flex"
+                                :flex-direction "rows"
+                                :align-items "center"
+                                :justify-content "space-between"}}
+                       [:div
+                        {:style {:display "flex"
+                                 :align-items "center"
+                                 :gap "5px"}}
+                        [text "Position"]
+                        [switch {:checked? @(subscribe [::subs/gizmo-visible? :position])
+                                 :on-change #(dispatch [::events/update-gizmo-visibility :position])}]]
+                       [:div
+                        {:style {:display "flex"
+                                 :align-items "center"
+                                 :gap "5px"}}
+                        [text "Rotation"]
+                        [switch {:checked? @(subscribe [::subs/gizmo-visible? :rotation])
+                                 :on-change #(dispatch [::events/update-gizmo-visibility :rotation])}]]
+                       [:div
+                        {:style {:display "flex"
+                                 :align-items "center"
+                                 :gap "5px"}}
+                        [text "Scale"]
+                        [switch {:checked? @(subscribe [::subs/gizmo-visible? :scale])
+                                 :on-change #(dispatch [::events/update-gizmo-visibility :scale])}]]]]
                      [separator]
                      [:div {:style {:display "flex"
                                     :justify-content "space-between"}}
@@ -313,11 +354,10 @@
                                      :align-items "center"
                                      :justify-content "center"
                                      :gap "16px"}}
-                       [text "Depth"]
-                       [input-number {:min "0"
-                                      :max "100"
-                                      :value @(subscribe [::subs/selected-mesh-text-depth])
-                                      :on-change #(dispatch [::events/update-selected-mesh-text-depth-or-size :depth %])}]]
+                       [text "Size"]
+                       [input-number {:max "100"
+                                      :value @(subscribe [::subs/selected-mesh-text-size])
+                                      :on-change #(dispatch [::events/update-selected-mesh-text-depth-or-size :size %])}]]
                       [separator {:orientation "vertical"
                                   :style {:height "25px"}}]
                       [:div {:style {:display "flex"
@@ -325,11 +365,11 @@
                                      :align-items "center"
                                      :justify-content "center"
                                      :gap "16px"}}
-                       [text "Size"]
-                       [input-number {:min "0"
-                                      :max "100"
-                                      :value @(subscribe [::subs/selected-mesh-text-size])
-                                      :on-change #(dispatch [::events/update-selected-mesh-text-depth-or-size :size %])}]]]
+                       [text "Depth"]
+                       [input-number {:min "0.01"
+                                      :max "100000"
+                                      :value @(subscribe [::subs/selected-mesh-text-depth])
+                                      :on-change #(dispatch [::events/update-selected-mesh-text-depth-or-size :depth %])}]]]
                      [separator]
                      [:div
                       {:style {:display "flex"

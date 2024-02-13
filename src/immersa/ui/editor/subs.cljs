@@ -17,6 +17,11 @@
         {:width height-based-width :height max-height}))))
 
 (reg-sub
+  ::editor
+  (fn [db]
+    (:editor db)))
+
+(reg-sub
   ::selected-mesh
   (fn [db]
     (-> db :editor :selected-mesh)))
@@ -88,11 +93,6 @@
     (-> db :editor :selected-mesh :opacity (* 100) int)))
 
 (reg-sub
-  ::selected-mesh-type
-  (fn [db]
-    (-> db :editor :selected-mesh :type)))
-
-(reg-sub
   ::selected-mesh-text-content
   (fn [db]
     (-> db :editor :selected-mesh :text)))
@@ -100,12 +100,17 @@
 (reg-sub
   ::selected-mesh-text-size
   (fn [db]
-    (-> db :editor :selected-mesh :size)))
+    (-> db :editor :selected-mesh :scaling first)))
 
 (reg-sub
   ::selected-mesh-text-depth
   (fn [db]
-    (-> db :editor :selected-mesh :depth)))
+    (-> db :editor :selected-mesh :scaling last)))
+
+(reg-sub
+  ::selected-mesh-type
+  (fn [db]
+    (-> db :editor :selected-mesh :type)))
 
 (reg-sub
   ::slides-current-index
@@ -118,7 +123,17 @@
     (-> db :editor :slides :all)))
 
 (reg-sub
+  ::slides-thumbnails
+  (fn [db]
+    (-> db :editor :slides :thumbnails)))
+
+(reg-sub
   ::slide-thumbnail
   (fn [db [_ index]]
     (let [thumbnails (-> db :editor :slides :thumbnails)]
       (get thumbnails (-> db :editor :slides :all (get-in [index :id]))))))
+
+(reg-sub
+  ::gizmo-visible?
+  (fn [db [_ type]]
+    (-> db :editor :gizmo type)))

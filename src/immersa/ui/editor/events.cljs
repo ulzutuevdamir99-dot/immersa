@@ -124,14 +124,16 @@
   ::update-selected-mesh-text-depth-or-size
   (fn [{:keys [db]} [_ type value]]
     (let [selected-mesh (-> db :editor :selected-mesh)
-          selected-mesh (assoc selected-mesh type value)
-          updated-attr (type selected-mesh)]
-      (cond-> {:db (assoc-in db [:editor :selected-mesh] selected-mesh)}
+          [x y z] (:scaling selected-mesh)
+          scaling (case type
+                    :size [value value z]
+                    :depth [x y value])]
+      (cond-> {:db (assoc-in db [:editor :selected-mesh :scaling] scaling)}
 
         (not (str/blank? value))
         (assoc :scene {:type :update-selected-mesh-text-depth-or-size
                        :data {:update type
-                              :value (parse-double updated-attr)}})))))
+                              :value (parse-double value)}})))))
 
 (reg-event-fx
   ::add-text-mesh
@@ -163,5 +165,17 @@
 
 (reg-event-db
   ::sync-thumbnails
-  (fn [db [_ {:keys [thumbnails]}]]
-    (assoc-in db [:editor :slides :thumbnails] thumbnails)))
+  (fn [db [_ thumbnails]]
+    (let [slide-ids (->> db :editor :slides :all (map :id))
+          thumbnails (-> db :editor :slides :thumbnails (merge thumbnails) (select-keys slide-ids))]
+      (assoc-in db [:editor :slides :thumbnails] thumbnails))))
+
+(reg-event-fx
+  ::update-gizmo-visibility
+  (fn [{:keys [db]} [_ type]]
+    (let [gizmo (-> db :editor :gizmo type)
+          value (not gizmo)]
+      {:db (assoc-in db [:editor :gizmo type] value)
+       :scene {:type :update-gizmo-visibility
+               :data {:update type
+                      :value value}}})))
