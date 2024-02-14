@@ -132,7 +132,8 @@
 
                      (and (= (j/get info :type) api.const/keyboard-type-key-down)
                           (= key "3")
-                          (api.core/selected-mesh))
+                          (api.core/selected-mesh)
+                          (not= (api.core/selected-mesh-type) "text3D"))
                      (api.gizmo/toggle-gizmo :scale))
                    (api.camera/switch-camera-if-needed scene))))))
 

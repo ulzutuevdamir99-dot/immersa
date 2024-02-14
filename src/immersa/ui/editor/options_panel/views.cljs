@@ -98,10 +98,15 @@
       :content (str "Arrow helpers are used to update the " type " position, rotation, and scale visually.")}]]
 
    [:div
-    {:style {:display "flex"
-             :flex-direction "rows"
-             :align-items "center"
-             :justify-content "space-between"}}
+    {:style (if (= type "text")
+              {:display "flex"
+               :flex-direction "rows"
+               :align-items "center"
+               :gap "12px"}
+              {:display "flex"
+               :flex-direction "rows"
+               :align-items "center"
+               :justify-content "space-between"})}
     [:div
      {:style {:display "flex"
               :align-items "center"
@@ -126,18 +131,19 @@
                   "Hide rotation helper"
                   "Show rotation helper")
        :shortcuts "2"}]]
-    [:div
-     {:style {:display "flex"
-              :align-items "center"
-              :gap "5px"}}
-     [text "Scale"]
-     [tooltip
-      {:trigger [switch {:checked? @(subscribe [::subs/gizmo-visible? :scale])
-                         :on-change #(dispatch [::events/update-gizmo-visibility :scale])}]
-       :content (if @(subscribe [::subs/gizmo-visible? :scale])
-                  "Hide scale helper"
-                  "Show scale helper")
-       :shortcuts "3"}]]]])
+    (when-not (= type "text")
+      [:div
+       {:style {:display "flex"
+                :align-items "center"
+                :gap "5px"}}
+       [text "Scale"]
+       [tooltip
+        {:trigger [switch {:checked? @(subscribe [::subs/gizmo-visible? :scale])
+                           :on-change #(dispatch [::events/update-gizmo-visibility :scale])}]
+         :content (if @(subscribe [::subs/gizmo-visible? :scale])
+                    "Hide scale helper"
+                    "Show scale helper")
+         :shortcuts "3"}]])]])
 
 (defn- text-content []
   [:div {:style {:display "flex"
@@ -160,6 +166,7 @@
                   :gap "16px"}}
     [text "Size"]
     [input-number {:max "100"
+                   :step "0.01"
                    :value @(subscribe [::subs/selected-mesh-text-size])
                    :on-change #(dispatch [::events/update-selected-mesh-text-depth-or-size :size %])}]]
    [separator {:orientation "vertical"

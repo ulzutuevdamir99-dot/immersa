@@ -518,6 +518,9 @@
 (defn selected-mesh []
   (j/get-in db [:gizmo :selected-mesh]))
 
+(defn selected-mesh-type []
+  (get-object-type-by-name (j/get (selected-mesh) :immersa-id)))
+
 (defn clear-selected-mesh []
   (j/call-in db [:gizmo :manager :attachToMesh] nil))
 
