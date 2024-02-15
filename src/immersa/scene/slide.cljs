@@ -432,7 +432,7 @@
   (println "enable-component Default: " name))
 
 (let [circuit-breaker-running? (atom false)]
-  (defn process-next-prev-command [type ch slide-in-progress? current-running-anims]
+  (defn process-next-prev-command [{:keys [type ch slide-in-progress? current-running-anims on-done]}]
     (if (and @slide-in-progress? (not @circuit-breaker-running?))
       (do
         (reset! circuit-breaker-running? true)
@@ -443,7 +443,9 @@
             (force-finish-fn)))
         (reset! current-running-anims [])
         (reset! circuit-breaker-running? false))
-      (a/put! ch type))))
+      (do
+        (a/put! ch type)
+        (when on-done (on-done))))))
 
 (defn- create-objects [objects-to-create objects-data]
   (doseq [name objects-to-create]
@@ -538,7 +540,10 @@
   (reset! current-slide-index 0))
 
 (defn go-to-slide [index]
-  (process-next-prev-command index command-ch slide-in-progress? current-running-anims))
+  (process-next-prev-command {:type index
+                              :ch command-ch
+                              :slide-in-progress? slide-in-progress?
+                              :current-running-anims current-running-anims}))
 
 (comment
   (a/put! command-ch 11)
@@ -592,6 +597,17 @@
     (sp/setval [sp/ATOM index :data object-id path] v all-slides)
     (sp/setval [sp/ATOM object-id path] v prev-slide)))
 
+(defn get-slide-data [obj k]
+  (let [index @current-slide-index
+        object-id (if (keyword? obj) obj (api.core/get-object-name obj))
+        path (if (vector? k)
+               (apply sp/comp-paths k)
+               k)]
+    (get-in @all-slides [index :data object-id path])))
+
+(defn camera-locked? []
+  (get-slide-data :camera :locked?))
+
 (defn update-thumbnail []
   (let [base64 (j/call-in api.core/db [:canvas :toDataURL] "image/webp" 0.2)
         index @current-slide-index
@@ -621,21 +637,37 @@
       (common.utils/register-event-listener prev-button "click"
         (fn [e]
           (when-not (j/get e :repeat)
-            (process-next-prev-command :prev command-ch slide-in-progress? current-running-anims))))
+            (process-next-prev-command
+              {:type :prev
+               :ch command-ch
+               :slide-in-progress? slide-in-progress?
+               :current-running-anims current-running-anims}))))
       (common.utils/register-event-listener next-button "click"
         (fn [e]
           (when-not (j/get e :repeat)
-            (process-next-prev-command :next command-ch slide-in-progress? current-running-anims))))
+            (process-next-prev-command
+              {:type :next
+               :ch command-ch
+               :slide-in-progress? slide-in-progress?
+               :current-running-anims current-running-anims}))))
       (common.utils/register-event-listener js/window "keydown"
         (fn [e]
           (when-not (j/get e :repeat)
             (cond
               (or (= (.-keyCode e) 39)
                   (= (.-keyCode e) 40))
-              (process-next-prev-command :next command-ch slide-in-progress? current-running-anims)
+              (process-next-prev-command
+                {:type :next
+                 :ch command-ch
+                 :slide-in-progress? slide-in-progress?
+                 :current-running-anims current-running-anims})
               (or (= (.-keyCode e) 37)
                   (= (.-keyCode e) 38))
-              (process-next-prev-command :prev command-ch slide-in-progress? current-running-anims))))))))
+              (process-next-prev-command
+                {:type :prev
+                 :ch command-ch
+                 :slide-in-progress? slide-in-progress?
+                 :current-running-anims current-running-anims}))))))))
 
 (defn start-slide-show [{:keys [mode slides] :as opts}]
   (let [_ (init-slide-show-state)
@@ -662,6 +694,9 @@
                 _ (when (= mode :present)
                     (notify-ui current-index (count slides)))
                 _ (when (= mode :editor)
+                    (api.camera/toggle-camera-lock (camera-locked?))
+                    (api.camera/switch-camera-if-needed (camera-locked?))
+                    (ui.notifier/notify-camera-lock-state (camera-locked?))
                     (dispatch-sync [::editor.events/set-current-slide-index current-index]))
                 slide (slides current-index)
                 objects-data (:data slide)

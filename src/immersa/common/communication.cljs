@@ -7,4 +7,3 @@
 
 (defn fire [event data]
   (a/put! event-bus [event data]))
-

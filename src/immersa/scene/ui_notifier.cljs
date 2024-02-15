@@ -50,3 +50,6 @@
 
 (defn notify-gizmo-state [type enabled?]
   (dispatch [::editor.events/notify-gizmo-state type enabled?]))
+
+(defn notify-camera-lock-state [locked?]
+  (dispatch [::editor.events/notify-camera-lock-state locked?]))

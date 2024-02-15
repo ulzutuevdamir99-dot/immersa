@@ -13,8 +13,17 @@
 (defn update-active-camera []
   (j/assoc-in! db [:nodes :camera :obj] (active-camera)))
 
+(defn attach-control [camera]
+  (j/call camera :attachControl (api.core/get-canvas) true))
+
 (defn detach-control [camera]
   (j/call camera :detachControl))
+
+(defn disable-cameras []
+  (let [free-camera (api.core/get-object-by-name "free-camera")
+        arc-camera (api.core/get-object-by-name "arc-camera")]
+    (detach-control free-camera)
+    (detach-control arc-camera)))
 
 (defn set-pos [pos]
   (j/call-in (active-camera) [:position :copyFrom] pos))
@@ -94,36 +103,42 @@
 (defn calculate-new-fov [original-fov frame-height container-height]
   (* 2 (Math/atan (* (Math/tan (/ original-fov 2)) (/ container-height frame-height)))))
 
-(defn switch-camera-if-needed [scene]
-  (let [wasd? (boolean (seq (filter true? (map #(j/get-in api.core/db [:keyboard %]) ["w" "a" "s" "d" "e" "q"]))))
-        switch-type (cond
-                      wasd? :free
-                      (api.core/selected-mesh) :arc
-                      (j/get-in api.core/db [:mouse :right-click?]) :arc
-                      :else :free)
-        camera (active-camera)
-        camera-type (j/get camera :type)
-        arc-camera (api.core/get-object-by-name "arc-camera")
-        free-camera (api.core/get-object-by-name "free-camera")
-        canvas (api.core/canvas)]
-    (cond
-      (and (= switch-type :free) (not (= camera-type :free)))
-      (let [position (api.core/clone (j/get arc-camera :position))
-            target (j/call arc-camera :getTarget)]
-        (j/call-in free-camera [:position :copyFrom] position)
-        (j/call free-camera :setTarget (api.core/clone target))
-        (j/assoc! scene :activeCamera free-camera)
-        (detach-control arc-camera)
-        (j/call free-camera :attachControl canvas true))
+(defn toggle-camera-lock [locked?]
+  (if locked?
+    (disable-cameras)
+    (attach-control (active-camera))))
 
-      (and (= switch-type :arc) (not (= camera-type :arc)))
-      (let [position (api.core/clone (j/get free-camera :position))
-            target (j/call free-camera :getTarget)]
-        (api.core/set-pos arc-camera position)
-        (j/call arc-camera :setTarget (api.core/clone target))
-        (j/assoc! scene :activeCamera arc-camera)
-        (detach-control free-camera)
-        (j/call arc-camera :attachControl canvas true)))))
+(defn switch-camera-if-needed [locked?]
+  (when-not locked?
+    (let [scene (api.core/get-scene)
+          wasd? (boolean (seq (filter true? (map #(j/get-in api.core/db [:keyboard %]) ["w" "a" "s" "d" "e" "q"]))))
+          switch-type (cond
+                        wasd? :free
+                        (api.core/selected-mesh) :arc
+                        (j/get-in api.core/db [:mouse :right-click?]) :arc
+                        :else :free)
+          camera (active-camera)
+          camera-type (j/get camera :type)
+          arc-camera (api.core/get-object-by-name "arc-camera")
+          free-camera (api.core/get-object-by-name "free-camera")]
+      (cond
+        (and (= switch-type :free) (not (= camera-type :free)))
+        (let [position (api.core/clone (j/get arc-camera :position))
+              target (j/call arc-camera :getTarget)]
+          (j/call-in free-camera [:position :copyFrom] position)
+          (j/call free-camera :setTarget (api.core/clone target))
+          (j/assoc! scene :activeCamera free-camera)
+          (detach-control arc-camera)
+          (attach-control free-camera))
+
+        (and (= switch-type :arc) (not (= camera-type :arc)))
+        (let [position (api.core/clone (j/get free-camera :position))
+              target (j/call free-camera :getTarget)]
+          (api.core/set-pos arc-camera position)
+          (j/call arc-camera :setTarget (api.core/clone target))
+          (j/assoc! scene :activeCamera arc-camera)
+          (detach-control free-camera)
+          (attach-control arc-camera))))))
 
 ;; 931 522
 ;; 1026 576

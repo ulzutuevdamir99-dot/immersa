@@ -165,11 +165,14 @@
 
 (defmethod handle-ui-update :go-to-slide [{{:keys [index]} :data}]
   (api.core/clear-selected-mesh)
-  (api.camera/switch-camera-if-needed (api.core/get-scene))
   (slide/go-to-slide index))
 
 (defmethod handle-ui-update :add-slide [_]
   (slide/add-slide))
+
+(defmethod handle-ui-update :toggle-camera-lock [{{:keys [value]} :data}]
+  (slide/update-slide-data :camera :locked? value)
+  (api.camera/toggle-camera-lock value))
 
 (defmethod handle-ui-update :add-text-mesh [_]
   (let [camera (api.camera/active-camera)

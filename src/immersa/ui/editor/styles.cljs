@@ -62,10 +62,12 @@
    :border-left (str "1px solid " colors/panel-border)
    :box-sizing :border-box})
 
-(defclass canvas-container [state]
+(defclass canvas-container [state camera-unlocked?]
   {:box-sizing "border-box"
    :border "3px solid transparent"}
-  (when (= state :focus) {:border (str "3px solid " colors/button-border)})
+  (when (= state :focus) {:border (str "3px solid " (if camera-unlocked?
+                                                      colors/unlocked-camera
+                                                      colors/button-border))})
   (when (= state :blur) {:border-bottom (str "3px solid " colors/panel-border)}))
 
 (defclass canvas-wrapper []

@@ -10,7 +10,7 @@
     [immersa.ui.editor.components.switch :refer [switch]]
     [immersa.ui.editor.components.text :refer [text]]
     [immersa.ui.editor.components.textarea :refer [textarea]]
-    [immersa.ui.editor.components.tooltip :refer [tooltip]]
+    [immersa.ui.editor.components.tooltip :refer [tooltip tooltip-text]]
     [immersa.ui.editor.events :as events]
     [immersa.ui.editor.options-panel.styles :as styles]
     [immersa.ui.editor.subs :as subs]
@@ -334,6 +334,50 @@
     "image" [image-options]
     "glb" [glb-options]))
 
+(defn- camera-options []
+  [:div {:style {:display "flex"
+                 :flex-direction "column"
+                 :gap "12px"
+                 :padding "22px"}}
+   [text {:size :xxl
+          :weight :semi-bold} "Camera"]
+   [separator]
+   [pos-rot-scale-comp {:label "Position"
+                        :type :position
+                        :event ::events/update-camera
+                        :value @(subscribe [::subs/camera-position])}]
+   [pos-rot-scale-comp {:label "Rotation"
+                        :type :rotation
+                        :event ::events/update-camera
+                        :value @(subscribe [::subs/camera-rotation])}]
+   [:div
+    {:style {:display "flex"
+             :align-items "center"
+             :justify-content "space-between"
+             :gap "5px"}}
+    [:div {:style {:display "flex"
+                   :flex-direction "row"
+                   :align-items "center"
+                   :gap "2px"}}
+     [text "Locked"]
+     [tooltip
+      {:trigger [icon/info {:size 12
+                            :weight :fill
+                            :color colors/button-bg}]
+       :content (if true
+                  [:<>
+                   [tooltip-text {:text "The view displayed on the canvas is from the camera's perspective."}]
+                   [tooltip-text {:text "Locking the camera disables movement control."}]
+                   [tooltip-text {:text "Recommended option for beginners."
+                                  :weight :regular}]]
+                  [:<>
+                   [tooltip-text {:text "The view displayed on the canvas is from the camera's perspective."}]
+                   [tooltip-text {:text "Unlocking the camera enables movement control."}]
+                   [tooltip-text {:text "Recommended for advanced users."
+                                  :weight :regular}]])}]]
+    [switch {:checked? @(subscribe [::subs/camera-locked?])
+             :on-change #(dispatch [::events/toggle-camera-lock])}]]])
+
 (defn options-panel []
   [:div (styles/options-panel)
    [:div
@@ -348,25 +392,11 @@
                    [:div {:style {:display "flex"
                                   :flex-direction "column"
                                   :gap "12px"
-                                  :padding "16px"}}
+                                  :padding "22px"}}
                     [text {:size :xxl
                            :weight :semi-bold} "Scene"]
                     [separator]
                     [color-picker {:text "Background color"
                                    :sub-key ::subs/scene-background-color
                                    :event-key ::events/update-scene-background-color}]]
-                   [:div {:style {:display "flex"
-                                  :flex-direction "column"
-                                  :gap "12px"
-                                  :padding "16px"}}
-                    [text {:size :xxl
-                           :weight :semi-bold} "Camera"]
-                    [separator]
-                    [pos-rot-scale-comp {:label "Position"
-                                         :type :position
-                                         :event ::events/update-camera
-                                         :value @(subscribe [::subs/camera-position])}]
-                    [pos-rot-scale-comp {:label "Rotation"
-                                         :type :rotation
-                                         :event ::events/update-camera
-                                         :value @(subscribe [::subs/camera-rotation])}]]])}]]])
+                   [camera-options]])}]]])

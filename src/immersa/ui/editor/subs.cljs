@@ -142,3 +142,8 @@
   ::gizmo-visible?
   (fn [db [_ type]]
     (-> db :editor :gizmo type)))
+
+(reg-sub
+  ::camera-locked?
+  (fn [db]
+    (-> db :editor :camera :locked?)))

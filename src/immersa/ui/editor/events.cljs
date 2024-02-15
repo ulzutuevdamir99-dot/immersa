@@ -185,6 +185,11 @@
   (fn [db [_ type enabled?]]
     (assoc-in db [:editor :gizmo type] enabled?)))
 
+(reg-event-db
+  ::notify-camera-lock-state
+  (fn [db [_ locked?]]
+    (assoc-in db [:editor :camera :locked?] locked?)))
+
 (reg-event-fx
   ::update-selected-mesh-face-to-screen?
   (fn [{:keys [db]} _]
@@ -192,3 +197,11 @@
       {:db (assoc-in db [:editor :selected-mesh :face-to-screen?] face-to-screen?)
        :scene {:type :update-selected-mesh-face-to-screen?
                :data {:value face-to-screen?}}})))
+
+(reg-event-fx
+  ::toggle-camera-lock
+  (fn [{:keys [db]} _]
+    (let [locked? (-> db :editor :camera :locked? not)]
+      {:db (assoc-in db [:editor :camera :locked?] locked?)
+       :scene {:type :toggle-camera-lock
+               :data {:value locked?}}})))

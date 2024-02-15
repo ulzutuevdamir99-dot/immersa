@@ -24,6 +24,8 @@
 (def button-box-shadow "rgba(0, 0, 0, 0.086)")
 (def button-border "rgb(109, 119, 212)")
 
+(def unlocked-camera "#ffb700")
+
 ;; Outline
 (def button-outline-bg button-text)
 (def button-outline-text button-bg)

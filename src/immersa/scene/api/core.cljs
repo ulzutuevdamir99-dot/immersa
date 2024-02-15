@@ -19,6 +19,7 @@
     ["@babylonjs/core/Maths/math" :refer [Vector2 Vector3 Vector4]]
     ["@babylonjs/core/Maths/math.color" :refer [Color3 Color4]]
     ["@babylonjs/core/Maths/math.scalar" :refer [Scalar]]
+    ["@babylonjs/core/Maths/math.vector" :refer [Quaternion]]
     ["@babylonjs/core/Meshes/mesh" :refer [Mesh]]
     ["@babylonjs/core/Meshes/transformNode" :refer [TransformNode]]
     ["@babylonjs/core/Misc/assetsManager" :refer [AssetsManager]]
@@ -57,7 +58,7 @@
     (j/assoc! db :scene s)
     s))
 
-(defn canvas []
+(defn get-canvas []
   (j/get db :canvas))
 
 (defn get-scene []
@@ -532,6 +533,9 @@
 
 (defn look-at [obj target]
   (j/call obj :lookAt target))
+
+(defn quat [x y z w]
+  (Quaternion. x y z w))
 
 (comment
   (j/assoc! (get-object-by-name "33e4ee76-bb27-4904-9d30-360a40d8abc1"))

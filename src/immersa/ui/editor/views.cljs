@@ -40,13 +40,14 @@
 (defn- canvas-container []
   (let [state (r/atom :blur)]
     (fn []
-      (let [{:keys [width height]} @(subscribe [::subs/calculated-canvas-wrapper-dimensions])]
+      (let [{:keys [width height]} @(subscribe [::subs/calculated-canvas-wrapper-dimensions])
+            camera-unlocked? (not @(subscribe [::subs/camera-locked?]))]
         (when (and width height (> width 0) (> height 0))
           [:div
            {:id "canvas-container"
             :style {:width (str width "px")
                     :height (str height "px")}
-            :class (styles/canvas-container @state)}
+            :class (styles/canvas-container @state camera-unlocked?)}
            [canvas state]])))))
 
 (defn- canvas-wrapper []
@@ -175,28 +176,50 @@
 (defn- slide [index]
   (let [current-index @(subscribe [::subs/slides-current-index])
         thumbnail @(subscribe [::subs/slide-thumbnail index])
+        camera-unlocked? (not @(subscribe [::subs/camera-locked?]))
         selected? (= index current-index)]
-    [:div {:style {:display "flex"
-                   :align-items "flex-start"
-                   :padding-left "8px"
-                   :padding-bottom "8px"
-                   :user-select "none"}
-           :on-click #(dispatch [::events/go-to-slide index])}
-     [:span {:style {:width "22px"
-                     :color (if selected?
-                              colors/button-outline-border
-                              colors/text-primary)
-                     :font-size typography/s
-                     :font-weight (if selected?
-                                    typography/medium
-                                    typography/regular)}} (inc index)]
+    [:div
+     {:style {:display "flex"
+              :align-items "flex-start"
+              :padding-left "8px"
+              :padding-bottom "8px"
+              :user-select "none"}
+      :on-click #(dispatch [::events/go-to-slide index])}
+     [:div
+      {:style {:display "flex"
+               :flex-direction "column"
+               :justify-content "space-between"
+               :height "42px"}}
+      [:span {:style {:width "22px"
+                      :color (cond
+                               (and camera-unlocked? selected?)
+                               colors/unlocked-camera
+
+                               selected?
+                               colors/button-outline-border
+
+                               :else colors/text-primary)
+                      :font-size typography/s
+                      :font-weight (if selected?
+                                     typography/medium
+                                     typography/regular)}} (inc index)]
+      (when (and camera-unlocked? selected?)
+        [tooltip
+         {:trigger [icon/unlock {:size 12
+                                 :color colors/unlocked-camera}]
+          :content "Camera unlocked"}])]
      [:div
       {:style {:width "123px"
                :height "70px"
                :border-radius "5px"
-               :border (if selected?
+               :border (cond
+                         (and camera-unlocked? selected?)
+                         (str "2px solid " colors/unlocked-camera)
+
+                         selected?
                          (str "2px solid " colors/button-outline-border)
-                         (str "2px solid " colors/border2))}}
+
+                         :else (str "2px solid " colors/border2))}}
       [:img {:src thumbnail
              :style {:width "100%"
                      :height "100%"

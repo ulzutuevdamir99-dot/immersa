@@ -16,6 +16,7 @@
     ["@phosphor-icons/react/dist/csr/Lightbulb" :refer [Lightbulb]]
     ["@phosphor-icons/react/dist/csr/List" :refer [List]]
     ["@phosphor-icons/react/dist/csr/LockSimple" :refer [LockSimple]]
+    ["@phosphor-icons/react/dist/csr/LockSimpleOpen" :refer [LockSimpleOpen]]
     ["@phosphor-icons/react/dist/csr/Play" :refer [Play]]
     ["@phosphor-icons/react/dist/csr/PlusCircle" :refer [PlusCircle]]
     ["@phosphor-icons/react/dist/csr/ShareNetwork" :refer [ShareNetwork]]
@@ -48,3 +49,4 @@
 (def student (r/adapt-react-class Student))
 (def camera (r/adapt-react-class Camera))
 (def info (r/adapt-react-class Info))
+(def unlock (r/adapt-react-class LockSimpleOpen))

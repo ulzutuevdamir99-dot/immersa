@@ -64,6 +64,14 @@
 (defclass tooltip-arrow []
   {:fill :white})
 
+(defn tooltip-text [{:keys [weight]
+                     :or {weight :light}
+                     :as opts}]
+  [text {:weight weight
+         :size :s
+         :class (text-content)}
+   (:text opts)])
+
 (defn tooltip [{:keys [trigger content shortcuts delay]
                 :or {delay 400}}]
   (let [shortcuts (and shortcuts (if (vector? shortcuts)
@@ -80,10 +88,12 @@
                        :flex-direction "column"
                        :align-items "center"
                        :gap "4px"}}
-         [text {:weight :light
-                :size :s
-                :class (text-content)}
-          content]
+         (if (string? content)
+           [text {:weight :light
+                  :size :s
+                  :class (text-content)}
+            content]
+           content)
          (when (seq shortcuts)
            [:div {:style {:display "flex"
                           :flex-direction "row"

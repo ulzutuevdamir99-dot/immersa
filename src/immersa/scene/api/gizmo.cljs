@@ -156,6 +156,9 @@
               :gizmos.positionGizmo.xGizmo.scaleRatio 1.5
               :gizmos.positionGizmo.yGizmo.scaleRatio 1.5
               :gizmos.positionGizmo.zGizmo.scaleRatio 1.5
+              :gizmos.rotationGizmo.xGizmo.scaleRatio 1.2
+              :gizmos.rotationGizmo.yGizmo.scaleRatio 1.2
+              :gizmos.rotationGizmo.zGizmo.scaleRatio 1.2
               :gizmos.positionGizmo.planarGizmoEnabled true
               :gizmos.positionGizmo.xPlaneGizmo._gizmoMesh.position.y 0.05
               :gizmos.positionGizmo.xPlaneGizmo._gizmoMesh.position.z 0.05
@@ -172,3 +175,5 @@
                                                                    (on-attached-to-mesh %)))
     (j/assoc-in! api.core/db [:gizmo :manager] gizmo-manager)
     gizmo-manager))
+
+;; (api.core/dispose "ground")

@@ -54,7 +54,7 @@
 
                      (and click-type (= (j/get info :type) api.const/pointer-type-up))
                      (j/assoc-in! api.core/db [:mouse click-type] false))
-                   (api.camera/switch-camera-if-needed scene))))
+                   (api.camera/switch-camera-if-needed (slide/camera-locked?)))))
     (j/call-in scene [:onKeyboardObservable :add]
                (fn [info]
                  (let [key (str/lower-case (j/get-in info [:event :key]))]
@@ -135,7 +135,7 @@
                           (api.core/selected-mesh)
                           (not= (api.core/selected-mesh-type) "text3D"))
                      (api.gizmo/toggle-gizmo :scale))
-                   (api.camera/switch-camera-if-needed scene))))))
+                   (api.camera/switch-camera-if-needed (slide/camera-locked?)))))))
 
 (defn- read-pixels [engine]
   (let [p (a/promise-chan)
@@ -293,7 +293,7 @@
                                                               (println "resized!")
                                                               ))
 
-  (j/call (api.camera/active-camera) :attachControl (api.core/canvas) true)
+  (j/call (api.camera/active-camera) :attachControl (api.core/get-canvas) true)
 
   (api.core/show-debug)
 
