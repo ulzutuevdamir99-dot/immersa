@@ -30,6 +30,7 @@
       "image" (dispatch [::events/set-selected-image-data
                          (merge pos-rot-scale-name
                                 {:type "image"
+                                 :opacity (j/get mesh :visibility)
                                  :face-to-screen? (api.core/get-node-attr mesh :face-to-screen?)})]))))
 
 (defn notify-ui-selected-mesh [mesh]

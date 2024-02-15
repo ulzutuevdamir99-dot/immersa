@@ -182,6 +182,19 @@
                    :value @(subscribe [::subs/selected-mesh-text-depth])
                    :on-change #(dispatch [::events/update-selected-mesh-text-depth-or-size :depth %])}]]])
 
+(defn- opacity []
+  [:div {:style {:display "flex"
+                  :flex-direction "column"
+                  :gap "8px"}}
+    [:div {:style {:display "flex"
+                   :flex-direction "row"
+                   :justify-content "space-between"}}
+     [text "Opacity"]
+     [text {:weight :light} (str @(subscribe [::subs/selected-mesh-opacity]) "%")]]
+    [slider {:min 0.001
+             :value @(subscribe [::subs/selected-mesh-opacity])
+             :on-change #(dispatch [::events/update-selected-mesh-slider-value :opacity %])}]])
+
 (defn- material-options []
   [:div
    {:style {:display "flex"
@@ -200,17 +213,7 @@
      [text {:weight :light} (str @(subscribe [::subs/selected-mesh-emissive-intensity]) "%")]]
     [slider {:value @(subscribe [::subs/selected-mesh-emissive-intensity])
              :on-change #(dispatch [::events/update-selected-mesh-slider-value :emissive-intensity %])}]]
-   [:div {:style {:display "flex"
-                  :flex-direction "column"
-                  :gap "8px"}}
-    [:div {:style {:display "flex"
-                   :flex-direction "row"
-                   :justify-content "space-between"}}
-     [text "Opacity"]
-     [text {:weight :light} (str @(subscribe [::subs/selected-mesh-opacity]) "%")]]
-    [slider {:min 0.001
-             :value @(subscribe [::subs/selected-mesh-opacity])
-             :on-change #(dispatch [::events/update-selected-mesh-slider-value :opacity %])}]]
+   [opacity]
    [:div {:style {:display "flex"
                   :flex-direction "column"
                   :gap "8px"}}
@@ -288,6 +291,8 @@
      [scale]
      [separator]
      [arrow-helpers type]
+     [separator]
+     [opacity]
      [separator]
      [face-to-screen type]]))
 
