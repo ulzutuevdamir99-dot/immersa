@@ -22,9 +22,9 @@
    :display "flex"
    :align-items "center"
    :height "25px"
-   :padding "0 5px"
+   :padding "0 12px"
    :position "relative"
-   :padding-left "5px"
+   :margin-bottom "5px"
    :user-select :none
    :outline :none}
   [:&:hover
@@ -45,12 +45,37 @@
 (defn dropdown-item [elem]
   [:> DropdownMenu/Item {:class (menu-item)} elem])
 
-(defn dropdown [trigger children]
+(defn dropdown [{:keys [trigger children style]}]
   [:> DropdownMenu/Root
    [:> DropdownMenu/Trigger {:as-child true}
     (if (-> trigger first fn?)
       (apply (first trigger) (rest trigger))
       trigger)]
    [:> DropdownMenu/Portal
-    [:> DropdownMenu/Content {:class (content-style)}
+    [:> DropdownMenu/Content {:style style
+                              :class (content-style)}
+     children]]])
+
+(defclass context-menu-content-style []
+  {:width "220px"
+   :z-index "5000"
+   :background-color "white"
+   :border-radius "6px"
+   :border "1px solid rgba(22, 23, 24, 0.15)"
+   :padding "5px"
+   :box-shadow "0px 10px 38px -10px rgba(22, 23, 24, 0.35), 0px 10px 20px -15px rgba(22, 23, 24, 0.2)"
+   :animation-duration "400ms"
+   :animation-timing-function "cubic-bezier(0.16, 1, 0.3, 1)"
+   :will-change "transform, opacity"})
+
+(defn dropdown-context-menu [{:keys [trigger children on-open-change style]}]
+  [:> DropdownMenu/Root {:default-open true
+                         :on-open-change on-open-change}
+   [:> DropdownMenu/Trigger {:as-child true}
+    (if (-> trigger first fn?)
+      (apply (first trigger) (rest trigger))
+      trigger)]
+   [:> DropdownMenu/Portal
+    [:> DropdownMenu/Content {:style style
+                              :class (context-menu-content-style)}
      children]]])

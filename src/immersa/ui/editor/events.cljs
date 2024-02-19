@@ -205,3 +205,13 @@
       {:db (assoc-in db [:editor :camera :locked?] locked?)
        :scene {:type :toggle-camera-lock
                :data {:value locked?}}})))
+
+(reg-event-db
+  ::set-context-menu-position
+  (fn [db [_ position]]
+    (assoc-in db [:editor :context-menu :position] position)))
+
+(reg-event-db
+  ::clear-context-menu-position
+  (fn [db]
+    (dissoc-in db [:editor :context-menu :position])))

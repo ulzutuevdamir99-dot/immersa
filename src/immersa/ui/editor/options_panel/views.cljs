@@ -170,8 +170,7 @@
                   :gap "12px"}}
     [text "Content"]
     [textarea {:value @(subscribe [::subs/selected-mesh-text-content])
-               :on-change #(dispatch [::events/update-selected-mesh-text-content
-                                      (-> % .-target .-value)])}]]])
+               :on-change #(dispatch [::events/update-selected-mesh-text-content (-> % .-target .-value)])}]]])
 
 (defn- size-and-depth []
   [:div {:style {:display "flex"

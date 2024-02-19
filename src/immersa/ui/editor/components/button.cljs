@@ -40,12 +40,32 @@
   [:&:hover {:background colors/hover-bg}]
   [:&:active {:background colors/active-bg}])
 
-(defclass shortcut-button-style [symbol?]
-  {:min-width "20px"
-   :height "20px"
-   :padding-right "3px"
-   :padding-left "3px"
-   :font-size (if symbol? typography/s typography/xs)})
+(defattrs shortcut-button-style [symbol?]
+  {:box-sizing :border-box
+   :display :inline-flex
+   :align-items :center
+   :justify-content :center
+   :flex-shrink 0
+   :font-weight 400
+   :font-family typography/font
+   :vertical-align :text-top
+   :white-space :nowrap
+   :user-select :none
+   :cursor :default
+   :position :relative
+   :top "-0.03em"
+   :font-size (if symbol? ".8em" ".7em")
+   :min-width "1.75em"
+   :line-height "1.7em"
+   :padding-left "0.5em"
+   :padding-right "0.5em"
+   :padding-bottom "0.05em"
+   :word-spacing "-0.1em"
+   :border-radius "0.35em"
+   :letter-spacing "0em"
+   :color "color(display-p3 0.113 0.125 0.14)"
+   :background-color "color(display-p3 0.988 0.988 0.992)"
+   :box-shadow "color(display-p3 0.024 0.024 0.349 / 0.024) 0px -0.525px 5.25px 0px inset, color(display-p3 1 1 1 / 0.95) 0px 0.525px 0px 0px inset, color(display-p3 0.024 0.024 0.349 / 0.024) 0px 2.625px 5.25px 0px inset, color(display-p3 0.008 0.008 0.165 / 0.15) 0px -0.525px 0px 0px inset, color(display-p3 0.004 0.039 0.2 / 0.122) 0px 0px 0px 0.525px, color(display-p3 0.008 0.027 0.184 / 0.197) 0px 0.84px 1.785px 0px"})
 
 (defattrs button-text []
   {:user-select :none})
@@ -69,7 +89,7 @@
    (when text [:span (button-text) text])
    (when icon-right icon-right)])
 
-(defn shortcut-button [text]
-  (let [symbol? (not (re-matches #"[A-Za-z0-9]+" text))]
-    [button {:text text
-             :class (shortcut-button-style symbol?)}]))
+(defn shortcut-button [key]
+  (let [symbol? (not (re-matches #"[A-Za-z0-9]+" key))]
+    [:kbd (shortcut-button-style symbol?)
+     key]))

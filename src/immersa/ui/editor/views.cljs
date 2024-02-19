@@ -5,7 +5,8 @@
     [goog.functions :as functions]
     [immersa.scene.core :as scene.core]
     [immersa.ui.editor.components.button :refer [button]]
-    [immersa.ui.editor.components.dropdown :refer [dropdown dropdown-item dropdown-separator]]
+    [immersa.ui.editor.components.context-menu :refer [context-menu]]
+    [immersa.ui.editor.components.dropdown :refer [dropdown dropdown-item dropdown-separator dropdown-context-menu]]
     [immersa.ui.editor.components.input :refer [input-number]]
     [immersa.ui.editor.components.scroll-area :refer [scroll-area]]
     [immersa.ui.editor.components.separator :refer [separator]]
@@ -262,7 +263,8 @@
                     ^{:key id}
                     [slide index])]}]]
     [canvas-wrapper]
-    [options-panel]]])
+    [options-panel]
+    [context-menu]]])
 
 (comment
   @(subscribe [::subs/selected-mesh]))

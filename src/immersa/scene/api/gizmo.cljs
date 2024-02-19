@@ -136,7 +136,7 @@
     (ui.notifier/notify-gizmo-state type enabled?)))
 
 (defn init-gizmo-manager []
-  (let [gizmo-manager (GizmoManager. (api.core/get-scene))]
+  (let [gizmo-manager (GizmoManager. (api.core/get-scene) 4)]
     (set! hl (api.core/highlight-layer "outline-highlight-layer"
                                        :stroke? true
                                        :main-texture-ratio 1

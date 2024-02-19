@@ -147,3 +147,8 @@
   ::camera-locked?
   (fn [db]
     (-> db :editor :camera :locked?)))
+
+(reg-sub
+  ::context-menu-position
+  (fn [db]
+    (-> db :editor :context-menu :position)))

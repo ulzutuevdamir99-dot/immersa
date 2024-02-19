@@ -45,15 +45,30 @@
                                     1 :middle-click?
                                     2 :right-click?
                                     nil)]
-                   (when (and (= api.const/pointer-type-tap (j/get info :type))
-                              (not (j/get-in info [:pickInfo :hit])))
-                     (api.core/clear-selected-mesh))
+
                    (cond
                      (and click-type (= (j/get info :type) api.const/pointer-type-down))
                      (j/assoc-in! api.core/db [:mouse click-type] true)
 
                      (and click-type (= (j/get info :type) api.const/pointer-type-up))
                      (j/assoc-in! api.core/db [:mouse click-type] false))
+
+                   (j/assoc-in! api.core/db [:mouse :wheel?] (= (j/get info :type) api.const/pointer-type-wheel))
+
+                   (when (and (= api.const/pointer-type-tap (j/get info :type))
+                              (not (j/get-in info [:pickInfo :hit])))
+                     (api.core/clear-selected-mesh))
+
+                   (when (and (= api.const/pointer-type-tap (j/get info :type))
+                              (= click-type :right-click?))
+                     (dispatch [::editor.events/set-context-menu-position [(j/get-in info [:event :clientX])
+                                                                           (j/get-in info [:event :clientY])]]))
+
+                   (when (and (= api.const/pointer-type-double-tap (j/get info :type))
+                              (= click-type :left-click?)
+                              (api.core/selected-mesh))
+                     (api.anim/run-camera-focus-anim (api.core/selected-mesh)))
+
                    (api.camera/switch-camera-if-needed (slide/camera-locked?)))))
     (j/call-in scene [:onKeyboardObservable :add]
                (fn [info]
@@ -68,15 +83,14 @@
                      (j/assoc-in! api.core/db [:keyboard key] false)
 
                      (and (= key "escape")
-                          (= (j/get info :type) api.const/keyboard-type-key-down))
+                          (= (j/get info :type) api.const/keyboard-type-key-down)
+                          (api.core/selected-mesh))
                      (api.core/clear-selected-mesh)
 
                      (and (= key "f")
                           (= (j/get info :type) api.const/keyboard-type-key-down)
-                          (j/get-in api.core/db [:gizmo :selected-mesh]))
-                     (api.anim/run-camera-focus-anim (j/get-in api.core/db [:gizmo :selected-mesh]))
-                     #_(j/call (api.camera/active-camera)
-                               :setTarget (api.core/clone (j/get-in api.core/db [:gizmo :selected-mesh :position])))
+                          (api.core/selected-mesh))
+                     (api.anim/run-camera-focus-anim (api.core/selected-mesh))
 
                      (and (= key "c")
                           (= (j/get info :type) api.const/keyboard-type-key-down)

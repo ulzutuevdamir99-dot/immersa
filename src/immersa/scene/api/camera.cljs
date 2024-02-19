@@ -72,11 +72,19 @@
                                         collision-radius
                                         lower-radius-limit
                                         upper-radius-limit
+                                        angular-sensibility-x
+                                        angular-sensibility-y
+                                        wheel-precision
+                                        speed
                                         min-z]
                                  :or {min-z 0.1
                                       alpha (/ Math/PI 2)
                                       beta (/ Math/PI 2)
+                                      angular-sensibility-x 2000
+                                      angular-sensibility-y 2000
+                                      wheel-precision 50
                                       radius 10
+                                      speed 0.1
                                       target (v3)}
                                  :as opts}]
   (let [camera (ArcRotateCamera. name alpha beta radius target)
@@ -96,6 +104,10 @@
       lower-radius-limit (j/assoc! :lowerRadiusLimit lower-radius-limit)
       upper-radius-limit (j/assoc! :upperRadiusLimit upper-radius-limit)
       min-z (j/assoc! :minZ min-z)
+      speed (j/assoc! :speed speed)
+      wheel-precision (j/assoc! :wheelPrecision wheel-precision)
+      angular-sensibility-x (j/assoc! :angularSensibilityX angular-sensibility-x)
+      angular-sensibility-y (j/assoc! :angularSensibilityY angular-sensibility-y)
       true (j/assoc! :type :arc)
       true (j/assoc! :init-rotation init-rotation)
       true (j/assoc! :init-position init-position))))
@@ -115,7 +127,9 @@
           switch-type (cond
                         wasd? :free
                         (api.core/selected-mesh) :arc
+                        (j/get-in api.core/db [:mouse :left-click?]) :arc
                         (j/get-in api.core/db [:mouse :right-click?]) :arc
+                        (j/get-in api.core/db [:mouse :wheel?]) :arc
                         :else :free)
           camera (active-camera)
           camera-type (j/get camera :type)

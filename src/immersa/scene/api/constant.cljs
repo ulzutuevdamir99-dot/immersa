@@ -52,6 +52,7 @@
 
 (def pointer-type-down (j/get PointerEventTypes :POINTERDOWN))
 (def pointer-type-up (j/get PointerEventTypes :POINTERUP))
+(def pointer-type-wheel (j/get PointerEventTypes :POINTERWHEEL))
 (def pointer-type-double-tap (j/get PointerEventTypes :POINTERDOUBLETAP))
 (def pointer-type-move (j/get PointerEventTypes :POINTERMOVE))
 (def pointer-type-tap (j/get PointerEventTypes :POINTERTAP))
