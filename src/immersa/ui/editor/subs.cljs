@@ -41,6 +41,27 @@
   (fn [db]
     (-> db :editor :selected-mesh :scaling)))
 
+(defn has-initial? [db type]
+  (let [slides (-> db :editor :slides :all)
+        current-index (-> db :editor :slides :current-index)
+        selected-mesh-name (-> db :editor :selected-mesh :name)]
+    (boolean (get-in slides [current-index :data selected-mesh-name type]))))
+
+(reg-sub
+  ::selected-mesh-initial-position?
+  (fn [db]
+    (has-initial? db :initial-position)))
+
+(reg-sub
+  ::selected-mesh-initial-rotation?
+  (fn [db]
+    (has-initial? db :initial-rotation)))
+
+(reg-sub
+  ::selected-mesh-initial-scale?
+  (fn [db]
+    (has-initial? db :initial-scale)))
+
 (reg-sub
   ::camera
   (fn [db]

@@ -602,8 +602,18 @@
     (api.core/clear-selected-mesh)
     (swap! all-slides (fn [slides]
                         (let [duplicated-slide (-> (get slides index)
-                                                   (assoc :initial-position position)
-                                                   (assoc :initial-rotation rotation))]
+                                                   (assoc-in [:data :camera :initial-position] position)
+                                                   (assoc-in [:data :camera :initial-rotation] rotation))
+                              types  #{:glb :text3D :image}
+                              duplicated-slide (walk/prewalk
+                                                 (fn [form]
+                                                   (if (and (map? form) (types (:type form)))
+                                                     (-> form
+                                                         (assoc :initial-position (:position form))
+                                                         (assoc :initial-rotation (:rotation form))
+                                                         (assoc :initial-scale (:scale form)))
+                                                     form))
+                                                 duplicated-slide)]
                           (vec-insert slides (assoc duplicated-slide :id uuid) (inc index)))))
     (swap! current-slide-index inc)
     (ui.notifier/sync-slides-info @current-slide-index @all-slides)))

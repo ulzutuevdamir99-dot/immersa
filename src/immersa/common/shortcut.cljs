@@ -11,7 +11,8 @@
     [immersa.scene.api.core :as api.core]
     [immersa.scene.api.gizmo :as api.gizmo]
     [immersa.scene.slide :as slide]
-    [immersa.scene.ui-listener :as ui-listener]))
+    [immersa.scene.ui-listener :as ui-listener]
+    [immersa.scene.ui-notifier :as ui.notifier]))
 
 (defn- mac? []
   device/isMacOs)
@@ -34,6 +35,21 @@
   (-> (api.core/selected-mesh)
       api.core/get-object-name
       (#(vector % (get-in @slide/all-slides [@slide/current-slide-index :data %])))))
+
+(defn- reset-position [mesh]
+  (let [position (slide/get-slide-data mesh :initial-position)]
+    (j/assoc! mesh :position (api.core/v->v3 position))
+    (slide/update-slide-data mesh :position position)))
+
+(defn- reset-rotation [mesh]
+  (let [rotation (slide/get-slide-data mesh :initial-rotation)]
+    (j/assoc! mesh :rotation (api.core/v->v3 rotation))
+    (slide/update-slide-data mesh :rotation rotation)))
+
+(defn- reset-scale [mesh]
+  (let [scale (slide/get-slide-data mesh :initial-scale)]
+    (j/assoc! mesh :scaling (api.core/v->v3 scale))
+    (slide/update-slide-data mesh :scale scale)))
 
 (def shortcuts
   {:focus {:label "Focus"
@@ -123,10 +139,51 @@
                           (and (cmd? info) (delete? info)))
                   :action #(slide/delete-slide)}
    :camera-reset-to-initials {:label "Reset camera to initials"
-                              :shortcut ["shift" "r"]
+                              :shortcut ["shift" "c"]
                               :pred (fn [info key]
-                                      (and (shift? info) (= "r" key)))
-                              :action #(fn [])}
+                                      (and (shift? info) (= "c" key)))
+                              :action (fn []
+                                        (let [initial-position (slide/get-slide-data :camera :initial-position)
+                                              initial-rotation (slide/get-slide-data :camera :initial-rotation)
+                                              free-camera (api.core/get-object-by-name "free-camera")]
+                                          (j/assoc! free-camera :position (api.core/v->v3 initial-position))
+                                          (j/assoc! free-camera :rotation (api.core/v->v3 initial-rotation))
+                                          (j/assoc! (api.core/get-scene) :activeCamera free-camera)))}
+   :reset-position {:label "Reset position"
+                    :shortcut ["shift" "p"]
+                    :pred (fn [info key]
+                            (and (shift? info) (= "p" key)))
+                    :action (fn []
+                              (let [mesh (api.core/selected-mesh)]
+                                (reset-position mesh)
+                                (ui.notifier/notify-ui-selected-mesh mesh)))}
+   :reset-rotation {:label "Reset rotation"
+                    :shortcut ["shift" "r"]
+                    :pred (fn [info key]
+                            (and (shift? info) (= "r" key)))
+                    :action (fn []
+                              (let [mesh (api.core/selected-mesh)]
+                                (reset-rotation mesh)
+                                (ui.notifier/notify-ui-selected-mesh mesh)))}
+   :reset-scale {:label "Reset scale"
+                 :shortcut ["shift" "s"]
+                 :pred (fn [info key]
+                         (and (shift? info) (= "s" key)))
+                 :action (fn []
+                           (let [mesh (api.core/selected-mesh)]
+                             (reset-scale mesh)
+                             (ui.notifier/notify-ui-selected-mesh mesh)))}
+   :reset-initials {:label "Reset initials"
+                    :shortcut ["shift" "i"]
+                    :pred (fn [info key]
+                            (and (shift? info) (= "i" key)))
+                    :action (fn []
+                              (let [mesh (api.core/selected-mesh)]
+                                (reset-position mesh)
+                                (reset-rotation mesh)
+                                (when-not (= "text3D" (api.core/selected-mesh-type))
+                                  (reset-scale mesh))
+                                (ui.notifier/notify-ui-selected-mesh mesh)))}
    :toggle-camera-lock {:label "Toggle camera lock"
                         :shortcut ["shift" "l"]
                         :pred (fn [info key]

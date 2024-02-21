@@ -111,18 +111,18 @@
 
 (defn- add-drag-observables [gizmo-manager]
   (let [f (fn []
-            (some-> (j/get-in api.core/db [:gizmo :selected-mesh]) ui.notifier/notify-ui-selected-mesh))]
+            (some-> (api.core/selected-mesh) ui.notifier/notify-ui-selected-mesh))]
     (j/call-in gizmo-manager [:gizmos :positionGizmo :onDragObservable :add] f)
     (j/call-in gizmo-manager [:gizmos :positionGizmo :onDragEndObservable :add]
                (fn []
                  (f)
-                 (let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
+                 (let [mesh (api.core/selected-mesh)]
                    (some-> mesh (slide/update-slide-data :position (api.core/v3->v (j/get mesh :position)))))))
     (j/call-in gizmo-manager [:gizmos :scaleGizmo :onDragObservable :add] f)
     (j/call-in gizmo-manager [:gizmos :scaleGizmo :onDragEndObservable :add]
                (fn []
                  (f)
-                 (let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
+                 (let [mesh (api.core/selected-mesh)]
                    (some-> mesh (slide/update-slide-data :scaling (api.core/v3->v (j/get mesh :scaling)))))))
     (create-rotation-gizmo-drag-observables gizmo-manager)))
 

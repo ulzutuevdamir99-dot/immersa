@@ -37,9 +37,8 @@
   (when disabled?
     {:cursor :not-allowed}))
 
-(defn- option-text [{:keys [label shortcut disabled? on-click]}]
-  [:div {:class (option-text-style disabled?)
-         :on-click on-click}
+(defn- option-text [{:keys [label shortcut disabled?]}]
+  [:div {:class (option-text-style disabled?)}
    [text {:weight :light
           :size :xs
           :disabled? disabled?} label]
@@ -56,45 +55,59 @@
    [dropdown-item
     {:item [option-text {:label "Add new slide"
                          :shortcut (shortcut/get-shortcut-key-labels :add-slide)}]
-     :on-click #(shortcut/call-shortcut-action :add-slide)}]
+     :on-select #(shortcut/call-shortcut-action :add-slide)}]
    [dropdown-item
     {:item [option-text {:label "Delete slide"
                          :shortcut (shortcut/get-shortcut-key-labels :delete-slide)}]
-     :on-click #(shortcut/call-shortcut-action :delete-slide)}]
+     :on-select #(shortcut/call-shortcut-action :delete-slide)}]
    [dropdown-item
     {:item [option-text {:label "Paste"
                          :shortcut (shortcut/get-shortcut-key-labels :paste)}]
-     :on-click #(shortcut/call-shortcut-action :paste)}]])
+     :on-select #(shortcut/call-shortcut-action :paste)}]])
 
 (defn- selected-object-options []
   [:<>
    [dropdown-item
     {:item [option-text {:label "Focus"
                          :shortcut (shortcut/get-shortcut-key-labels :focus)}]
-     :on-click #(shortcut/call-shortcut-action :focus)}]
+     :on-select #(shortcut/call-shortcut-action :focus)}]
    [dropdown-item
-    [option-text "Reset position"]]
-   [dropdown-item
-    [option-text "Reset rotation"]]
-   (when-not (= "text3D" @(subscribe [::subs/selected-mesh-type]))
-     [dropdown-item
-      [option-text "Reset scale"]])
+    {:item [option-text {:label "Reset to initials"
+                         :shortcut (shortcut/get-shortcut-key-labels :reset-initials)}]
+     :on-select #(shortcut/call-shortcut-action :reset-initials)
+     :disabled? (not @(subscribe [::subs/selected-mesh-initial-position?]))}]
    [dropdown-item
     {:item [option-text {:label "Duplicate"
                          :shortcut (shortcut/get-shortcut-key-labels :duplicate)}]
-     :on-click #(shortcut/call-shortcut-action :duplicate)}]
+     :on-select #(shortcut/call-shortcut-action :duplicate)}]
    [dropdown-item
     {:item [option-text {:label "Copy"
                          :shortcut (shortcut/get-shortcut-key-labels :copy)}]
-     :on-click #(shortcut/call-shortcut-action :copy)}]
+     :on-select #(shortcut/call-shortcut-action :copy)}]
    [dropdown-item
     {:item [option-text {:label "Paste"
                          :shortcut (shortcut/get-shortcut-key-labels :paste)}]
-     :on-click #(shortcut/call-shortcut-action :paste)}]
+     :on-select #(shortcut/call-shortcut-action :paste)}]
    [dropdown-item
     {:item [option-text {:label "Delete"
                          :shortcut (shortcut/get-shortcut-key-labels :delete)}]
-     :on-click #(shortcut/call-shortcut-action :delete)}]])
+     :on-select #(shortcut/call-shortcut-action :delete)}]
+   [dropdown-item
+    {:item [option-text {:label "Reset position"
+                         :shortcut (shortcut/get-shortcut-key-labels :reset-position)}]
+     :on-select #(shortcut/call-shortcut-action :reset-position)
+     :disabled? (not @(subscribe [::subs/selected-mesh-initial-position?]))}]
+   [dropdown-item
+    {:item [option-text {:label "Reset rotation"
+                         :shortcut (shortcut/get-shortcut-key-labels :reset-rotation)}]
+     :on-select #(shortcut/call-shortcut-action :reset-rotation)
+     :disabled? (not @(subscribe [::subs/selected-mesh-initial-rotation?]))}]
+   (when-not (= "text3D" @(subscribe [::subs/selected-mesh-type]))
+     [dropdown-item
+      {:item [option-text {:label "Reset scale"
+                           :shortcut (shortcut/get-shortcut-key-labels :reset-scale)}]
+       :on-select #(shortcut/call-shortcut-action :reset-scale)
+       :disabled? (not @(subscribe [::subs/selected-mesh-initial-scale?]))}])])
 
 (defn- camera-options []
   (let [camera-locked? @(subscribe [::subs/camera-locked?])
@@ -103,11 +116,11 @@
      [dropdown-item
       {:item [option-text {:label "Reset camera to initials"
                            :shortcut (shortcut/get-shortcut-key-labels :camera-reset-to-initials)}]
-       :on-click #(shortcut/call-shortcut-action :camera-reset-to-initials)}]
+       :on-select #(shortcut/call-shortcut-action :camera-reset-to-initials)}]
      [dropdown-item
       {:item [option-text {:label (str lock-text " camera")
                            :shortcut (shortcut/get-shortcut-key-labels :toggle-camera-lock)}]
-       :on-click #(shortcut/call-shortcut-action :toggle-camera-lock)}]]))
+       :on-select #(shortcut/call-shortcut-action :toggle-camera-lock)}]]))
 
 (defn context-menu []
   (let [[x y] @(subscribe [::subs/context-menu-position])]

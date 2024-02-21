@@ -16,7 +16,7 @@
    :animation-timing-function "cubic-bezier(0.16, 1, 0.3, 1)"
    :will-change "transform, opacity"})
 
-(defclass menu-item []
+(defclass menu-item [disabled?]
   {:line-height "1"
    :border-radius "3px"
    :display "flex"
@@ -32,7 +32,10 @@
     :border-radius "5px"}]
   [:&:active
    {:background colors/active-bg
-    :border-radius "5px"}])
+    :border-radius "5px"}]
+  (when disabled?
+    {:cursor :not-allowed
+     :opacity 0.5}))
 
 (defclass seprator-style []
   {:height "1px"
@@ -42,10 +45,11 @@
 (defn dropdown-separator []
   [:> DropdownMenu/Separator {:class (seprator-style)}])
 
-(defn dropdown-item [{:keys [item on-click]}]
+(defn dropdown-item [{:keys [item on-select disabled?]}]
   [:> DropdownMenu/Item
-   {:class (menu-item)
-    :on-click on-click}
+   {:class (menu-item disabled?)
+    :on-select on-select
+    :disabled disabled?}
    item])
 
 (defn dropdown [{:keys [trigger children style]}]
