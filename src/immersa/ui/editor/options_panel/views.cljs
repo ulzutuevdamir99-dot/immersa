@@ -37,7 +37,10 @@
                    :icon-right [icon/x {:size 12
                                         :weight "bold"
                                         :color colors/text-primary}]}]
-          [:div (styles/color-picker-component-wrapper)
+          [:div {:id "color-picker-component-wrapper"
+                 :class (styles/color-picker-component-wrapper)
+                 :on-click (fn [e]
+                             (reset! open? (not= (j/get-in e [:target :id]) "color-picker-component-wrapper")))}
            [color-picker* {:disable-alpha true
                            :color @(subscribe [sub-key])
                            :on-change #(let [{:keys [r g b]} (j/lookup (j/get % :rgb))]
