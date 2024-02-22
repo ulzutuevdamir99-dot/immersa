@@ -402,5 +402,25 @@
                     [separator]
                     [color-picker {:text "Background color"
                                    :sub-key ::subs/scene-background-color
-                                   :event-key ::events/update-scene-background-color}]]
+                                   :event-key ::events/update-scene-background-color}]
+                    [:div
+                     {:style {:display "flex"
+                              :flex-direction "column"
+                              :justify-content "space-between"}}
+                     [:div {:style {:display "flex"
+                                    :flex-direction "row"
+                                    :justify-content "space-between"}}
+                      [:div {:style {:display "flex"
+                                     :flex-direction "row"
+                                     :align-items "center"
+                                     :gap "2px"}}
+                       [text "Brightness"]
+                       [tooltip
+                        {:trigger [icon/info {:size 12
+                                              :weight :fill
+                                              :color colors/button-bg}]
+                         :content "Adjust the brightness of the scene background. Default is 10%."}]]
+                      [text {:weight :light} (str @(subscribe [::subs/scene-background-brightness]) "%")]]
+                     [slider {:value @(subscribe [::subs/scene-background-brightness])
+                              :on-change #(dispatch [::events/update-scene-background-brightness %])}]]]
                    [camera-options]])}]]])

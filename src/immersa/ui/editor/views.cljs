@@ -135,7 +135,7 @@
                             :text "3D Model"
                             :class (styles/presentation-component-cube)
                             :disabled? true}]
-   [presentation-component {:icon icon/camera
+   #_[presentation-component {:icon icon/camera
                             :text "Camera"
                             :disabled? true}]
    [presentation-component {:icon icon/student
@@ -269,4 +269,4 @@
     [context-menu]]])
 
 (comment
-  @(subscribe [::subs/selected-mesh]))
+  @(subscribe [::subs/editor]))

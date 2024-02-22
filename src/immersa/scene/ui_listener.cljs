@@ -47,10 +47,22 @@
 (defmethod handle-ui-update :update-background-color [{{:keys [value]} :data}]
   (let [skybox-material (j/get-in api.core/db [:environment-helper :skybox :material])
         ground-material (j/get-in api.core/db [:environment-helper :ground :material])
-        new-color (apply api.core/color-rgb value)]
+        brightness (slide/calculate-brightness-factor (slide/get-slide-data :skybox [:background :brightness]))
+        new-color (apply api.core/color-rgb (map (partial * brightness) value))]
     (j/assoc! skybox-material :primaryColor new-color)
     (j/assoc! ground-material :primaryColor new-color)
     (slide/update-slide-data :skybox [:background :color] value)
+    (ui.notifier/sync-slides-info @slide/current-slide-index @slide/all-slides)))
+
+(defmethod handle-ui-update :update-background-brightness [{{:keys [value]} :data}]
+  (let [skybox-material (j/get-in api.core/db [:environment-helper :skybox :material])
+        ground-material (j/get-in api.core/db [:environment-helper :ground :material])
+        color (slide/get-slide-data :skybox [:background :color])
+        brightness (slide/calculate-brightness-factor value)
+        new-color (apply api.core/color-rgb (map (partial * brightness) color))]
+    (j/assoc! skybox-material :primaryColor new-color)
+    (j/assoc! ground-material :primaryColor new-color)
+    (slide/update-slide-data :skybox [:background :brightness] value)
     (ui.notifier/sync-slides-info @slide/current-slide-index @slide/all-slides)))
 
 (defmethod handle-ui-update :update-selected-mesh-slider-value [{{:keys [update value]} :data}]

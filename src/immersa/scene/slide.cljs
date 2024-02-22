@@ -22,6 +22,11 @@
     [immersa.ui.present.events :as events]
     [re-frame.core :refer [dispatch dispatch-sync]]))
 
+(def brightness-scale-factor 11.8)
+
+(defn calculate-brightness-factor [brightness]
+  (* brightness brightness-scale-factor))
+
 (defn- get-position-anim [object-slide-info object-name]
   (let [object (api.core/get-object-by-name object-name)
         start-position (j/get object :position)
@@ -194,6 +199,11 @@
 
       :else form)))
 
+(defn- parse-skybox-background-color [slides]
+  (let [adjust-color (fn [m]
+                       (assoc m :color (mapv #(* % (calculate-brightness-factor (:brightness m))) (:color m))))]
+    (sp/transform [sp/ALL :data :skybox :background] adjust-color slides)))
+
 (defn- parse-slides [slides]
   (walk/prewalk
     (fn [form]
@@ -208,40 +218,9 @@
     slides))
 
 (defn get-slides [slides]
-  (let [slides (parse-slides slides)
-        slides-vec (vec (map-indexed #(assoc %2 :index %1) slides))
-        #_#_props-to-copy [:type :position :rotation :visibility]
-        #_#_clone-if-exists (fn [data]
-                              (let [position (:position data)
-                                    rotation (:rotation data)]
-                                (cond-> data
-                                        (vector? position)
-                                        (assoc :position (mapv api.core/clone (:position data)))
-
-                                        (and position (not (vector? position)))
-                                        (assoc :position (api.core/clone (:position data)))
-
-                                        (vector? rotation)
-                                        (assoc :rotation (mapv api.core/clone (:rotation data)))
-
-                                        (and rotation (not (vector? rotation)))
-                                        (assoc :rotation (api.core/clone (:rotation data))))))]
-    ;; TODO this should be removed
-    #_(reduce
-        (fn [slides-vec slide]
-          (let [prev-slide-data (get-in slides-vec [(dec (:index slide)) :data])
-                slide-data (:data slide)]
-            (conj slides-vec
-                  (assoc slide :data
-                               (reduce-kv
-                                 (fn [acc name objet-slide-data]
-                                   (if-let [prev-slide-data (get prev-slide-data name)]
-                                     (assoc acc name (merge (clone-if-exists (select-keys prev-slide-data props-to-copy)) objet-slide-data))
-                                     (assoc acc name objet-slide-data)))
-                                 {}
-                                 slide-data)))))
-        [(first slides-vec)]
-        (rest slides-vec))
+  (let [slides (parse-skybox-background-color slides)
+        slides (parse-slides slides)
+        slides-vec (vec (map-indexed #(assoc %2 :index %1) slides))]
     slides-vec))
 
 (defn- run-skybox-bg-image->bg-image-dissolve-anim [skybox]
@@ -589,10 +568,11 @@
 (defn get-slide-data [obj k]
   (let [index @current-slide-index
         object-id (if (keyword? obj) obj (api.core/get-object-name obj))
+        path [index :data object-id]
         path (if (vector? k)
-               (apply sp/comp-paths k)
-               k)]
-    (get-in @all-slides [index :data object-id path])))
+               (into path k)
+               (conj path k))]
+    (get-in @all-slides path)))
 
 (defn add-slide []
   (let [index @current-slide-index
@@ -604,7 +584,7 @@
                         (let [duplicated-slide (-> (get slides index)
                                                    (assoc-in [:data :camera :initial-position] position)
                                                    (assoc-in [:data :camera :initial-rotation] rotation))
-                              types  #{:glb :text3D :image}
+                              types #{:glb :text3D :image}
                               duplicated-slide (walk/prewalk
                                                  (fn [form]
                                                    (if (and (map? form) (types (:type form)))

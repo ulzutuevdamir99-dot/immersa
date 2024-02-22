@@ -52,10 +52,16 @@
 
 (reg-event-fx
   ::update-scene-background-color
-  (fn [{:keys [db]} [_ rgb]]
-    {:db (assoc-in db [:editor :scene :background-color] rgb)
-     :scene {:type :update-background-color
+  (fn [_ [_ rgb]]
+    {:scene {:type :update-background-color
              :data {:value rgb}}}))
+
+(reg-event-fx
+  ::update-scene-background-brightness
+  (fn [_ [_ value]]
+    (let [value (/ (first value) 100)]
+      {:scene {:type :update-background-brightness
+               :data {:value value}}})))
 
 #_(reg-event-db
     ::update-scene-background-color-success

@@ -89,6 +89,13 @@
       (-> (nth slides current-index nil) :data :skybox :background :color color->rgb-str))))
 
 (reg-sub
+  ::scene-background-brightness
+  (fn [db]
+    (let [current-index (-> db :editor :slides :current-index)
+          slides (-> db :editor :slides :all)]
+      (-> (nth slides current-index nil) :data :skybox :background :brightness (* 100) int))))
+
+(reg-sub
   ::selected-mesh-color
   (fn [db]
     (-> db :editor :selected-mesh :color color->rgb-str)))
