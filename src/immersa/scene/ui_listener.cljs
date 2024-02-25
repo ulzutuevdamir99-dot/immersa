@@ -211,6 +211,7 @@
                 :text "Text"
                 :face-to-screen? true
                 :position new-pos
+                :rotation (v3)
                 :scale (v3 1)
                 :visibility 1.0
                 :emissive-intensity 1.0
@@ -223,14 +224,15 @@
         direction (-> (j/get mesh :position)
                       (j/call :subtract (j/get camera :position))
                       (j/call :normalize))
-        target-position (-> (j/get mesh :position)
-                            (j/call :add direction))]
-    (j/call mesh :lookAt target-position)
-    (j/assoc-in! mesh [:rotation :x] 0)
-    (j/assoc-in! mesh [:rotation :z] 0)
+        #_#_target-position (-> (j/get mesh :position)
+                                (j/call :add direction))]
+    ;; (j/call mesh :lookAt target-position)
+    ;; (j/assoc-in! mesh [:rotation :x] 0)
+    ;; (j/assoc-in! mesh [:rotation :z] 0)
     (slide/add-slide-data mesh (-> params
                                    (update :position api.core/v3->v)
-                                   (assoc :rotation (api.core/v3->v (j/get mesh :rotation)))
+                                   ;; (assoc :rotation (api.core/v3->v (j/get mesh :rotation))
+                                   (update :rotation api.core/v3->v)
                                    (update :scale api.core/v3->v)
                                    (update :color api.core/color->v)))
     (j/call-in api.core/db [:gizmo :manager :attachToMesh] mesh)))
