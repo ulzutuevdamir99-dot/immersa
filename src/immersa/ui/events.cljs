@@ -1,12 +1,14 @@
 (ns immersa.ui.events
   (:require
+    [immersa.ui.crisp-chat :as crisp-chat]
     [immersa.ui.db :as db]
     [re-frame.core :refer [reg-event-db reg-event-fx reg-fx]]))
 
-(reg-event-db
+(reg-event-fx
   ::initialize-db
   (fn [_ _]
-    db/default-db))
+    {:db db/default-db
+     :fx [[::init-crisp-chat]]}))
 
 (reg-event-db
   ::show-loading-screen
@@ -23,3 +25,8 @@
   ::set-loading-progress
   (fn [db [_ progress]]
     (assoc db :loading-progress progress)))
+
+(reg-fx
+  ::init-crisp-chat
+  (fn []
+    (crisp-chat/init)))

@@ -144,7 +144,7 @@
                             :text-weight :regular
                             :class (styles/presentation-component-cube)
                             :color colors/button-outline-text
-                            :disabled? true}]
+                            :on-click #(dispatch [::events/open-crisp-chat])}]
    #_[presentation-component {:icon icon/books
                               :text "Library"
                               :disabled? true}]

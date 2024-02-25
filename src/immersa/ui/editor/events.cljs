@@ -2,6 +2,7 @@
   (:require
     [clojure.string :as str]
     [immersa.common.communication :refer [fire]]
+    [immersa.ui.crisp-chat :as crisp-chat]
     [medley.core :refer [dissoc-in]]
     [re-frame.core :refer [reg-event-db reg-event-fx reg-fx]]))
 
@@ -236,3 +237,13 @@
   ::update-thumbnail
   (fn []
     {:scene {:type :create-slide-thumbnail}}))
+
+(reg-event-fx
+  ::open-crisp-chat
+  (fn []
+    {:fx [[::open-crisp-chat]]}))
+
+(reg-fx
+  ::open-crisp-chat
+  (fn []
+    (crisp-chat/toggle)))
