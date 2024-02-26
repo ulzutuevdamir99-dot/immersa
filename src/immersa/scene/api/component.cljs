@@ -303,12 +303,10 @@
         {:keys [width height]} (j/lookup (j/call texture :getSize))
         width (/ width height)
         height 1
-        mat (api.material/standard-mat
+        mat (api.material/background-mat
               (str name "-image-mat")
-              (cond-> {:diffuse-texture texture
-                       :emissive-color (api.const/color-white)}
-                transparent? (assoc :opacity-texture texture
-                                    :has-alpha? transparent?)))
+              (cond-> {:diffuse-texture texture}
+                transparent? (assoc :has-alpha? transparent?)))
         opts {:width width
               :height height
               :face-to-screen? face-to-screen?

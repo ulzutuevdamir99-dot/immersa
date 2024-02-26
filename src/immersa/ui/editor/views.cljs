@@ -182,16 +182,17 @@
                  :on-select #(some-> (js/document.getElementById "file-input") .click)}]
                [dropdown-separator]
                (for [{:keys [name url]} @(subscribe [::subs/uploaded-images])
-                     :let [tr [dropdown-item
-                               {:item [text {:size :l
-                                             :weight :light
-                                             :style {:white-space "nowrap"
-                                                     :overflow "hidden"
-                                                     :text-overflow "ellipsis"
-                                                     :width "175px"}} name]
-                                :on-select #(dispatch [::events/add-image url])}]]]
-                 ^{:key url}
+                     :let [tr ^{:key url}
+                           [dropdown-item
+                            {:item [text {:size :l
+                                          :weight :light
+                                          :style {:white-space "nowrap"
+                                                  :overflow "hidden"
+                                                  :text-overflow "ellipsis"
+                                                  :width "175px"}} name]
+                             :on-select #(dispatch [::events/add-image url])}]]]
                  (if (> (count name) 21)
+                   ^{:key url}
                    [tooltip
                     {:content name
                      :trigger tr}]

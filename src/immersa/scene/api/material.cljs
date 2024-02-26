@@ -100,21 +100,29 @@
     (api.core/add-node-to-db name sm opts)))
 
 (defn background-mat [name & {:keys [reflection-texture
+                                     diffuse-texture
+                                     has-alpha?
                                      primary-color
                                      shadow-level]
                               :or {shadow-level 0.4}
                               :as opts}]
   (let [bm (BackgroundMaterial. name)]
-    (m/assoc! bm
-              :backFaceCulling false
-              :reflectionTexture reflection-texture
-              :reflectionTexture.coordinatesMode (j/get Texture :SKYBOX_MODE)
-              :reflectionTexture.gammaSpace false
-              :shadowLevel shadow-level
-              :opacityFresnel true
-              :enableNoise true
-              :useRGBColor false
-              :primaryColor primary-color)
+    (m/cond-doto bm
+      reflection-texture (j/assoc! :reflectionTexture reflection-texture)
+      diffuse-texture (j/assoc! :diffuseTexture diffuse-texture)
+      (some? has-alpha?) (j/assoc-in! [:diffuseTexture :hasAlpha] has-alpha?)
+      primary-color (j/assoc! :primaryColor primary-color)
+      shadow-level (j/assoc! :shadowLevel shadow-level))
+    #_(m/assoc! bm
+                :backFaceCulling false
+                :reflectionTexture reflection-texture
+                :reflectionTexture.coordinatesMode (j/get Texture :SKYBOX_MODE)
+                :reflectionTexture.gammaSpace false
+                :shadowLevel shadow-level
+                :opacityFresnel true
+                :enableNoise true
+                :useRGBColor false
+                :primaryColor primary-color)
     (api.core/add-node-to-db name bm opts)))
 
 (defn pbr-mat [name & {:keys [alpha
@@ -180,11 +188,11 @@
                      :backgroundYRotation 0
                      :sizeAuto true
                      :rootPosition (api.core/v3)
-                     :setupImageProcessing true
+                     :setupImageProcessing false
                      :environmentTexture "img/texture/environment/environmentSpecular.env"
-                     :cameraExposure 0.8
-                     :cameraContrast 1.2
-                     :toneMappingEnabled true}
+                     :cameraExposure 0
+                     :cameraContrast 0
+                     :toneMappingEnabled false}
         eh (EnvironmentHelper. options (api.core/get-scene))]
     (m/assoc! eh
               :ground.isPickable false

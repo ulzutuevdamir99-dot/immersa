@@ -168,13 +168,7 @@
 
 (defmethod handle-ui-update :update-selected-image-mesh-transparent? [{{:keys [value]} :data}]
   (when-let [mesh (api.core/selected-mesh)]
-    (if value
-      (do
-        (j/assoc-in! mesh [:material :opacityTexture] (api.core/get-node-attr mesh :texture))
-        (j/assoc-in! mesh [:material :hasAlpha] true))
-      (do
-        (j/assoc-in! mesh [:material :opacityTexture] nil)
-        (j/assoc-in! mesh [:material :hasAlpha] false)))
+    (j/assoc-in! mesh [:material :diffuseTexture :hasAlpha] value)
     (slide/update-slide-data mesh :transparent? value)
     (api.core/update-node-attr mesh :transparent? value)
     (ui.notifier/notify-ui-selected-mesh mesh)))
