@@ -324,6 +324,7 @@
         mesh (if (and radius (> radius 0))
                (api.mesh/plane-rounded name opts)
                (api.mesh/plane name opts))]
+    (j/assoc! mat :cameraToneMappingEnabled false)
     (m/cond-doto mesh
       face-to-screen? (j/assoc! :billboardMode api.const/mesh-billboard-mode-all))
     (j/assoc! mesh :initial-rotation (api.core/clone (j/get mesh :rotation)))))

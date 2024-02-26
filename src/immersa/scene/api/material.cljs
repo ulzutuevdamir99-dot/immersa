@@ -188,11 +188,11 @@
                      :backgroundYRotation 0
                      :sizeAuto true
                      :rootPosition (api.core/v3)
-                     :setupImageProcessing false
+                     :setupImageProcessing true
                      :environmentTexture "img/texture/environment/environmentSpecular.env"
-                     :cameraExposure 0
-                     :cameraContrast 0
-                     :toneMappingEnabled false}
+                     :cameraExposure 0.8
+                     :cameraContrast 1.2
+                     :toneMappingEnabled true}
         eh (EnvironmentHelper. options (api.core/get-scene))]
     (m/assoc! eh
               :ground.isPickable false

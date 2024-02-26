@@ -168,35 +168,38 @@
                           (set! (-> this .-target .-value) ""))))}]])))
 
 (defn- image-component []
-  [dropdown
-   {:trigger [presentation-component {:icon icon/image
-                                      :text "Image"}]
-    :children [:<>
-               [dropdown-item
-                {:item [:div {:style {:display "flex"
-                                      :align-items "center"
-                                      :justify-content "space-between"
-                                      :width "100%"}}
-                        [text {:size :l} "Upload image"]
-                        [icon/upload {:size 16}]]
-                 :on-select #(some-> (js/document.getElementById "file-input") .click)}]
-               [dropdown-separator]
-               (for [{:keys [name url]} @(subscribe [::subs/uploaded-images])
-                     :let [tr ^{:key url}
-                           [dropdown-item
-                            {:item [text {:size :l
-                                          :weight :light
-                                          :style {:white-space "nowrap"
-                                                  :overflow "hidden"
-                                                  :text-overflow "ellipsis"
-                                                  :width "175px"}} name]
-                             :on-select #(dispatch [::events/add-image url])}]]]
-                 (if (> (count name) 21)
-                   ^{:key url}
-                   [tooltip
-                    {:content name
-                     :trigger tr}]
-                   tr))]}])
+  (let [images @(subscribe [::subs/uploaded-images])]
+    [dropdown
+     {:style (when (<= (count images) 5)
+               {:height (str (* 30 (inc (count images))) "px")})
+      :trigger [presentation-component {:icon icon/image
+                                        :text "Image"}]
+      :children [:<>
+                 [dropdown-item
+                  {:item [:div {:style {:display "flex"
+                                        :align-items "center"
+                                        :justify-content "space-between"
+                                        :width "100%"}}
+                          [text {:size :l} "Upload image"]
+                          [icon/upload {:size 16}]]
+                   :on-select #(some-> (js/document.getElementById "file-input") .click)}]
+                 [dropdown-separator]
+                 (for [{:keys [name url]} images
+                       :let [tr ^{:key url}
+                             [dropdown-item
+                              {:item [text {:size :l
+                                            :weight :light
+                                            :style {:white-space "nowrap"
+                                                    :overflow "hidden"
+                                                    :text-overflow "ellipsis"
+                                                    :width "175px"}} name]
+                               :on-select #(dispatch [::events/add-image url])}]]]
+                   (if (> (count name) 21)
+                     ^{:key url}
+                     [tooltip
+                      {:content name
+                       :trigger tr}]
+                     tr))]}]))
 
 (defn- header-center-panel []
   [:div (styles/header-center-panel)

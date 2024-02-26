@@ -42,7 +42,6 @@
     (j/assoc! s :async 1)
     (j/call (j/get (j/call d :getElementsByTagName "head") 0) :appendChild s)))
 
-;; $crisp.push(["on", "chat:initiated", callback])
 (comment
   (push)
   (set-user-name "kek2")
