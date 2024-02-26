@@ -4,15 +4,15 @@
     [immersa.ui.theme.colors :as colors]
     [spade.core :refer [defclass]]))
 
-(defclass progress-root []
+(defclass progress-root [reflect?]
   {:position :relative
    :overflow :hidden
    :background colors/black-a9
    :border-radius "5px"
    :width "300px"
    :height "5px"
-   :transform "translateZ(0)"
-   :-webkit-box-reflect "below 1px linear-gradient(transparent, #0005)"})
+   :transform "translateZ(0)"}
+  (when reflect? {:-webkit-box-reflect "below 1px linear-gradient(transparent, #0005)"}))
 
 (defclass progress-indicator []
   {:background "linear-gradient(330deg, color(display-p3 0.523 0.318 0.751) 0px, color(display-p3 0.276 0.384 0.837) 100%)"
@@ -34,10 +34,19 @@
     :top 0
     :left 0}])
 
-(defn progress [progress]
+(defn progress-scene-loader [progress]
   [:> Progress/Root
-   {:class (progress-root)
+   {:class (progress-root true)
     :value progress}
    [:> Progress/Indicator
     {:class (progress-indicator)
      :style {:transform (str "translateX(-" (- 100 progress) "%)")}}]])
+
+(defn progress [{:keys [value style]}]
+  [:> Progress/Root
+   {:class (progress-root false)
+    :style style
+    :value value}
+   [:> Progress/Indicator
+    {:class (progress-indicator)
+     :style {:transform (str "translateX(-" (- 100 value) "%)")}}]])

@@ -148,6 +148,12 @@
     {:scene {:type :add-text-mesh}}))
 
 (reg-event-fx
+  ::add-image
+  (fn [_ [_ url]]
+    {:scene {:type :add-image
+             :data {:value url}}}))
+
+(reg-event-fx
   ::go-to-slide
   (fn [_ [_ index]]
     {:scene {:type :go-to-slide
@@ -217,6 +223,14 @@
                :data {:value face-to-screen?}}})))
 
 (reg-event-fx
+  ::update-selected-image-mesh-transparent?
+  (fn [{:keys [db]} _]
+    (let [transparent? (-> db :editor :selected-mesh :transparent? not)]
+      {:db (assoc-in db [:editor :selected-mesh :transparent?] transparent?)
+       :scene {:type :update-selected-image-mesh-transparent?
+               :data {:value transparent?}}})))
+
+(reg-event-fx
   ::toggle-camera-lock
   (fn [{:keys [db]} _]
     (let [locked? (-> db :editor :camera :locked? not)]
@@ -247,3 +261,13 @@
   ::open-crisp-chat
   (fn []
     (crisp-chat/toggle)))
+
+(reg-event-db
+  ::init-user
+  (fn [db [_ user]]
+    (assoc db :user user)))
+
+(reg-event-db
+  ::add-uploaded-image
+  (fn [db [_ image]]
+    (update-in db [:user :images] (fnil conj []) image)))

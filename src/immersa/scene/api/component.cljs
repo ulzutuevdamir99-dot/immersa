@@ -289,6 +289,7 @@
 (defn image [name & {:keys [path
                             position
                             rotation
+                            texture
                             visibility
                             scale
                             radius
@@ -298,7 +299,7 @@
                             transparent?]
                      :or {transparent? false
                           double-side? false}}]
-  (let [texture (api.core/texture path)
+  (let [texture (or texture (api.core/texture path))
         {:keys [width height]} (j/lookup (j/call texture :getSize))
         width (/ width height)
         height 1
@@ -315,6 +316,8 @@
               :position position
               :rotation rotation
               :visibility visibility
+              :texture texture
+              :transparent? transparent?
               :scale scale
               :billboard-mode billboard-mode
               :double-side? double-side?

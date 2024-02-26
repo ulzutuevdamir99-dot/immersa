@@ -34,6 +34,7 @@
                                 {:type "image"
                                  :linked-type (j/get mesh :linked-type)
                                  :opacity (j/get mesh :visibility)
+                                 :transparent? (api.core/get-node-attr mesh :transparent?)
                                  :face-to-screen? (api.core/get-node-attr mesh :face-to-screen?)})]))))
 
 (defn notify-ui-selected-mesh [mesh]
@@ -56,3 +57,8 @@
 
 (defn notify-camera-lock-state [locked?]
   (dispatch [::editor.events/notify-camera-lock-state locked?]))
+
+(comment
+  (api.core/selected-mesh)
+  (api.core/get-node-attr (api.core/selected-mesh) :transparent?)
+  )

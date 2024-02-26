@@ -272,6 +272,24 @@
    [switch {:checked? @(subscribe [::subs/selected-mesh-face-to-screen?])
             :on-change #(dispatch [::events/update-selected-mesh-face-to-screen?])}]])
 
+(defn- no-background-image []
+  [:div {:style {:display "flex"
+                 :flex-direction "row"
+                 :justify-content "space-between"
+                 :gap "8px"}}
+   [:div {:style {:display "flex"
+                  :flex-direction "row"
+                  :align-items "center"
+                  :gap "2px"}}
+    [text "No background image"]
+    [tooltip
+     {:trigger [icon/info {:size 12
+                           :weight :fill
+                           :color colors/button-bg}]
+      :content "This option is for images with transparent backgrounds. Enable this if your image has no background."}]]
+   [switch {:checked? @(subscribe [::subs/selected-image-mesh-transparent?])
+            :on-change #(dispatch [::events/update-selected-image-mesh-transparent?])}]])
+
 (defn- linked-type->text [type]
   (case type
     :prev-linked "(Linked: Prev)"
@@ -361,7 +379,9 @@
      [separator]
      [opacity]
      [separator]
-     [face-to-screen type]]))
+     [face-to-screen type]
+     [separator]
+     [no-background-image]]))
 
 (defn- glb-options []
   [:div {:style {:display "flex"

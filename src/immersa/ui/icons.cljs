@@ -23,6 +23,7 @@
     ["@phosphor-icons/react/dist/csr/SmileySticker" :refer [SmileySticker]]
     ["@phosphor-icons/react/dist/csr/Student" :refer [Student]]
     ["@phosphor-icons/react/dist/csr/TextT" :refer [TextT]]
+    ["@phosphor-icons/react/dist/csr/UploadSimple" :refer [UploadSimple]]
     ["@phosphor-icons/react/dist/csr/X" :refer [X]]
     [reagent.core :as r]))
 
@@ -50,3 +51,4 @@
 (def camera (r/adapt-react-class Camera))
 (def info (r/adapt-react-class Info))
 (def unlock (r/adapt-react-class LockSimpleOpen))
+(def upload (r/adapt-react-class UploadSimple))

@@ -16,3 +16,13 @@
   ::loading-progress
   (fn [db]
     (:loading-progress db)))
+
+(reg-sub
+  ::user
+  (fn [db]
+    (:user db)))
+
+(reg-sub
+  ::user-id
+  (fn [db]
+    (-> db :user :id)))

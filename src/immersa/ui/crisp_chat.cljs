@@ -21,6 +21,12 @@
     (close)
     (open)))
 
+(defn set-user-email [email]
+  (j/call-in js/window [:$crisp :push] #js["set" "user:email" #js[email]]))
+
+(defn set-user-name [name]
+  (j/call-in js/window [:$crisp :push] #js["set" "user:nickname" #js[name]]))
+
 (defn- register-on-close []
   (j/call-in js/window [:$crisp :push] #js["on" "chat:closed" close]))
 
@@ -39,4 +45,5 @@
 ;; $crisp.push(["on", "chat:initiated", callback])
 (comment
   (push)
+  (set-user-name "kek2")
   )

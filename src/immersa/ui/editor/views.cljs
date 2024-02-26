@@ -3,11 +3,16 @@
     ["@clerk/clerk-react" :refer [useUser]]
     ["react-color" :refer [SketchPicker]]
     [applied-science.js-interop :as j]
+    [clojure.string :as str]
     [goog.functions :as functions]
+    [immersa.common.firebase :as firebase]
     [immersa.scene.core :as scene.core]
+    [immersa.ui.crisp-chat :as crisp-chat]
+    [immersa.ui.editor.components.alert-dialog :refer [alert-dialog]]
     [immersa.ui.editor.components.button :refer [button]]
     [immersa.ui.editor.components.canvas-context-menu :refer [canvas-context-menu]]
     [immersa.ui.editor.components.dropdown :refer [dropdown dropdown-item dropdown-separator dropdown-context-menu]]
+    [immersa.ui.editor.components.progress :refer [progress]]
     [immersa.ui.editor.components.text :refer [text]]
     [immersa.ui.editor.components.tooltip :refer [tooltip]]
     [immersa.ui.editor.events :as events]
@@ -106,6 +111,92 @@
           :color (or color colors/text-primary)
           :weight (or text-weight :light)} (:text opts)]])
 
+(defn- invisible-img-file-input []
+  (let [open? (r/atom false)
+        err? (r/atom false)
+        limit-exceeded? (r/atom false)
+        progress* (r/atom 0)
+        task (atom nil)
+        max-size 5]
+    (fn []
+      [:<>
+       [alert-dialog
+        {:open? @open?
+         :title "Uploading image"
+         :description (cond
+                        @limit-exceeded? (str "The file size exceeds the limit of " max-size "MB. "
+                                              "Please choose a smaller file.")
+                        @err? "An error occurred while uploading your image. Please try again."
+                        :else "Please wait while we upload your image.")
+         :content (when-not @limit-exceeded?
+                    [progress {:value @progress*
+                               :style {:width "100%"}}])
+         :cancel-button [button {:text "Cancel"
+                                 :on-click (fn []
+                                             (when-let [task* @task]
+                                               (j/call task* :cancel))
+                                             (reset! open? false))}]}]
+       [:input
+        {:id "file-input"
+         :type "file"
+         :style {:display "none"}
+         :accept ".jpg, .jpeg, .png"
+         :on-change (fn [this]
+                      (when (-> this .-target .-value (not= ""))
+                        (let [^js/File file (-> this .-target .-files (aget 0))]
+                          (reset! open? true)
+                          (reset! err? false)
+                          (reset! limit-exceeded? false)
+                          (reset! progress* 0)
+                          (reset! task nil)
+                          (if (< (j/get file :size) (* 1024 1024 max-size))
+                            (firebase/upload-file
+                              {:user-id @(subscribe [::main.subs/user-id])
+                               :file file
+                               :type :image
+                               :task-state task
+                               :on-progress (fn [percentage]
+                                              (reset! progress* percentage))
+                               :on-error (fn [_]
+                                           (reset! err? true))
+                               :on-complete (fn [url]
+                                              (reset! open? false)
+                                              (dispatch [::events/add-image url])
+                                              (dispatch [::events/add-uploaded-image {:name (j/get file :name)
+                                                                                      :url url}]))})
+                            (reset! limit-exceeded? true))
+                          (set! (-> this .-target .-value) ""))))}]])))
+
+(defn- image-component []
+  [dropdown
+   {:trigger [presentation-component {:icon icon/image
+                                      :text "Image"}]
+    :children [:<>
+               [dropdown-item
+                {:item [:div {:style {:display "flex"
+                                      :align-items "center"
+                                      :justify-content "space-between"
+                                      :width "100%"}}
+                        [text {:size :l} "Upload image"]
+                        [icon/upload {:size 16}]]
+                 :on-select #(some-> (js/document.getElementById "file-input") .click)}]
+               [dropdown-separator]
+               (for [{:keys [name url]} @(subscribe [::subs/uploaded-images])
+                     :let [tr [dropdown-item
+                               {:item [text {:size :l
+                                             :weight :light
+                                             :style {:white-space "nowrap"
+                                                     :overflow "hidden"
+                                                     :text-overflow "ellipsis"
+                                                     :width "175px"}} name]
+                                :on-select #(dispatch [::events/add-image url])}]]]
+                 ^{:key url}
+                 (if (> (count name) 21)
+                   [tooltip
+                    {:content name
+                     :trigger tr}]
+                   tr))]}])
+
 (defn- header-center-panel []
   [:div (styles/header-center-panel)
 
@@ -115,21 +206,8 @@
                                        :on-click #(dispatch [::events/add-text-mesh])}]
      :content "Add text"
      :shortcuts "T"}]
-   #_[dropdown
-      [presentation-component {:icon icon/text
-                               :text "Text"}]
-      [:<>
-       [dropdown-item
-        [text {:size :xl} "Normal text"]]
-       [dropdown-separator]
-       [dropdown-item
-        [text {:size :xl} "Greased line text"]]
-       [dropdown-separator]
-       [dropdown-item
-        [text {:size :xl} "Info text"]]]]
-   [presentation-component {:icon icon/image
-                            :text "Image"
-                            :disabled? true}]
+   [image-component]
+   [invisible-img-file-input]
    [presentation-component {:icon icon/cube
                             :text "3D Model"
                             :class (styles/presentation-component-cube)
@@ -176,10 +254,24 @@
    [header-right-panel]])
 
 (defn editor-panel []
-  (let [user (j/lookup (useUser))]
+  (let [{:keys [user]} (j/lookup (useUser))]
     (r/create-class
       {:component-will-mount (fn []
-                               (js/console.log user))
+                               (let [user-id (j/get user :id)
+                                     email (j/get-in user [:primaryEmailAddress :emailAddress])
+                                     full-name (j/get user :fullName)]
+                                 (crisp-chat/set-user-email email)
+                                 (when-not (str/blank? full-name)
+                                   (crisp-chat/set-user-name full-name))
+                                 (firebase/init-app)
+                                 (firebase/get-last-uploaded-images
+                                   {:user-id user-id
+                                    :on-complete #(dispatch [::events/add-uploaded-image %])})
+                                 (dispatch [::events/init-user
+                                            {:id user-id
+                                             :full-name full-name
+                                             :email email
+                                             :object user}])))
        :reagent-render (fn []
                          [:div (styles/editor-container)
                           [header]
@@ -190,4 +282,6 @@
                            [canvas-context-menu]]])})))
 
 (comment
-  @(subscribe [::subs/editor]))
+  @(subscribe [::subs/editor])
+  @(subscribe [::main.subs/user])
+  )

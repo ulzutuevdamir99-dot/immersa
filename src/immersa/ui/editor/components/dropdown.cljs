@@ -1,8 +1,12 @@
 (ns immersa.ui.editor.components.dropdown
   (:require
     ["@radix-ui/react-dropdown-menu" :as DropdownMenu]
+    [immersa.ui.editor.components.scroll-area :refer [scroll-area]]
     [immersa.ui.theme.colors :as colors]
     [spade.core :refer [defclass]]))
+
+(def dropdown-content-width "200px")
+(def dropdown-content-height "220px")
 
 (defclass content-style []
   {:min-width "200px"
@@ -17,8 +21,7 @@
    :will-change "transform, opacity"})
 
 (defclass menu-item [disabled?]
-  {:line-height "1"
-   :border-radius "3px"
+  {:border-radius "3px"
    :display "flex"
    :align-items "center"
    :height "25px"
@@ -36,6 +39,18 @@
   (when disabled?
     {:cursor :not-allowed
      :opacity 0.5}))
+
+(defclass dropdown-content-scroll-area []
+  {:width dropdown-content-width
+   :height dropdown-content-height
+   :overflow :hidden}
+  ;; Fade out effect
+  [:&:before
+   {:content "''"
+    :position "fixed"
+    :width dropdown-content-height
+    :height "8px"
+    :background "linear-gradient(180deg,#ffffff 0%,rgba(252,252,253,0) 100%)"}])
 
 (defclass seprator-style []
   {:height "1px"
@@ -61,7 +76,9 @@
    [:> DropdownMenu/Portal
     [:> DropdownMenu/Content {:style style
                               :class (content-style)}
-     children]]])
+     [scroll-area
+      {:class (dropdown-content-scroll-area)
+       :children children}]]]])
 
 (defclass context-menu-content-style []
   {:width "220px"

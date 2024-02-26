@@ -151,6 +151,11 @@
     (-> db :editor :selected-mesh :face-to-screen?)))
 
 (reg-sub
+  ::selected-image-mesh-transparent?
+  (fn [db]
+    (-> db :editor :selected-mesh :transparent?)))
+
+(reg-sub
   ::slides-current-index
   (fn [db]
     (-> db :editor :slides :current-index)))
@@ -185,3 +190,8 @@
   ::context-menu-position
   (fn [db]
     (-> db :editor :context-menu :position)))
+
+(reg-sub
+  ::uploaded-images
+  (fn [db]
+    (-> db :user :images)))

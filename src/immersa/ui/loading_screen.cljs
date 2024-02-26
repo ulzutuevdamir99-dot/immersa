@@ -1,6 +1,6 @@
 (ns immersa.ui.loading-screen
   (:require
-    [immersa.ui.editor.components.progress :refer [progress]]
+    [immersa.ui.editor.components.progress :refer [progress-scene-loader]]
     [immersa.ui.subs :as subs]
     [re-frame.core :refer [subscribe]]))
 
@@ -24,4 +24,4 @@
     [:img {:src "img/logo.png"
            :style {:width "120px"
                    :height "120px"}}]
-    [progress @(subscribe [::subs/loading-progress])]]])
+    [progress-scene-loader @(subscribe [::subs/loading-progress])]]])

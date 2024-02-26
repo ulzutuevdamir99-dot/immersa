@@ -8,7 +8,6 @@
     [cljs.core.async :as a :refer [go-loop <!]]
     [clojure.string :as str]
     [goog.functions :as functions]
-    [immersa.common.firebase :as firebase]
     [immersa.common.shortcut :as shortcut]
     [immersa.common.utils :as common.utils]
     [immersa.scene.api.animation :as api.anim]
@@ -190,7 +189,6 @@
                          (let [reaming (j/get event :remainingCount)
                                total (j/get event :totalCount)]
                            (dispatch [::main.events/set-loading-progress (* 100 (/ (- total reaming) total))]))))
-          _ (firebase/init-app)
           _ (api.core/init-p5)
           free-camera (api.camera/create-free-camera "free-camera" :position (v3 0 0 -10))
           arc-camera (api.camera/create-arc-camera "arc-camera"

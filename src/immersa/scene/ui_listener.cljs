@@ -5,6 +5,7 @@
     [goog.functions :as functions]
     [immersa.common.communication :refer [event-bus-pub]]
     [immersa.scene.api.camera :as api.camera]
+    [immersa.scene.api.component :as api.component]
     [immersa.scene.api.constant :as api.const]
     [immersa.scene.api.core :as api.core :refer [v3]]
     [immersa.scene.api.mesh :as api.mesh]
@@ -165,6 +166,19 @@
     (api.core/update-node-attr mesh :face-to-screen? value)
     (ui.notifier/notify-ui-selected-mesh mesh)))
 
+(defmethod handle-ui-update :update-selected-image-mesh-transparent? [{{:keys [value]} :data}]
+  (when-let [mesh (api.core/selected-mesh)]
+    (if value
+      (do
+        (j/assoc-in! mesh [:material :opacityTexture] (api.core/get-node-attr mesh :texture))
+        (j/assoc-in! mesh [:material :hasAlpha] true))
+      (do
+        (j/assoc-in! mesh [:material :opacityTexture] nil)
+        (j/assoc-in! mesh [:material :hasAlpha] false)))
+    (slide/update-slide-data mesh :transparent? value)
+    (api.core/update-node-attr mesh :transparent? value)
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
 (defmethod handle-ui-update :update-gizmo-visibility [{{:keys [update value]} :data}]
   (case update
     :position (j/assoc! (api.core/gizmo-manager) :positionGizmoEnabled value)
@@ -221,9 +235,9 @@
                 :size 1.0
                 :color (api.const/color-black)}
         mesh (api.mesh/text (str (random-uuid)) params)
-        direction (-> (j/get mesh :position)
-                      (j/call :subtract (j/get camera :position))
-                      (j/call :normalize))
+        #_#_direction (-> (j/get mesh :position)
+                          (j/call :subtract (j/get camera :position))
+                          (j/call :normalize))
         #_#_target-position (-> (j/get mesh :position)
                                 (j/call :add direction))]
     ;; (j/call mesh :lookAt target-position)
@@ -236,6 +250,31 @@
                                    (update :scale api.core/v3->v)
                                    (update :color api.core/color->v)))
     (j/call-in api.core/db [:gizmo :manager :attachToMesh] mesh)))
+
+(defmethod handle-ui-update :add-image [{{:keys [value]} :data}]
+  (let [uuid (str (random-uuid))
+        texture (api.core/texture value)]
+    (j/call-in texture [:onLoadObservable :add]
+               (fn [texture]
+                 (let [camera (api.camera/active-camera)
+                       forward (j/get (j/call camera :getForwardRay) :direction)
+                       scaled-forward (j/call forward :scale 10)
+                       new-pos (j/call (j/get camera :position) :add scaled-forward)
+                       params {:type :image
+                               :texture texture
+                               :path value
+                               :face-to-screen? true
+                               :position new-pos
+                               :rotation (v3)
+                               :scale (v3 1)
+                               :visibility 1.0
+                               :transparent? true}
+                       mesh (api.component/image uuid params)]
+                   (slide/add-slide-data mesh (-> params
+                                                  (update :position api.core/v3->v)
+                                                  (update :rotation api.core/v3->v)
+                                                  (update :scale api.core/v3->v)))
+                   (api.core/attach-to-mesh mesh))))))
 
 (defn init-ui-update-listener []
   (go-loop-sub event-bus-pub :get-ui-update [_ data]
