@@ -190,6 +190,7 @@
                      :rootPosition (api.core/v3)
                      :setupImageProcessing true
                      :environmentTexture "img/texture/environment/environmentSpecular.env"
+                     ;; This :cameraExposure affects images with white background!
                      :cameraExposure 0.8
                      :cameraContrast 1.2
                      :toneMappingEnabled true}
