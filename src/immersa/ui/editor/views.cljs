@@ -1,6 +1,8 @@
 (ns immersa.ui.editor.views
   (:require
-    ["@clerk/clerk-react" :refer [useUser]]
+    ["@clerk/clerk-react" :refer [useUser useAuth]]
+    ["firebase/auth" :refer [getAuth signInWithCustomToken]]
+    ["react" :as react]
     ["react-color" :refer [SketchPicker]]
     [applied-science.js-interop :as j]
     [clojure.string :as str]
@@ -25,7 +27,9 @@
     [immersa.ui.subs :as main.subs]
     [immersa.ui.theme.colors :as colors]
     [re-frame.core :refer [dispatch subscribe]]
-    [reagent.core :as r]))
+    [reagent.core :as r])
+  (:require-macros
+    [immersa.common.macros :as m]))
 
 (defn- canvas [state]
   (r/create-class
@@ -258,32 +262,36 @@
    [header-right-panel]])
 
 (defn editor-panel []
-  (let [{:keys [user]} (j/lookup (useUser))]
-    (r/create-class
-      {:component-will-mount (fn []
-                               (let [user-id (j/get user :id)
-                                     email (j/get-in user [:primaryEmailAddress :emailAddress])
-                                     full-name (j/get user :fullName)]
-                                 (crisp-chat/set-user-email email)
-                                 (when-not (str/blank? full-name)
-                                   (crisp-chat/set-user-name full-name))
-                                 (firebase/init-app)
-                                 (firebase/get-last-uploaded-images
-                                   {:user-id user-id
-                                    :on-complete #(dispatch [::events/add-uploaded-image %])})
-                                 (dispatch [::events/init-user
-                                            {:id user-id
-                                             :full-name full-name
-                                             :email email
-                                             :object user}])))
-       :reagent-render (fn []
-                         [:div (styles/editor-container)
-                          [header]
-                          [:div (styles/content-container)
-                           [slides-panel]
-                           [canvas-wrapper]
-                           [options-panel]
-                           [canvas-context-menu]]])})))
+  (let [{:keys [user]} (j/lookup (useUser))
+        {:keys [getToken]} (j/lookup (useAuth))
+        _ (react/useEffect
+            (fn []
+              (let [user-id (j/get user :id)
+                    email (j/get-in user [:primaryEmailAddress :emailAddress])
+                    full-name (j/get user :fullName)
+                    _ (firebase/init-app)
+                    auth (getAuth)]
+                (m/js-await [token (getToken #js {:template "integration_firebase"})]
+                  (m/js-await [userCredentials (signInWithCustomToken auth token)]))
+                (crisp-chat/set-user-email email)
+                (when-not (str/blank? full-name)
+                  (crisp-chat/set-user-name full-name))
+                (firebase/get-last-uploaded-images
+                  {:user-id user-id
+                   :on-complete #(dispatch [::events/add-uploaded-image %])})
+                (dispatch [::events/init-user
+                           {:id user-id
+                            :full-name full-name
+                            :email email
+                            :object user}])))
+            #js[])]
+    [:div (styles/editor-container)
+     [header]
+     [:div (styles/content-container)
+      [slides-panel]
+      [canvas-wrapper]
+      [options-panel]
+      [canvas-context-menu]]]))
 
 (comment
   @(subscribe [::subs/editor])

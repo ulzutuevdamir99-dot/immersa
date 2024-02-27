@@ -6,6 +6,7 @@
        go-loop-sub [[:inner 0]]
        common.utils/register-event-listener [[:inner 0]]
        a/go-loop [[:inner 0]]
+       js-await [[:inner 0]]
        cond-doto [[:inner 0]]}},
    :functions {:enabled? false},
    :whitespace
