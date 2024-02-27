@@ -508,9 +508,7 @@
 (defonce prev-slide (atom nil))
 (defonce current-slide-index (atom 0))
 
-(defonce thumbnails (atom {:thumbnails {}
-                           :last-time-slide-updated (js/Date.now)
-                           :last-time-thumbnail-updated (js/Date.now)}))
+(defonce thumbnails (atom {}))
 
 (defn- init-slide-show-state []
   (set! command-ch (a/chan (a/dropping-buffer 1)))
@@ -691,7 +689,9 @@
   (let [_ (init-slide-show-state)
         slides (reset! all-slides slides)
         slides (get-slides slides)
-        _ (reset! thumbnails (:thumbnails opts))]
+        _ (reset! thumbnails {:thumbnails (:thumbnails opts)
+                              :last-time-slide-updated (js/Date.now)
+                              :last-time-thumbnail-updated (js/Date.now)})]
     (api.camera/reset-camera (-> slides first :data :camera :position)
                              (-> slides first :data :camera :rotation))
     (pre-warm-the-scene slides)

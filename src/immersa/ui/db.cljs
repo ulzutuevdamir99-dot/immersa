@@ -1,13 +1,14 @@
 (ns immersa.ui.db
   (:require
+    [immersa.presentations.basic :as basic]
     [immersa.presentations.schaltbau :as schaltbau]))
 
 (def default-db
   {:name "re-frame"
    :mode :editor
    :editor {:slides {:current-index 0
-                     :all schaltbau/slides
-                     :thumbnails schaltbau/thumbnails}
+                     :all basic/slides
+                     :thumbnails basic/thumbnails}
             :gizmo {:position true
                     :rotation false
                     :scale false}}

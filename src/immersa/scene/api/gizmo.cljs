@@ -172,7 +172,7 @@
                                        :inner-glow? true
                                        :outer-glow? false))
     ;; TODO add more meshes to exclude
-    (j/call hl :addExcludedMesh (api.core/get-object-by-name "ground"))
+    (some->> (api.core/get-object-by-name "ground") (j/call hl :addExcludedMesh))
     (j/call hl :addExcludedMesh (j/get-in api.core/db [:environment-helper :skybox]))
     (j/call hl :addExcludedMesh (j/get-in api.core/db [:environment-helper :ground]))
     (m/assoc! gizmo-manager

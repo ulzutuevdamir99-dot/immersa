@@ -116,38 +116,41 @@
                                 :border "2px solid transparent"
                                 :border-radius "3px"}}]]]}]))
 
-(defn- sortable-slides-list [_]
-  (let [dragging-slide-id (r/atom nil)]
-    (fn [slides]
-      (let [[items setItems] (react/useState (clj->js (mapv :id slides)))
-            sensors (useSensors
-                      (useSensor PointerSensor (clj->js {:activationConstraint {:distance 0.01}}))
-                      (useSensor KeyboardSensor (to-clj-map {:coordinateGetter sortableKeyboardCoordinates})))
-            handle-drag-start (fn [event]
-                                (reset! dragging-slide-id (j/get-in event [:active :id])))
-            handle-drag-end (fn [event]
-                              (let [{:keys [active over]} (to-clj-map event)]
-                                (let [oldIndex (.indexOf items (:id active))
-                                      newIndex (.indexOf items (:id over))]
-                                  (dispatch [::events/re-order-slides oldIndex newIndex])
-                                  (setItems (clj->js (arrayMove (clj->js items) oldIndex newIndex))))))]
-        [:div
-         [dnd-context {:sensors sensors
-                       :collisionDetection closestCenter
-                       :onDragStart handle-drag-start
-                       :onDragEnd handle-drag-end}
-          [sortable-context {:items items
-                             :strategy rectSortingStrategy}
-           [:div {:style {:display :flex
-                          :flex-wrap :wrap}}
-            (map
-              (fn [id]
-                [:f> slide
-                 {:key id
-                  :id id
-                  :items items
-                  :dragging-slide-id dragging-slide-id}])
-              items)]]]]))))
+(def dragging-slide-id (r/atom nil))
+
+(defn- sortable-slides-list [slides]
+  (let [slide-ids (clj->js (mapv :id slides))
+        slide-ids-length (count slide-ids)
+        [items setItems] (react/useState slide-ids)
+        _ (react/useEffect (fn [] (setItems slide-ids)) (clj->js [slide-ids-length]))
+        sensors (useSensors
+                  (useSensor PointerSensor (clj->js {:activationConstraint {:distance 0.01}}))
+                  (useSensor KeyboardSensor (to-clj-map {:coordinateGetter sortableKeyboardCoordinates})))
+        handle-drag-start (fn [event]
+                            (reset! dragging-slide-id (j/get-in event [:active :id])))
+        handle-drag-end (fn [event]
+                          (let [{:keys [active over]} (to-clj-map event)]
+                            (let [oldIndex (.indexOf items (:id active))
+                                  newIndex (.indexOf items (:id over))]
+                              (dispatch [::events/re-order-slides oldIndex newIndex])
+                              (setItems (clj->js (arrayMove (clj->js items) oldIndex newIndex))))))]
+    [:div
+     [dnd-context {:sensors sensors
+                   :collisionDetection closestCenter
+                   :onDragStart handle-drag-start
+                   :onDragEnd handle-drag-end}
+      [sortable-context {:items items
+                         :strategy rectSortingStrategy}
+       [:div {:style {:display :flex
+                      :flex-wrap :wrap}}
+        (map
+          (fn [id]
+            [:f> slide
+             {:key id
+              :id id
+              :items items
+              :dragging-slide-id dragging-slide-id}])
+          items)]]]]))
 
 (defn slides-panel []
   [:div (styles/side-bar)
@@ -176,4 +179,5 @@
                                          (dispatch [::events/go-to-slide :prev]))))
                       :style {:padding-top "8px"
                               :outline "none"}}
-                [:f> sortable-slides-list (map-indexed #(assoc %2 :index %1) @(subscribe [::subs/slides-all]))]]}]])
+                (let [slides (map-indexed #(assoc %2 :index %1) @(subscribe [::subs/slides-all]))]
+                  [:f> sortable-slides-list slides])]}]])

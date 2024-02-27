@@ -281,7 +281,6 @@
 (defmethod handle-ui-update :add-model [{{:keys [value]} :data}]
   (let [uuid (str (random-uuid))
         on-complete (fn [root-mesh]
-                      (println "root-mesh: " root-mesh)
                       (j/call root-mesh :computeWorldMatrix true)
                       (let [total-min (atom (v3 js/Number.POSITIVE_INFINITY))
                             total-max (atom (v3 js/Number.NEGATIVE_INFINITY))
