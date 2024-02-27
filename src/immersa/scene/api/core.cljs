@@ -409,12 +409,14 @@
                            (let [root-mesh (j/get-in task [:loadedMeshes 0])]
                              (set-enabled root-mesh false)
                              (j/assoc-in! db [:models url] root-mesh)
-                             (when on-complete (on-complete (j/get task :loadedMeshes) root-mesh))))
+                             (when on-complete (on-complete root-mesh))))
               :onError (fn [task]
-                         (let [meshes (j/get task :loadedMeshes)]
-                           (when (and meshes (> (j/get meshes :length) 0))
-                             (js/console.error "Failed meshes: " meshes)
-                             (j/call meshes :forEach dispose)))))))
+                         (js/console.error "Failed to load mesh: " url task)
+                         (try
+                           (dispose (j/get-in task [:loadedMeshes 0]))
+                           (catch js/Error e
+                             (js/console.error e)
+                             (j/call (j/get-in task [:loadedMeshes 0]) :dispose)))))))
 
 (defn load-async [slides]
   (let [p (a/promise-chan)

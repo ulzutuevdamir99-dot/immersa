@@ -280,42 +280,47 @@
 
 (defmethod handle-ui-update :add-model [{{:keys [value]} :data}]
   (let [uuid (str (random-uuid))
-        task (api.core/add-mesh-task
-               {:name (str uuid "-mesh-task")
-                :meshes-name ""
-                :url value
-                :on-complete
-                (fn [meshes root-mesh]
-                  (j/call root-mesh :computeWorldMatrix true)
-                  (let [total-min (atom (v3 js/Number.POSITIVE_INFINITY))
-                        total-max (atom (v3 js/Number.NEGATIVE_INFINITY))
-                        _ (j/call meshes :forEach
-                                  (fn [mesh]
-                                    (when (j/get mesh :getBoundingInfo)
-                                      (let [bounding-info (j/call mesh :getBoundingInfo)]
-                                        (reset! total-min (minimize @total-min bounding-info))
-                                        (reset! total-max (maximize @total-max bounding-info))))))
-                        model-size (j/call @total-max :subtract @total-min)
-                        model-max-dimension (js/Math.max (j/get model-size :x)
-                                                         (j/get model-size :y)
-                                                         (j/get model-size :z))
-                        target-size 5
-                        scale (/ target-size model-max-dimension)
-                        params {:type :glb
-                                :path value
-                                :position (j/update! (get-pos-from-camera-dir) :y #(- % 2))
-                                :rotation (v3)
-                                :scale    (v3 scale)
-                                ;; :visibility 1.0, maybe we need it
-                                }
-                        mesh (api.mesh/glb->mesh uuid params)]
-                    (slide/add-slide-data mesh (-> params
-                                                   (assoc :asset-type :model)
-                                                   (update :position api.core/v3->v)
-                                                   (update :rotation api.core/v3->v)
-                                                   (update :scale api.core/v3->v)))
-                    (api.core/attach-to-mesh mesh)))})]
-    (j/call task :run (api.core/get-scene) (fn []))))
+        on-complete (fn [root-mesh]
+                      (println "root-mesh: " root-mesh)
+                      (j/call root-mesh :computeWorldMatrix true)
+                      (let [total-min (atom (v3 js/Number.POSITIVE_INFINITY))
+                            total-max (atom (v3 js/Number.NEGATIVE_INFINITY))
+                            meshes (j/call root-mesh :getChildMeshes)
+                            _ (j/call meshes :forEach
+                                      (fn [mesh]
+                                        (when (j/get mesh :getBoundingInfo)
+                                          (let [bounding-info (j/call mesh :getBoundingInfo)]
+                                            (reset! total-min (minimize @total-min bounding-info))
+                                            (reset! total-max (maximize @total-max bounding-info))))))
+                            model-size (j/call @total-max :subtract @total-min)
+                            model-max-dimension (js/Math.max (j/get model-size :x)
+                                                             (j/get model-size :y)
+                                                             (j/get model-size :z))
+                            target-size 5
+                            scale (/ target-size model-max-dimension)
+                            params {:type :glb
+                                    :path value
+                                    :position (j/update! (get-pos-from-camera-dir) :y #(- % 2))
+                                    :rotation (v3)
+                                    :scale (v3 scale)
+                                    ;; :visibility 1.0, maybe we need it
+                                    }
+                            mesh (api.mesh/glb->mesh uuid params)]
+                        (slide/add-slide-data mesh (-> params
+                                                       (assoc :asset-type :model)
+                                                       (update :position api.core/v3->v)
+                                                       (update :rotation api.core/v3->v)
+                                                       (update :scale api.core/v3->v)))
+                        (api.core/attach-to-mesh mesh)))
+        prev-mesh (j/get-in api.core/db [:models value])]
+    (if prev-mesh
+      (on-complete prev-mesh)
+      (let [task (api.core/add-mesh-task
+                   {:name (str uuid "-mesh-task")
+                    :meshes-name ""
+                    :url value
+                    :on-complete on-complete})]
+        (j/call task :run (api.core/get-scene) (fn []))))))
 
 (defn init-ui-update-listener []
   (go-loop-sub event-bus-pub :get-ui-update [_ data]
