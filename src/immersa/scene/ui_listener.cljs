@@ -303,7 +303,7 @@
                         scale (/ target-size model-max-dimension)
                         params {:type :glb
                                 :path value
-                                :position (get-pos-from-camera-dir)
+                                :position (j/update! (get-pos-from-camera-dir) :y #(- % 2))
                                 :rotation (v3)
                                 :scale (v3 scale)
                                 ;; :visibility 1.0
