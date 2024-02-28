@@ -61,7 +61,8 @@
    :delete {:label "Delete"
             :shortcut ["⌫"]
             :pred (fn [_ key]
-                    (and (= key "backspace") (api.core/selected-mesh)))
+                    (or (and (= key "backspace") (api.core/selected-mesh))
+                        (and (= key "delete") (api.core/selected-mesh))))
             :action (fn []
                       (let [obj (api.core/selected-mesh)
                             id (api.core/get-object-name obj)

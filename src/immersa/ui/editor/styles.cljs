@@ -64,11 +64,11 @@
 
 (defclass canvas-container [state camera-unlocked?]
   {:box-sizing "border-box"
-   :border "3px solid transparent"}
-  (when (= state :focus) {:border (str "3px solid " (if camera-unlocked?
+   #_#_:border "3px solid transparent"}
+  #_(when (= state :focus) {:border (str "3px solid " (if camera-unlocked?
                                                       colors/unlocked-camera
                                                       colors/button-border))})
-  (when (= state :blur) {:border-bottom (str "3px solid " colors/panel-border)}))
+  #_(when (= state :blur) {:border-bottom (str "3px solid " colors/panel-border)}))
 
 (defclass canvas-wrapper []
   {:display :flex
@@ -86,8 +86,9 @@
   {:width "100%"
    :height "100%"
    :box-sizing "border-box"
+   :border-radius "15px"
+   :padding "5px"
    :margin 0
-   :padding 0
    :touch-action :none
    :display :block
    :outline :none})

@@ -34,6 +34,8 @@
 (def dnd-context (r/adapt-react-class DndContext))
 (def sortable-context (r/adapt-react-class SortableContext))
 
+(def dragging-slide-id (r/atom nil))
+
 (defn- to-clj-map [hash-map]
   (js->clj hash-map :keywordize-keys true))
 
@@ -91,7 +93,10 @@
                                  :font-size typography/s
                                  :font-weight (if selected?
                                                 typography/medium
-                                                typography/regular)}} (inc index)]
+                                                typography/regular)}}
+                  (if (= (:id props) @dragging-slide-id)
+                    ""
+                    (inc index))]
                  (when (and camera-unlocked? selected?)
                    [tooltip
                     {:trigger [icon/unlock {:size 12
@@ -116,8 +121,6 @@
                                 :border "2px solid transparent"
                                 :border-radius "3px"}}]]]}]))
 
-(def dragging-slide-id (r/atom nil))
-
 (defn- sortable-slides-list [slides]
   (let [slide-ids (clj->js (mapv :id slides))
         slide-ids-length (count slide-ids)
@@ -129,6 +132,7 @@
         handle-drag-start (fn [event]
                             (reset! dragging-slide-id (j/get-in event [:active :id])))
         handle-drag-end (fn [event]
+                          (reset! dragging-slide-id nil)
                           (let [{:keys [active over]} (to-clj-map event)]
                             (let [oldIndex (.indexOf items (:id active))
                                   newIndex (.indexOf items (:id over))]

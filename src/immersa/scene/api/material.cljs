@@ -191,9 +191,9 @@
                      :setupImageProcessing true
                      :environmentTexture "img/texture/environment/environmentSpecular.env"
                      ;; This :cameraExposure affects images with white background!
-                     :cameraExposure 0.8
+                     :cameraExposure 1.0
                      :cameraContrast 1.2
-                     :toneMappingEnabled true}
+                     :toneMappingEnabled false}
         eh (EnvironmentHelper. options (api.core/get-scene))]
     (m/assoc! eh
               :ground.isPickable false

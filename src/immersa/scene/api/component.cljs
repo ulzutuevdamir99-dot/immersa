@@ -324,14 +324,12 @@
         mesh (if (and radius (> radius 0))
                (api.mesh/plane-rounded name opts)
                (api.mesh/plane name opts))]
-    (j/assoc! mat
-              :cameraToneMappingEnabled false
-              :cameraExposure 1.0)
     (m/cond-doto mesh
       face-to-screen? (j/assoc! :billboardMode api.const/mesh-billboard-mode-all))
     (j/assoc! mesh :initial-rotation (api.core/clone (j/get mesh :rotation)))))
 
 (comment
+  (j/assoc! @my-mat :cameraToneMappingEnabled false)
   (js/console.log (api.core/get-object-by-name "98e4ee76-bb27-4904-9d30-360a40d8abc1"))
   (j/assoc-in! (api.core/get-object-by-name "98e4ee76-bb27-4904-9d30-360a40d8abc1") [:position :z] 30)
   (j/assoc-in! (api.core/get-object-by-name "98e4ee76-bb27-4904-9d30-360a40d8abc1") [:position :y] -12)
