@@ -59,8 +59,12 @@
   (some-> (api.core/selected-mesh) (j/assoc! :showBoundingBox false))
   (j/assoc-in! api.core/db [:gizmo :selected-mesh] mesh)
   (when mesh
-    (let [linked-type (get-linked-type mesh)]
-      (if (bb-types (api.core/get-object-type-by-name (j/get mesh :immersa-id)))
+    (let [linked-type (get-linked-type mesh)
+          type (api.core/get-object-type-by-name (j/get mesh :immersa-id))]
+      (when (= type "text3D")
+        (j/assoc! (api.core/gizmo-manager) :scaleGizmoEnabled false)
+        (ui.notifier/notify-gizmo-state :scale false))
+      (if (bb-types type)
         (do
           (if (= linked-type :unlinked)
             (j/assoc-in! (api.core/get-bb-renderer) [:frontColor] outline-color-unlinked)

@@ -156,6 +156,7 @@
          :on-change (fn [this]
                       (when (-> this .-target .-value (not= ""))
                         (let [^js/File file (-> this .-target .-files (aget 0))]
+                          (js/console.log file)
                           (reset! open? true)
                           (reset! err? false)
                           (reset! limit-exceeded? false)

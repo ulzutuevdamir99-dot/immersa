@@ -80,6 +80,7 @@
                                  :or {min-z 0.1
                                       alpha (/ Math/PI 2)
                                       beta (/ Math/PI 2)
+                                      lower-radius-limit 0.1
                                       angular-sensibility-x 2000
                                       angular-sensibility-y 2000
                                       wheel-precision 50
