@@ -56,7 +56,8 @@
                    (j/assoc-in! api.core/db [:mouse :wheel?] (= (j/get info :type) api.const/pointer-type-wheel))
 
                    (when (and (= api.const/pointer-type-tap (j/get info :type))
-                              (not (j/get-in info [:pickInfo :hit])))
+                              (not (j/get-in info [:pickInfo :hit]))
+                              (not= click-type :right-click?))
                      (api.core/clear-selected-mesh))
 
                    (when (and (= api.const/pointer-type-tap (j/get info :type))

@@ -603,7 +603,8 @@
                                                  duplicated-slide)]
                           (vec-insert slides (assoc duplicated-slide :id uuid) (inc index)))))
     (swap! current-slide-index inc)
-    (ui.notifier/sync-slides-info @current-slide-index @all-slides)))
+    (ui.notifier/sync-slides-info @current-slide-index @all-slides)
+    (update-thumbnail)))
 
 (defn delete-slide []
   (when (> (count @all-slides) 1)
