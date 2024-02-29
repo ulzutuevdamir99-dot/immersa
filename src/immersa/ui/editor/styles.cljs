@@ -40,7 +40,7 @@
 (defattrs side-bar []
   {:flex-shrink 0
    :width slides-panel-size
-   :border-right (str "1px solid " colors/panel-border)
+   ;; :border-right (str "1px solid " colors/panel-border)
    :box-sizing :border-box
    :box-shadow :none
    :display :flex
@@ -53,22 +53,8 @@
   {:width "150px"
    :font-size typography/l})
 
-(defattrs options-bar []
-  {:width "340px"
-   :z-index "5000"
-   :display :flex
-   :flex-direction :column
-   :overflow :hidden
-   :border-left (str "1px solid " colors/panel-border)
-   :box-sizing :border-box})
-
 (defclass canvas-container [state camera-unlocked?]
-  {:box-sizing "border-box"
-   #_#_:border "3px solid transparent"}
-  #_(when (= state :focus) {:border (str "3px solid " (if camera-unlocked?
-                                                      colors/unlocked-camera
-                                                      colors/button-border))})
-  #_(when (= state :blur) {:border-bottom (str "3px solid " colors/panel-border)}))
+  {:box-sizing "border-box"})
 
 (defclass canvas-wrapper []
   {:display :flex
@@ -87,8 +73,8 @@
    :height "100%"
    :box-sizing "border-box"
    :border-radius "15px"
-   :padding "5px"
    :margin 0
+   :padding 0
    :touch-action :none
    :display :block
    :outline :none})
@@ -100,8 +86,7 @@
    :padding "12px 16px"
    :width "100%"
    :height header-height
-   :box-sizing :border-box
-   :border-bottom (str "1px solid " colors/panel-border)})
+   :box-sizing :border-box})
 
 (defattrs title-bar []
   {:display :flex

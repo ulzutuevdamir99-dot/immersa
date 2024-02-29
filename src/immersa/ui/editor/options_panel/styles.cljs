@@ -25,7 +25,6 @@
    :display :flex
    :flex-direction :column
    :overflow :hidden
-   :border-left (str "1px solid " colors/panel-border)
    :box-sizing :border-box})
 
 (defclass options-panel-scroll-area []

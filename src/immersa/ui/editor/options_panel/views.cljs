@@ -346,6 +346,7 @@
                    :flex-direction "column"
                    :gap "12px"
                    :padding "22px"
+                   :padding-top "0"
                    :position "relative"}}
      [selected-object-type-text "Text"]
      [separator]
@@ -368,6 +369,7 @@
                    :flex-direction "column"
                    :gap "12px"
                    :padding "22px"
+                   :padding-top "0"
                    :position "relative"}}
      [selected-object-type-text "Image"]
      [separator]
@@ -388,6 +390,7 @@
                  :flex-direction "column"
                  :gap "12px"
                  :padding "22px"
+                 :padding-top "0"
                  :position "relative"}}
    [selected-object-type-text "3D Model"]
    [separator]
@@ -453,8 +456,7 @@
   [:div (styles/options-panel)
    [:div
     {:style {:display "flex"
-             :justify-content "center"
-             :padding-top "8px"}}
+             :justify-content "center"}}
     [scroll-area
      {:class (styles/options-panel-scroll-area)
       :children (if @(subscribe [::subs/selected-mesh])
@@ -463,7 +465,8 @@
                    [:div {:style {:display "flex"
                                   :flex-direction "column"
                                   :gap "12px"
-                                  :padding "22px"}}
+                                  :padding "22px"
+                                  :padding-top "0"}}
                     [text {:size :xxl
                            :weight :semi-bold} "Scene"]
                     [separator]
