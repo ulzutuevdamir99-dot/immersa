@@ -6,6 +6,7 @@
 
 (defn loading-screen [height]
   [:div {:style {:position "absolute"
+                 :border-radius "15px"
                  :top "0"
                  :left "0"
                  :width "100%"
@@ -21,7 +22,6 @@
                   :top "50%"
                   :left "50%"
                   :transform "translate(-50%, -50%)"}}
-    [:img {:src "img/logo.png"
-           :style {:width "120px"
-                   :height "120px"}}]
+    [:img {:src "img/logo_white.png"
+           :style {:width "300px"}}]
     [progress-scene-loader @(subscribe [::subs/loading-progress])]]])
