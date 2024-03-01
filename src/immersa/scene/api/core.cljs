@@ -549,6 +549,12 @@
 (defn quat [x y z w]
   (Quaternion. x y z w))
 
+(defn attach-pointer-drag-behav [mesh]
+  (j/call-in db [:pointer-drag-behaviour :attach] mesh))
+
+(defn detach-pointer-drag-behav [mesh]
+  (j/call-in db [:pointer-drag-behaviour :detach] mesh))
+
 (comment
   (j/assoc! (get-object-by-name "33e4ee76-bb27-4904-9d30-360a40d8abc1"))
   (j/call-in db [:gizmo :manager :attachToMesh] (get-object-by-name "00f4ee76-bb27-4904-9d30-360a40d8abc1")))

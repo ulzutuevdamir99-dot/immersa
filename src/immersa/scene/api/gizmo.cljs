@@ -1,5 +1,6 @@
 (ns immersa.scene.api.gizmo
   (:require
+    ["@babylonjs/core/Behaviors/Meshes/pointerDragBehavior" :refer [PointerDragBehavior]]
     ["@babylonjs/core/Gizmos/gizmoManager" :refer [GizmoManager]]
     [applied-science.js-interop :as j]
     [immersa.scene.api.core :as api.core]
@@ -57,6 +58,7 @@
 (defn- on-attached-to-mesh [mesh]
   (j/call hl :removeAllMeshes)
   (some-> (api.core/selected-mesh) (j/assoc! :showBoundingBox false))
+  (some-> (api.core/selected-mesh) api.core/detach-pointer-drag-behav)
   (j/assoc-in! api.core/db [:gizmo :selected-mesh] mesh)
   (when mesh
     (let [linked-type (get-linked-type mesh)
@@ -64,6 +66,8 @@
       (when (= type "text3D")
         (j/assoc! (api.core/gizmo-manager) :scaleGizmoEnabled false)
         (ui.notifier/notify-gizmo-state :scale false))
+      (when (j/get (api.core/gizmo-manager) :positionGizmoEnabled)
+        (api.core/attach-pointer-drag-behav mesh))
       (if (bb-types type)
         (do
           (if (= linked-type :unlinked)
@@ -178,7 +182,10 @@
     (ui.notifier/notify-gizmo-state type enabled?)))
 
 (defn init-gizmo-manager []
-  (let [gizmo-manager (GizmoManager. (api.core/get-scene) 3)]
+  (let [gizmo-manager (GizmoManager. (api.core/get-scene) 3)
+        pointer-drag-behaviour (j/assoc! (PointerDragBehavior.)
+                                         :useObjectOrientationForDragging false
+                                         :updateDragPlane false)]
     (set! hl (api.core/highlight-layer "outline-highlight-layer"
                                        :stroke? true
                                        :main-texture-ratio 1
@@ -217,4 +224,5 @@
                                                                    (api.core/attach-to-mesh (j/get % :parent))
                                                                    (on-attached-to-mesh %)))
     (j/assoc-in! api.core/db [:gizmo :manager] gizmo-manager)
+    (j/assoc! api.core/db :pointer-drag-behaviour pointer-drag-behaviour)
     gizmo-manager))
