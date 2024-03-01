@@ -185,6 +185,11 @@
                 :scale :scaleGizmoEnabled)
         enabled? (not (j/get-in api.core/db [:gizmo :manager gizmo]))]
     (j/assoc-in! api.core/db [:gizmo :manager gizmo] enabled?)
+    (when (= type :position)
+      (when-let [mesh (api.core/selected-mesh)]
+        (if enabled?
+          (api.core/attach-pointer-drag-behav mesh)
+          (api.core/detach-pointer-drag-behav mesh))))
     (ui.notifier/notify-gizmo-state type enabled?)))
 
 (defn- init-pointer-drag-behaviour []
