@@ -20,9 +20,9 @@
                                                    :path "https://firebasestorage.googleapis.com/v0/b/immersa-6d29f.appspot.com/o/images%2Fuser%2Fuser_2c20lPttd6jIbGObJJhbKwN3tLh%2FPorsche-Logo-PNG%40zeevector.com_.png?alt=media&token=a0a18b90-d0d0-4ffe-9b7f-ebbb85517b6f"
                                                    :asset-type :texture
                                                    :rotation [0 0 0]
-                                                   :scale [2 2 2]
+                                                   :scale [2.5 2.5 2.5]
                                                    :transparent? true
-                                                   :position [0 3.2635181320817104 -0.15192248596757807]
+                                                   :position [0 4 -0.15192248596757807]
                                                    :face-to-screen? true, :visibility 1}}}])
 
 (def thumbnails
