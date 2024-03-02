@@ -432,7 +432,7 @@
   (println "enable-component Default: " name))
 
 (let [circuit-breaker-running? (atom false)]
-  (defn process-next-prev-command [{:keys [type ch slide-in-progress? current-running-anims on-done]}]
+  (defn process-next-prev-command [{:keys [type ch slide-in-progress? current-running-anims on-done] :as opts}]
     (if (and @slide-in-progress? (not @circuit-breaker-running?))
       (do
         (reset! circuit-breaker-running? true)
@@ -441,6 +441,9 @@
           (if-let [force-finish-fn (some-> force-finish-fn-atom deref)]
             (force-finish-fn)
             (force-finish-fn)))
+        ;; For fast navigation, re-trigger the command
+        (when (number? type)
+          (process-next-prev-command opts))
         (reset! current-running-anims [])
         (reset! circuit-breaker-running? false))
       (do
