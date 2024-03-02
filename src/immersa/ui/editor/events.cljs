@@ -220,6 +220,11 @@
   (fn [db [_ locked?]]
     (assoc-in db [:editor :camera :locked?] locked?)))
 
+(reg-event-db
+  ::notify-ground-state
+  (fn [db [_ enabled?]]
+    (assoc-in db [:editor :ground :enabled?] enabled?)))
+
 (reg-event-fx
   ::update-selected-mesh-face-to-screen?
   (fn [{:keys [db]} _]
@@ -242,6 +247,13 @@
     (let [locked? (-> db :editor :camera :locked? not)]
       {:scene {:type :toggle-camera-lock
                :data {:value locked?}}})))
+
+(reg-event-fx
+  ::toggle-ground-enabled
+  (fn [{:keys [db]} _]
+    (let [enabled? (-> db :editor :ground :enabled? not)]
+      {:scene {:type :toggle-ground-enabled
+               :data {:value enabled?}}})))
 
 (reg-event-db
   ::set-context-menu-position

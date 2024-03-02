@@ -36,7 +36,7 @@
 
 (defn create-free-camera [name & {:keys [position speed min-z]
                                   :or {position (v3 0 2 -10)
-                                       speed 0.5
+                                       speed 0.1
                                        min-z 0.1}
                                   :as opts}]
   (let [camera (FreeCamera. name position)

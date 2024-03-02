@@ -207,7 +207,7 @@
                                                  :main-color (api.core/color 1 1 1)
                                                  :line-color (api.core/color 1 1 1)
                                                  :opacity 0.98)
-          #_#_ground (api.mesh/create-ground "ground"
+          ground (api.mesh/create-ground "ground"
                                          :width 50
                                          :height 50
                                          :mat ground-material

@@ -187,6 +187,11 @@
     (-> db :editor :camera :locked?)))
 
 (reg-sub
+  ::ground-enabled?
+  (fn [db]
+    (-> db :editor :ground :enabled?)))
+
+(reg-sub
   ::context-menu-position
   (fn [db]
     (-> db :editor :context-menu :position)))

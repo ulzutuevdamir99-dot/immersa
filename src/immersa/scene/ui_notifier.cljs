@@ -58,6 +58,9 @@
 (defn notify-camera-lock-state [locked?]
   (dispatch [::editor.events/notify-camera-lock-state locked?]))
 
+(defn notify-ground-state [enabled?]
+  (dispatch [::editor.events/notify-ground-state enabled?]))
+
 (comment
   (j/assoc! (first (api.core/get-objects-by-type "image")) [:material :alpha] 0.1)
   (api.core/selected-mesh)

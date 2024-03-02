@@ -225,6 +225,11 @@
       (api.core/detach-pointer-drag-behav mesh)))
   (ui.notifier/notify-camera-lock-state value))
 
+(defmethod handle-ui-update :toggle-ground-enabled [{{:keys [value]} :data}]
+  (slide/update-slide-data :ground :enabled? value)
+  (api.core/set-enabled (api.core/get-object-by-name "ground") value)
+  (ui.notifier/notify-ground-state value))
+
 (defn get-pos-from-camera-dir []
   (let [camera (api.camera/active-camera)
         forward (j/get (j/call camera :getForwardRay) :direction)

@@ -178,13 +178,14 @@
     (cond-> ground
       mat (j/assoc! :material mat))))
 
-(defn create-ground [name & {:keys [width height mat pickable?]
+(defn create-ground [name & {:keys [width height mat pickable? enabled?]
                              :as opts}]
   (let [ground (j/call MeshBuilder :CreateGround name #js {:width width
                                                            :height height})]
     (api.core/add-node-to-db name ground opts)
     (cond-> ground
       mat (j/assoc! :material mat)
+      (some? enabled?) (j/call :setEnabled enabled?)
       (some? pickable?) (j/assoc! :isPickable pickable?))))
 
 (defn create-hit-box [name mesh]

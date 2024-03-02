@@ -508,5 +508,17 @@
                          :content "Adjust the brightness of the scene background. Default is 10%."}]]
                       [text {:weight :light} (str @(subscribe [::subs/scene-background-brightness]) "%")]]
                      [slider {:value @(subscribe [::subs/scene-background-brightness])
-                              :on-change #(dispatch [::events/update-scene-background-brightness %])}]]]
+                              :on-change #(dispatch [::events/update-scene-background-brightness %])}]]
+                    [:div
+                     {:style {:display "flex"
+                              :align-items "center"
+                              :justify-content "space-between"
+                              :gap "5px"}}
+                     [:div {:style {:display "flex"
+                                    :flex-direction "row"
+                                    :align-items "center"
+                                    :gap "2px"}}
+                      [text "Ground"]]
+                     [switch {:checked? @(subscribe [::subs/ground-enabled?])
+                              :on-change #(dispatch [::events/toggle-ground-enabled])}]]]
                    [camera-options]])}]]])
