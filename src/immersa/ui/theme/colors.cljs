@@ -2,6 +2,9 @@
 
 (def primary "#1E90FF")
 
+(def background "#e7e6f0")
+(def app-background "#fcfcfd")
+
 (def panel-border "rgb(239, 241, 244)")
 (def border2 "#E0E0E0")
 (def border3 "#C7C7C7FF")

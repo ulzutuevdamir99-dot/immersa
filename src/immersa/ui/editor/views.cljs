@@ -8,6 +8,8 @@
     [clojure.string :as str]
     [goog.functions :as functions]
     [immersa.common.firebase :as firebase]
+    [immersa.common.shortcut :as shortcut]
+    [immersa.common.utils :as common.utils]
     [immersa.scene.core :as scene.core]
     [immersa.ui.crisp-chat :as crisp-chat]
     [immersa.ui.editor.components.alert-dialog :refer [alert-dialog]]
@@ -321,6 +323,21 @@
    [header-center-panel]
    [header-right-panel]])
 
+(def blocked-fields #{"INPUT" "TEXTAREA" "CANVAS"})
+
+(defn- register-global-events []
+  (common.utils/register-event-listener
+    js/document
+    "keydown"
+    (fn [e]
+      (when (and (or (j/get e :metaKey)
+                     (j/get e :ctrlKey))
+                 (= (some-> (j/get e :key) str/lower-case) "d"))
+        (j/call e :preventDefault))
+      (when (and (not (j/get e :repeat))
+                 (not (blocked-fields (j/get-in js/document [:activeElement :tagName]))))
+        (shortcut/call-shortcut-action-with-event :blank-slide e)))))
+
 (defn editor-panel []
   (let [{:keys [user]} (j/lookup (useUser))
         {:keys [getToken]} (j/lookup (useAuth))
@@ -348,7 +365,8 @@
                            {:id user-id
                             :full-name full-name
                             :email email
-                            :object user}])))
+                            :object user}])
+                (register-global-events)))
             #js[])]
     [:div (styles/editor-container)
      [header]

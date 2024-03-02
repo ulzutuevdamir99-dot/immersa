@@ -115,7 +115,9 @@
                               (when (and ref selected?)
                                 (.focus ref)))
                        :class (styles/slide camera-unlocked? selected?)
-                       :on-key-down #(shortcut/call-shortcut-action-with-event :add-slide %)
+                       :on-key-down (fn [e]
+                                      (shortcut/call-shortcut-action-with-event :delete-slide e)
+                                      (shortcut/call-shortcut-action-with-event :add-slide e))
                        :on-click #(some-> (js/document.getElementById (str "slide-container-" (:id props))) .focus)}
                  [:img {:src thumbnail
                         :class (styles/slide-img)}]]]}]))

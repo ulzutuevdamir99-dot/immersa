@@ -11,15 +11,15 @@
 
 (def body
   (assoc defaults
-         :background "#f0f0f0"
+         :background colors/background
          :font-family typography/font
          :overscroll-behavior :none))
 
 (def app
-  {:border-radius "25px"
-   :border "5px solid #f0f0f0"
+  {:border-radius "20px"
+   :border (str "9px solid " colors/background)
    :box-sizing :border-box
-   :background :white})
+   :background colors/app-background})
 
 (defglobal theme
   [:html defaults]

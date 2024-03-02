@@ -75,10 +75,11 @@
                :shortcut ["⌘" "d"]
                :prevent-default? true
                :pred (fn [info key]
-                       (and (cmd? info) (= key "d") (api.core/selected-mesh)))
+                       (and (cmd? info) (= key "d")))
                :action (fn []
                          (try
-                           (api.core/attach-to-mesh (slide/duplicate-slide-data (get-selected-object-data)))
+                           (when (api.core/selected-mesh)
+                             (api.core/attach-to-mesh (slide/duplicate-slide-data (get-selected-object-data))))
                            (catch js/Error e
                              (js/console.warn "Duplicate failed.")
                              (js/console.warn e))))}
@@ -141,16 +142,15 @@
                        (and (cmd? info) (= key "d")))
                :action #(ui-listener/handle-ui-update {:type :add-slide})}
    :blank-slide {:label "Blank slide"
-                 :shortcut ["⌘" "n"]
+                 :shortcut ["shift" "n"]
                  :prevent-default? true
                  :pred (fn [info key]
-                         ;; (and (cmd? info) (= key "d"))
-                         false)
+                         (and (shift? info) (= key "n")))
                  :action #(ui-listener/handle-ui-update {:type :blank-slide})}
    :delete-slide {:label "Delete slide"
                   :shortcut ["⌫"]
                   :pred (fn [info _]
-                          (and (cmd? info) (delete? info)))
+                          (delete? info))
                   :action #(slide/delete-slide)}
    :camera-reset-to-initials {:label "Reset camera to initials"
                               :shortcut ["shift" "c"]
@@ -224,7 +224,7 @@
   (let [f (get-in shortcuts [type :action])
         pred (get-in shortcuts [type :pred])
         prevent-default? (get-in shortcuts [type :prevent-default?])]
-    (when (pred #js {:event event} (str/lower-case (j/get event :key)))
+    (when (pred #js {:event event} (some-> (j/get event :key) str/lower-case))
       (when prevent-default?
         (.preventDefault event))
       (f))))
