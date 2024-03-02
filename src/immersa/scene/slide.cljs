@@ -318,7 +318,7 @@
   (disable-mesh-component-via-visibility name))
 
 (defmethod disable-component :image [name]
-  (disable-mesh-component-via-visibility name))
+  (disable-image-mesh-component-via-visibility name))
 
 (defmethod disable-component :text3D [name]
   (disable-mesh-component-via-visibility name))
