@@ -100,6 +100,9 @@
 (defn v3? [v]
   (instance? Vector3 v))
 
+(defn distance [v1 v2]
+  (j/call Vector3 :Distance v1 v2))
+
 (defn clone [obj]
   (j/call obj :clone))
 

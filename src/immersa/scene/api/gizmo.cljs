@@ -3,6 +3,7 @@
     ["@babylonjs/core/Behaviors/Meshes/pointerDragBehavior" :refer [PointerDragBehavior]]
     ["@babylonjs/core/Gizmos/gizmoManager" :refer [GizmoManager]]
     [applied-science.js-interop :as j]
+    [immersa.scene.api.camera :as api.camera]
     [immersa.scene.api.core :as api.core]
     [immersa.scene.macros :as m]
     [immersa.scene.slide :as slide]
@@ -196,12 +197,34 @@
           (api.core/detach-pointer-drag-behav mesh))))
     (ui.notifier/notify-gizmo-state type enabled?)))
 
+(defn adjust-distance-to-camera [mesh distance]
+  (when-let [distance @distance]
+    (let [camera (api.camera/active-camera)
+          camera-position (j/get camera :position)
+          mesh-position (j/get mesh :position)
+          current-distance (api.core/distance mesh-position camera-position)
+          direction (-> (j/call mesh-position :subtract camera-position)
+                        (j/call :normalize))]
+      (when (not= current-distance distance)
+        (let [desired-position (-> (j/call camera-position :add (j/call direction :scale distance)))]
+          (j/call mesh-position :copyFrom desired-position))))))
+
 (defn- init-pointer-drag-behaviour []
-  (let [pdb (j/assoc! (PointerDragBehavior.)
+  (let [distance (atom nil)
+        pdb (j/assoc! (PointerDragBehavior.)
                       :useObjectOrientationForDragging false
                       :updateDragPlane false)]
-    (j/call-in pdb [:onDragObservable :add] notify-ui-selected-mesh)
-    (j/call-in pdb [:onDragEndObservable :add] update-slide-data-for-position)
+    (j/call-in pdb [:onDragStartObservable :add] (fn []
+                                                   (reset! distance
+                                                           (api.core/distance
+                                                             (j/get (api.core/selected-mesh) :position)
+                                                             (j/get (api.camera/active-camera) :position)))))
+    (j/call-in pdb [:onDragObservable :add] (fn []
+                                              (adjust-distance-to-camera (api.core/selected-mesh) distance)
+                                              (notify-ui-selected-mesh)))
+    (j/call-in pdb [:onDragEndObservable :add] (fn []
+                                                 (reset! distance nil)
+                                                 (update-slide-data-for-position)))
     pdb))
 
 (defn init-gizmo-manager []
