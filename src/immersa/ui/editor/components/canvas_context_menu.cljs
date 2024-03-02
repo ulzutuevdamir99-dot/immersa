@@ -36,19 +36,6 @@
                  :flex-direction "column"
                  :gap gap}}
    [dropdown-item
-    {:item [option-text {:label "Focus"
-                         :icon [icon/focus {:size 16
-                                            :color colors/text-primary}]
-                         :shortcut (shortcut/get-shortcut-key-labels :focus)}]
-     :on-select #(shortcut/call-shortcut-action :focus)}]
-   [dropdown-item
-    {:item [option-text {:label "Reset to initials"
-                         :icon [icon/reset-init {:size 16
-                                                 :color colors/text-primary}]
-                         :shortcut (shortcut/get-shortcut-key-labels :reset-initials)}]
-     :on-select #(shortcut/call-shortcut-action :reset-initials)
-     :disabled? (not @(subscribe [::subs/selected-mesh-initial-position?]))}]
-   [dropdown-item
     {:item [option-text {:label "Duplicate"
                          :icon [icon/copy {:size 16
                                            :color colors/text-primary}]
@@ -73,6 +60,19 @@
                          :color colors/warning
                          :shortcut (shortcut/get-shortcut-key-labels :delete)}]
      :on-select #(shortcut/call-shortcut-action :delete)}]
+   [dropdown-item
+    {:item [option-text {:label "Focus"
+                         :icon [icon/focus {:size 16
+                                            :color colors/text-primary}]
+                         :shortcut (shortcut/get-shortcut-key-labels :focus)}]
+     :on-select #(shortcut/call-shortcut-action :focus)}]
+   [dropdown-item
+    {:item [option-text {:label "Reset to initials"
+                         :icon [icon/reset-init {:size 16
+                                                 :color colors/text-primary}]
+                         :shortcut (shortcut/get-shortcut-key-labels :reset-initials)}]
+     :on-select #(shortcut/call-shortcut-action :reset-initials)
+     :disabled? (not @(subscribe [::subs/selected-mesh-initial-position?]))}]
    [dropdown-item
     {:item [option-text {:label "Reset position"
                          :icon [icon/reset-pos {:size 16
