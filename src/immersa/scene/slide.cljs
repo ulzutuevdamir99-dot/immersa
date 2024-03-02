@@ -97,12 +97,19 @@
                                                                     :end end-scale))])))))
 
 (defn- get-visibility-anim [object-slide-info object-name]
-  (let [end-visibility (:visibility object-slide-info)
-        start-visibility (j/get (api.core/get-object-by-name object-name) :visibility)]
-    (when (and end-visibility (not= start-visibility end-visibility))
-      [object-name (api.animation/create-visibility-animation {:start start-visibility
-                                                               :end end-visibility
-                                                               :delay (:delay object-slide-info)})])))
+  (if (= :image (:type object-slide-info))
+    (let [end-visibility (:visibility object-slide-info)
+          start-visibility (j/get-in (api.core/get-object-by-name object-name) [:material :alpha])]
+      (when (and end-visibility (not= start-visibility end-visibility))
+        [object-name (api.animation/create-image-visibility-animation {:start start-visibility
+                                                                       :end end-visibility
+                                                                       :delay (:delay object-slide-info)})]))
+    (let [end-visibility (:visibility object-slide-info)
+          start-visibility (j/get (api.core/get-object-by-name object-name) :visibility)]
+      (when (and end-visibility (not= start-visibility end-visibility))
+        [object-name (api.animation/create-visibility-animation {:start start-visibility
+                                                                 :end end-visibility
+                                                                 :delay (:delay object-slide-info)})]))))
 
 (defn- get-alpha-anim [object-slide-info object-name]
   (let [end-alpha (:alpha object-slide-info)
@@ -252,6 +259,19 @@
       :animations (api.animation/create-visibility-animation {:start visibility
                                                               :end 0
                                                               :duration duration})
+      :to to
+      :on-animation-end #(api.core/set-enabled mesh false))))
+
+(defn- disable-image-mesh-component-via-visibility [name]
+  (let [mesh (api.core/get-object-by-name name)
+        visibility (j/get-in mesh [:material :alpha])
+        duration 0.5
+        to (* 30 1.0)]
+    (api.animation/begin-direct-animation
+      :target mesh
+      :animations (api.animation/create-image-visibility-animation {:start visibility
+                                                                    :end 0
+                                                                    :duration duration})
       :to to
       :on-animation-end #(api.core/set-enabled mesh false))))
 

@@ -306,7 +306,8 @@
         mat (api.material/background-mat
               (str name "-image-mat")
               (cond-> {:diffuse-texture texture}
-                transparent? (assoc :has-alpha? transparent?)))
+                transparent? (assoc :has-alpha? transparent?)
+                visibility (assoc :alpha visibility)))
         opts {:width width
               :height height
               :face-to-screen? face-to-screen?

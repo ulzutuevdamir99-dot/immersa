@@ -166,6 +166,11 @@
 (defn get-object-type-by-name [name]
   (j/get-in db [:nodes name :type]))
 
+(defn get-object-type [mesh-or-name]
+  (get-object-type-by-name (if (string? mesh-or-name)
+                             mesh-or-name
+                             (j/get mesh-or-name :immersa-id))))
+
 (defn get-objects-by-type [type]
   (map (j/get :obj) (filter #(= (j/get % :type) type) (js/Object.values (j/get db :nodes)))))
 

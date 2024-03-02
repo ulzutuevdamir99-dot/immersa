@@ -33,7 +33,7 @@
                          (merge pos-rot-scale-name
                                 {:type "image"
                                  :linked-type (j/get mesh :linked-type)
-                                 :opacity (j/get mesh :visibility)
+                                 :opacity (j/get-in mesh [:material :alpha])
                                  :transparent? (api.core/get-node-attr mesh :transparent?)
                                  :face-to-screen? (api.core/get-node-attr mesh :face-to-screen?)})]))))
 
@@ -59,6 +59,7 @@
   (dispatch [::editor.events/notify-camera-lock-state locked?]))
 
 (comment
+  (j/assoc! (first (api.core/get-objects-by-type "image")) [:material :alpha] 0.1)
   (api.core/selected-mesh)
   (api.core/get-node-attr (api.core/selected-mesh) :transparent?)
   )

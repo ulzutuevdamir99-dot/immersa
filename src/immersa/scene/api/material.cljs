@@ -102,6 +102,7 @@
 (defn background-mat [name & {:keys [reflection-texture
                                      diffuse-texture
                                      has-alpha?
+                                     alpha
                                      primary-color
                                      shadow-level]
                               :or {shadow-level 0.4}
@@ -110,6 +111,7 @@
     (m/cond-doto bm
       reflection-texture (j/assoc! :reflectionTexture reflection-texture)
       diffuse-texture (j/assoc! :diffuseTexture diffuse-texture)
+      alpha (j/assoc! :alpha alpha)
       (some? has-alpha?) (j/assoc-in! [:diffuseTexture :hasAlpha] has-alpha?)
       primary-color (j/assoc! :primaryColor primary-color)
       shadow-level (j/assoc! :shadowLevel shadow-level))

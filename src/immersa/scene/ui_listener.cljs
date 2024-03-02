@@ -71,7 +71,11 @@
   (when-let [mesh (j/get-in api.core/db [:gizmo :selected-mesh])]
     (case update
       :emissive-intensity (j/assoc-in! mesh [:material :emissiveIntensity] value)
-      :opacity (j/assoc! mesh :visibility value)
+      :opacity (do
+                 (if (= (api.core/get-object-type mesh) "image")
+                   (j/assoc-in! mesh [:material :alpha] value)
+                   (j/assoc! mesh :visibility value))
+                 (slide/update-slide-data mesh :visibility value))
       :alpha (j/assoc-in! mesh [:material :alpha] value)
       :metallic (j/assoc-in! mesh [:material :metallic] value)
       :roughness (j/assoc-in! mesh [:material :roughness] value))))

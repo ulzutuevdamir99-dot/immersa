@@ -147,6 +147,18 @@
              :loop-mode api.const/animation-loop-cons
              :easing (cubic-ease api.const/easing-ease-in-out)))
 
+(defn create-image-visibility-animation [{:keys [start end duration delay]
+                                          :or {duration 1.0}}]
+  (animation "image-visibility-animation"
+             :target-prop "material.alpha"
+             :duration duration
+             :delay delay
+             :from start
+             :to end
+             :data-type api.const/animation-type-float
+             :loop-mode api.const/animation-loop-cons
+             :easing (cubic-ease api.const/easing-ease-in-out)))
+
 (defn create-alpha-animation [{:keys [start end duration delay]
                                :or {duration 1.0}}]
   (animation "alpha-animation"
