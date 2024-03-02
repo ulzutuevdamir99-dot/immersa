@@ -532,8 +532,9 @@
         index @current-slide-index
         exists? (boolean (get-in @all-slides [index :data id]))
         id (if exists? (str (random-uuid)) id)
-        _ (when (and mesh (not exists?) (> (:visibility params) 0))
-            (j/assoc! mesh :visibility (:visibility params))
+        _ (when (and mesh (not exists?))
+            (when (> (:visibility params) 0)
+              (j/assoc! mesh :visibility (:visibility params)))
             (api.core/set-enabled mesh true))
         mesh (if exists?
                (let [params (->> params
