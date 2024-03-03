@@ -48,6 +48,7 @@
                 transition]} (to-clj-map (useSortable (clj->js {:id (:id props)})))
         index (.indexOf (:items props) (:id props))
         current-index @(subscribe [::subs/slides-current-index])
+        index-state (atom current-index)
         thumbnail @(subscribe [::subs/slide-thumbnail index])
         camera-unlocked? (not @(subscribe [::subs/camera-locked?]))
         selected? (= index current-index)
@@ -112,8 +113,19 @@
                        :tabIndex "0"
                        :class (styles/slide camera-unlocked? selected?)
                        :on-key-down (fn [e]
-                                      (shortcut/call-shortcut-action-with-event :delete-slide e)
-                                      (shortcut/call-shortcut-action-with-event :add-slide e))
+                                      (when-not (j/get e :repeat)
+                                        (when (or (= "ArrowDown" (j/get e :code))
+                                                  (= "ArrowRight" (j/get e :code)))
+                                          (when-let [id (j/get (:items props) (inc @index-state))]
+                                            (some-> (js/document.getElementById (str "slide-container-" id)) .click)))
+
+                                        (when (or (= "ArrowUp" (j/get e :code))
+                                                  (= "ArrowLeft" (j/get e :code)))
+                                          (when-let [id (j/get (:items props) (dec @index-state))]
+                                            (some-> (js/document.getElementById (str "slide-container-" id)) .click)))
+
+                                        (shortcut/call-shortcut-action-with-event :delete-slide e)
+                                        (shortcut/call-shortcut-action-with-event :add-slide e)))
                        :on-click #(some-> (js/document.getElementById (str "slide-container-" (:id props))) .focus)}
                  [:img {:src thumbnail
                         :class (styles/slide-img)}]]]}]))
@@ -146,6 +158,7 @@
                       :flex-wrap :wrap}}
         (map
           (fn [id]
+            ^{:key id}
             [:f> slide
              {:key id
               :id id
@@ -181,16 +194,7 @@
                    :on-select #(shortcut/call-shortcut-action :blank-slide)}]]}]]
    [scroll-area
     {:class (styles/slides-scroll-area)
-     :children [:div {:tabIndex "0"
-                      :on-key-down (fn [e]
-                                     (when-not (j/get e :repeat)
-                                       (when (or (= "ArrowDown" (j/get e :code))
-                                                 (= "ArrowRight" (j/get e :code)))
-                                         (dispatch [::events/go-to-slide :next]))
-                                       (when (or (= "ArrowUp" (j/get e :code))
-                                                 (= "ArrowLeft" (j/get e :code)))
-                                         (dispatch [::events/go-to-slide :prev]))))
-                      :style {:padding-top "8px"
+     :children [:div {:style {:padding-top "8px"
                               :outline "none"}}
                 (let [slides (map-indexed #(assoc %2 :index %1) @(subscribe [::subs/slides-all]))]
                   [:f> sortable-slides-list slides])]}]])
