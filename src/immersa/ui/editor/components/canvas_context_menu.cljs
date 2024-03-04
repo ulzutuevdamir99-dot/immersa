@@ -84,7 +84,8 @@
                          :icon [icon/focus {:size 16
                                             :color colors/text-primary}]
                          :shortcut (shortcut/get-shortcut-key-labels :focus)}]
-     :on-select #(shortcut/call-shortcut-action :focus)}]
+     :on-select #(shortcut/call-shortcut-action :focus)
+     :disabled? @(subscribe [::subs/camera-locked?])}]
    [dropdown-item
     {:item [option-text {:label "Reset to initials"
                          :icon [icon/reset-init {:size 16

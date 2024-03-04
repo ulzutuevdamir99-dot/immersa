@@ -39,47 +39,45 @@
       (f))))
 
 (defn- register-scene-mouse-events [scene]
-  (let [wasd #{"w" "a" "s" "d" "e" "q"}]
-    (j/call-in scene [:onPointerObservable :add]
-               (fn [info]
-                 (let [click-type (case (j/get-in info [:event :button])
-                                    0 :left-click?
-                                    1 :middle-click?
-                                    2 :right-click?
-                                    nil)]
+  (j/call-in scene [:onPointerObservable :add]
+             (fn [info]
+               (let [click-type (case (j/get-in info [:event :button])
+                                  0 :left-click?
+                                  1 :middle-click?
+                                  2 :right-click?
+                                  nil)]
+                 (cond
+                   (and click-type (= (j/get info :type) api.const/pointer-type-down))
+                   (j/assoc-in! api.core/db [:mouse click-type] true)
 
-                   (cond
-                     (and click-type (= (j/get info :type) api.const/pointer-type-down))
-                     (j/assoc-in! api.core/db [:mouse click-type] true)
+                   (and click-type (= (j/get info :type) api.const/pointer-type-up))
+                   (j/assoc-in! api.core/db [:mouse click-type] false))
 
-                     (and click-type (= (j/get info :type) api.const/pointer-type-up))
-                     (j/assoc-in! api.core/db [:mouse click-type] false))
+                 (j/assoc-in! api.core/db [:mouse :wheel?] (= (j/get info :type) api.const/pointer-type-wheel))
 
-                   (j/assoc-in! api.core/db [:mouse :wheel?] (= (j/get info :type) api.const/pointer-type-wheel))
+                 (when (and (= api.const/pointer-type-tap (j/get info :type))
+                            (not (j/get-in info [:pickInfo :hit]))
+                            (not= click-type :right-click?))
+                   (api.core/clear-selected-mesh))
 
-                   (when (and (= api.const/pointer-type-tap (j/get info :type))
-                              (not (j/get-in info [:pickInfo :hit]))
-                              (not= click-type :right-click?))
-                     (api.core/clear-selected-mesh))
+                 (when (and (= api.const/pointer-type-tap (j/get info :type))
+                            (= click-type :right-click?))
+                   (dispatch [::editor.events/set-context-menu-position [(j/get-in info [:event :clientX])
+                                                                         (j/get-in info [:event :clientY])]]))
 
-                   (when (and (= api.const/pointer-type-tap (j/get info :type))
-                              (= click-type :right-click?))
-                     (dispatch [::editor.events/set-context-menu-position [(j/get-in info [:event :clientX])
-                                                                           (j/get-in info [:event :clientY])]]))
+                 (when (and (= api.const/pointer-type-double-tap (j/get info :type))
+                            (= click-type :left-click?)
+                            (api.core/selected-mesh))
+                   (api.anim/run-camera-focus-anim (api.core/selected-mesh) (slide/camera-locked?)))
 
-                   (when (and (= api.const/pointer-type-double-tap (j/get info :type))
-                              (= click-type :left-click?)
-                              (api.core/selected-mesh))
-                     (api.anim/run-camera-focus-anim (api.core/selected-mesh) (slide/camera-locked?)))
-
-                   (api.camera/switch-camera-if-needed (slide/camera-locked?)))))
-    (j/call-in scene [:onKeyboardObservable :add]
-               (fn [info]
-                 (when-not (j/get-in info [:event :repeat])
-                   (let [key (str/lower-case (j/get-in info [:event :key]))]
-                     (j/assoc-in! api.core/db [:keyboard key] (= (j/get info :type) api.const/keyboard-type-key-down))
-                     (shortcut/process info key)
-                     (api.camera/switch-camera-if-needed (slide/camera-locked?))))))))
+                 (api.camera/switch-camera-if-needed (slide/camera-locked?)))))
+  (j/call-in scene [:onKeyboardObservable :add]
+             (fn [info]
+               (when-not (j/get-in info [:event :repeat])
+                 (let [key (str/lower-case (j/get-in info [:event :key]))]
+                   (j/assoc-in! api.core/db [:keyboard key] (= (j/get info :type) api.const/keyboard-type-key-down))
+                   (shortcut/process info key)
+                   (api.camera/switch-camera-if-needed (slide/camera-locked?)))))))
 
 (defn- read-pixels [engine]
   (let [p (a/promise-chan)
@@ -144,7 +142,7 @@
     (j/call-in arc-camera [:onViewMatrixChangedObservable :add] update-camera-on-slide)
     (dispatch [::editor.events/set-camera (utils/v3->v-data free-camera [:position :rotation])])))
 
-(defn- update-bounding-box-renderer [scene]
+(defn- update-bounding-box-renderer []
   (j/assoc! (api.core/get-bb-renderer) :showBackLines false))
 
 (defn when-scene-ready [engine scene mode slides thumbnails present-state]
@@ -158,7 +156,7 @@
               (register-scene-mouse-events scene)
               (ui-listener/init-ui-update-listener)
               (add-camera-view-matrix-listener)
-              (update-bounding-box-renderer scene)
+              (update-bounding-box-renderer)
               (slide/start-slide-show {:mode mode
                                        :slides slides
                                        :thumbnails thumbnails})

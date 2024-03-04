@@ -52,19 +52,21 @@
   (when-let [index @current-index-state]
     (when-let [prev-id (j/get (:items props) (dec index))]
       (when-let [prev-index (.indexOf (:items props) prev-id)]
+        (dispatch [::events/go-to-slide prev-index])
         (create-go-to-slide-action {:from (:id props)
                                     :to prev-id
                                     :items (:items props)})
-        (dispatch [::events/go-to-slide prev-index])))))
+        (some-> (js/document.getElementById (str "slide-container-" prev-id)) .focus)))))
 
 (defn- go-to-next-slide [props current-index-state]
   (when-let [index @current-index-state]
     (when-let [next-id (j/get (:items props) (inc index))]
       (when-let [next-index (.indexOf (:items props) next-id)]
+        (dispatch [::events/go-to-slide next-index])
         (create-go-to-slide-action {:from (:id props)
                                     :to next-id
                                     :items (:items props)})
-        (dispatch [::events/go-to-slide next-index])))))
+        (some-> (js/document.getElementById (str "slide-container-" next-id)) .focus)))))
 
 (defn- slide [props]
   (let [{:keys [attributes
