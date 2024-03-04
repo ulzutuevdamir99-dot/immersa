@@ -95,23 +95,6 @@
   (when-not mesh
     (dispatch [::events/remove-selected-mesh])))
 
-(defn- create-rotation-gizmo-on-drag-start [axis]
-  (fn []
-    (let [last-rotation-kw (case axis
-                             :x :last-rotation-x
-                             :y :last-rotation-y
-                             :z :last-rotation-z)]
-      (when-let [mesh (api.core/selected-mesh)]
-        (when-let [initial-rotation (j/get mesh :initial-rotation)]
-          (let [mesh-rotation (j/get mesh :rotation)]
-            (j/assoc! mesh
-                      :initial-rotation (api.core/set-v3 initial-rotation
-                                                         (j/get mesh-rotation :x)
-                                                         (j/get mesh-rotation :y)
-                                                         (j/get mesh-rotation :z))
-                      :accumulated-rotation 0
-                      last-rotation-kw (j/get mesh-rotation axis))))))))
-
 (defn create-rotation-gizmo-on-drag [axis]
   (fn []
     (when-let [mesh (api.core/selected-mesh)]
@@ -135,41 +118,55 @@
           (ui.notifier/notify-ui-selected-mesh-rotation-axis axis (+ (j/get-in mesh [:initial-rotation axis])
                                                                      (j/get mesh :accumulated-rotation))))))))
 
-(defn create-rotation-gizmo-on-drag-end [axis]
-  (fn []
-    (when-let [mesh (api.core/selected-mesh)]
-      (j/assoc-in! mesh [:rotation axis] (+ (j/get-in mesh [:initial-rotation axis]) (j/get mesh :accumulated-rotation)))
-      #_(let [[axis1 axis2] (case axis
-                              :x [:y :z]
-                              :y [:x :z]
-                              :z [:x :y])]
-          (j/assoc-in! mesh [:rotation axis1] (j/get-in mesh [:initial-rotation axis1]))
-          (j/assoc-in! mesh [:rotation axis2] (j/get-in mesh [:initial-rotation axis2])))
-      (j/assoc-in! mesh [:initial-rotation axis] (j/get-in mesh [:rotation axis]))
-      (ui.notifier/notify-ui-selected-mesh)
-      (slide/update-slide-data mesh :rotation (api.core/v3->v (j/get mesh :rotation))))))
-
 (defn- create-rotation-gizmo-drag-observables [gizmo-manager]
-  (j/call-in gizmo-manager [:gizmos :rotationGizmo :xGizmo :dragBehavior :onDragStartObservable :add]
-             (create-rotation-gizmo-on-drag-start :x))
-  (j/call-in gizmo-manager [:gizmos :rotationGizmo :xGizmo :dragBehavior :onDragObservable :add]
-             (create-rotation-gizmo-on-drag :x))
-  (j/call-in gizmo-manager [:gizmos :rotationGizmo :xGizmo :dragBehavior :onDragEndObservable :add]
-             (create-rotation-gizmo-on-drag-end :x))
+  (let [init-rot (atom nil)
+        create-rotation-gizmo-on-drag-start (fn [axis]
+                                              (let [last-rotation-kw (case axis
+                                                                       :x :last-rotation-x
+                                                                       :y :last-rotation-y
+                                                                       :z :last-rotation-z)]
+                                                (when-let [mesh (api.core/selected-mesh)]
+                                                  (when-let [initial-rotation (j/get mesh :initial-rotation)]
+                                                    (let [mesh-rotation (j/get mesh :rotation)]
+                                                      (reset! init-rot (api.core/clone mesh-rotation))
+                                                      (j/assoc! mesh
+                                                                :initial-rotation (api.core/set-v3 initial-rotation
+                                                                                                   (j/get mesh-rotation :x)
+                                                                                                   (j/get mesh-rotation :y)
+                                                                                                   (j/get mesh-rotation :z))
+                                                                :accumulated-rotation 0
+                                                                last-rotation-kw (j/get mesh-rotation axis)))))))
+        create-rotation-gizmo-on-drag-end (fn [axis]
+                                            (when-let [mesh (api.core/selected-mesh)]
+                                              (j/assoc-in! mesh [:rotation axis] (+ (j/get-in mesh [:initial-rotation axis])
+                                                                                    (j/get mesh :accumulated-rotation)))
+                                              (j/assoc-in! mesh [:initial-rotation axis] (j/get-in mesh [:rotation axis]))
+                                              (undo.redo/create-action {:type :update-rotation
+                                                                        :id (api.core/get-object-name mesh)
+                                                                        :params {:from @init-rot
+                                                                                 :to (api.core/clone (j/get mesh :rotation))}})
+                                              (ui.notifier/notify-ui-selected-mesh)
+                                              (slide/update-slide-data mesh :rotation (api.core/v3->v (j/get mesh :rotation)))))]
+    (j/call-in gizmo-manager [:gizmos :rotationGizmo :xGizmo :dragBehavior :onDragStartObservable :add]
+               #(create-rotation-gizmo-on-drag-start :x))
+    (j/call-in gizmo-manager [:gizmos :rotationGizmo :xGizmo :dragBehavior :onDragObservable :add]
+               (create-rotation-gizmo-on-drag :x))
+    (j/call-in gizmo-manager [:gizmos :rotationGizmo :xGizmo :dragBehavior :onDragEndObservable :add]
+               #(create-rotation-gizmo-on-drag-end :x))
 
-  (j/call-in gizmo-manager [:gizmos :rotationGizmo :yGizmo :dragBehavior :onDragStartObservable :add]
-             (create-rotation-gizmo-on-drag-start :y))
-  (j/call-in gizmo-manager [:gizmos :rotationGizmo :yGizmo :dragBehavior :onDragObservable :add]
-             (create-rotation-gizmo-on-drag :y))
-  (j/call-in gizmo-manager [:gizmos :rotationGizmo :yGizmo :dragBehavior :onDragEndObservable :add]
-             (create-rotation-gizmo-on-drag-end :y))
+    (j/call-in gizmo-manager [:gizmos :rotationGizmo :yGizmo :dragBehavior :onDragStartObservable :add]
+               #(create-rotation-gizmo-on-drag-start :y))
+    (j/call-in gizmo-manager [:gizmos :rotationGizmo :yGizmo :dragBehavior :onDragObservable :add]
+               (create-rotation-gizmo-on-drag :y))
+    (j/call-in gizmo-manager [:gizmos :rotationGizmo :yGizmo :dragBehavior :onDragEndObservable :add]
+               #(create-rotation-gizmo-on-drag-end :y))
 
-  (j/call-in gizmo-manager [:gizmos :rotationGizmo :zGizmo :dragBehavior :onDragStartObservable :add]
-             (create-rotation-gizmo-on-drag-start :z))
-  (j/call-in gizmo-manager [:gizmos :rotationGizmo :zGizmo :dragBehavior :onDragObservable :add]
-             (create-rotation-gizmo-on-drag :z))
-  (j/call-in gizmo-manager [:gizmos :rotationGizmo :zGizmo :dragBehavior :onDragEndObservable :add]
-             (create-rotation-gizmo-on-drag-end :z)))
+    (j/call-in gizmo-manager [:gizmos :rotationGizmo :zGizmo :dragBehavior :onDragStartObservable :add]
+               #(create-rotation-gizmo-on-drag-start :z))
+    (j/call-in gizmo-manager [:gizmos :rotationGizmo :zGizmo :dragBehavior :onDragObservable :add]
+               (create-rotation-gizmo-on-drag :z))
+    (j/call-in gizmo-manager [:gizmos :rotationGizmo :zGizmo :dragBehavior :onDragEndObservable :add]
+               #(create-rotation-gizmo-on-drag-end :z))))
 
 (defn- update-slide-data-for-position []
   (let [mesh (api.core/selected-mesh)]
@@ -178,6 +175,7 @@
 
 (defn- add-drag-observables [gizmo-manager]
   (let [init-pos (atom nil)
+        init-sca (atom nil)
         f (fn []
             (set-distance-of-mesh-and-camera)
             (ui.notifier/notify-ui-selected-mesh))]
@@ -195,11 +193,19 @@
                                              :id (api.core/get-object-name mesh)
                                              :params {:from @init-pos
                                                       :to (api.core/clone (j/get mesh :position))}}))))
+    (j/call-in gizmo-manager [:gizmos :scaleGizmo :onDragStartObservable :add]
+               (fn []
+                 (when-let [mesh (api.core/selected-mesh)]
+                   (reset! init-sca (api.core/clone (j/get mesh :scaling))))))
     (j/call-in gizmo-manager [:gizmos :scaleGizmo :onDragObservable :add] f)
     (j/call-in gizmo-manager [:gizmos :scaleGizmo :onDragEndObservable :add]
                (fn []
                  (f)
                  (let [mesh (api.core/selected-mesh)]
+                   (undo.redo/create-action {:type :update-scale
+                                             :id (api.core/get-object-name mesh)
+                                             :params {:from @init-sca
+                                                      :to (api.core/clone (j/get mesh :scaling))}})
                    (some-> mesh (slide/update-slide-data :scale (api.core/v3->v (j/get mesh :scaling)))))))
     (create-rotation-gizmo-drag-observables gizmo-manager)))
 

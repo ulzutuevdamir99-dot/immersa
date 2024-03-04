@@ -399,9 +399,13 @@
                     auth (getAuth)]
                 (m/js-await [token (getToken #js {:template "integration_firebase"})]
                   (m/js-await [userCredentials (signInWithCustomToken auth token)]))
-                (crisp-chat/set-user-email email)
-                (when-not (str/blank? full-name)
-                  (crisp-chat/set-user-name full-name))
+
+                (try
+                  (crisp-chat/set-user-email email)
+                  (when-not (str/blank? full-name)
+                    (crisp-chat/set-user-name full-name))
+                  (catch js/Error e
+                    (js/console.error e)))
                 (firebase/get-last-uploaded-files
                   {:type :image
                    :user-id user-id

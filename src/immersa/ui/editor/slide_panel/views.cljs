@@ -18,6 +18,7 @@
     ["react" :as react]
     [applied-science.js-interop :as j]
     [immersa.common.shortcut :as shortcut]
+    [immersa.scene.undo-redo :as undo.redo]
     [immersa.ui.editor.components.button :refer [button]]
     [immersa.ui.editor.components.context-menu :refer [context-menu context-menu-item]]
     [immersa.ui.editor.components.dropdown :refer [dropdown dropdown-item option-text]]
@@ -40,13 +41,30 @@
 (defn- to-clj-map [hash-map]
   (js->clj hash-map :keywordize-keys true))
 
-(defn- click-prev-slide [props index-state]
-  (when-let [id (j/get (:items props) (dec @index-state))]
-    (some-> (js/document.getElementById (str "slide-container-" id)) .click)))
+(defn- create-go-to-slide-action [{:keys [from to items]}]
+  (when (not= from to)
+    (undo.redo/create-action {:type :go-to-slide
+                              :params {:from from
+                                       :to to
+                                       :items items}})))
 
-(defn- click-next-slide [props index-state]
-  (when-let [id (j/get (:items props) (inc @index-state))]
-    (some-> (js/document.getElementById (str "slide-container-" id)) .click)))
+(defn- go-to-prev-slide [props]
+  (when-let [index (.indexOf (:items props) (:id props))]
+    (when-let [prev-id (j/get (:items props) (dec index))]
+      (when-let [next-index (.indexOf (:items props) prev-id)]
+        (create-go-to-slide-action {:from (:id props)
+                                    :to prev-id
+                                    :items (:items props)})
+        (dispatch [::events/go-to-slide next-index])))))
+
+(defn- go-to-next-slide [props]
+  (when-let [index (.indexOf (:items props) (:id props))]
+    (when-let [next-id (j/get (:items props) (inc index))]
+      (when-let [next-index (.indexOf (:items props) next-id)]
+        (create-go-to-slide-action {:from (:id props)
+                                    :to next-id
+                                    :items (:items props)})
+        (dispatch [::events/go-to-slide next-index])))))
 
 (defn- slide [props]
   (let [{:keys [attributes
@@ -56,7 +74,7 @@
                 transition]} (to-clj-map (useSortable (clj->js {:id (:id props)})))
         index (.indexOf (:items props) (:id props))
         current-index @(subscribe [::subs/slides-current-index])
-        index-state (atom current-index)
+        current-index-state (atom current-index)
         thumbnail @(subscribe [::subs/slide-thumbnail index])
         camera-unlocked? (not @(subscribe [::subs/camera-locked?]))
         selected? (= index current-index)
@@ -88,7 +106,11 @@
                                 :z-index (if (= (:id props) @(:dragging-slide-id props)) 9 0)
                                 :transform (j/call-in CSS [:Transform :toString] transform-js)
                                 :transition transition}
-                        :on-click #(dispatch [::events/go-to-slide index])}
+                        :on-click #(do
+                                     (dispatch [::events/go-to-slide index])
+                                     (create-go-to-slide-action {:from (j/get (:items props) @current-index-state)
+                                                                 :to (:id props)
+                                                                 :items (:items props)}))}
                        attributes
                        listeners)
                 [:div
@@ -124,14 +146,14 @@
                                       (when-not (j/get e :repeat)
                                         (when (or (= "ArrowDown" (j/get e :code))
                                                   (= "ArrowRight" (j/get e :code)))
-                                          (click-next-slide props index-state))
+                                          (go-to-next-slide props))
 
                                         (when (or (= "ArrowUp" (j/get e :code))
                                                   (= "ArrowLeft" (j/get e :code)))
-                                          (click-prev-slide props index-state))
+                                          (go-to-prev-slide props))
 
                                         (when (shortcut/call-shortcut-action-with-event :delete-slide e)
-                                          (click-prev-slide props index-state))
+                                          (go-to-prev-slide props))
                                         (shortcut/call-shortcut-action-with-event :add-slide e)))
                        :on-click #(some-> (js/document.getElementById (str "slide-container-" (:id props))) .focus)}
                  [:img {:src thumbnail

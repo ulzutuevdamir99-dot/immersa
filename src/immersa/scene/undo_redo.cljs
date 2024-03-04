@@ -6,19 +6,24 @@
     [immersa.scene.api.core :as api.core]
     [immersa.scene.api.mesh :as api.mesh]
     [immersa.scene.slide :as slide]
-    [immersa.scene.ui-notifier :as ui.notifier]))
+    [immersa.scene.ui-notifier :as ui.notifier]
+    [immersa.ui.editor.events :as events]
+    [re-frame.core :refer [dispatch]]))
 
 (defonce undo-stack #js [])
 (defonce redo-stack #js [])
 
 (defonce order (atom 0))
-(def capacity 50)
+(def capacity 100)
 
 (def blocked-fields #{"INPUT" "TEXTAREA"})
 
 (def action->reverse-action
   {:create-text :dispose-text
-   :update-position :revert-position})
+   :update-position :revert-position
+   :update-rotation :revert-rotation
+   :update-scale :revert-scale
+   :go-to-slide :back-to-slide})
 
 (defmulti execute :type)
 
@@ -44,8 +49,41 @@
     (some-> mesh (slide/update-slide-data :position (api.core/v3->v (j/get mesh :position))))
     (ui.notifier/notify-ui-selected-mesh mesh)))
 
+(defmethod execute :update-rotation [{:keys [id params]}]
+  (let [to (:to params)
+        mesh (api.core/get-object-by-name id)]
+    (j/assoc! mesh :rotation (api.core/clone to))
+    (some-> mesh (slide/update-slide-data :rotation (api.core/v3->v (j/get mesh :rotation))))
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :revert-rotation [{:keys [id params]}]
+  (let [from (:from params)
+        mesh (api.core/get-object-by-name id)]
+    (j/assoc! mesh :rotation (api.core/clone from))
+    (some-> mesh (slide/update-slide-data :rotation (api.core/v3->v (j/get mesh :rotation))))
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :update-scale [{:keys [id params]}]
+  (let [to (:to params)
+        mesh (api.core/get-object-by-name id)]
+    (j/assoc! mesh :scaling (api.core/clone to))
+    (some-> mesh (slide/update-slide-data :scale (api.core/v3->v (j/get mesh :scaling))))
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :revert-scale [{:keys [id params]}]
+  (let [from (:from params)
+        mesh (api.core/get-object-by-name id)]
+    (j/assoc! mesh :scaling (api.core/clone from))
+    (some-> mesh (slide/update-slide-data :scale (api.core/v3->v (j/get mesh :scaling))))
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :go-to-slide [{{:keys [to items]} :params}]
+  (dispatch [::events/go-to-slide (.indexOf items to)]))
+
+(defmethod execute :back-to-slide [{{:keys [from items]} :params}]
+  (dispatch [::events/go-to-slide (.indexOf items from)]))
+
 (defmethod execute :default [name]
-  (println "name: " name)
   (println "default execute!"))
 
 (defn- notify-ui []
@@ -57,16 +95,15 @@
   (when (> (j/get undo-stack :length) capacity)
     (j/call undo-stack :shift))
   (j/assoc! redo-stack :length 0)
-  (notify-ui)
-  undo-stack)
+  (notify-ui))
 
 (defn undo []
-  (println "undo called")
   (let [action (j/call undo-stack :pop)]
     (when action
       (execute (update action :type action->reverse-action))
       (j/call redo-stack :push action))
-    (notify-ui)))
+    (notify-ui)
+    undo-stack))
 
 (defn redo []
   (let [action (j/call redo-stack :pop)]
@@ -108,6 +145,7 @@
   redo-stack
 
   (j/assoc! undo-stack :length 0)
+  (j/assoc! redo-stack :length 0)
   (j/call undo-stack :push "a")
   (j/call undo-stack :pop)
   )
