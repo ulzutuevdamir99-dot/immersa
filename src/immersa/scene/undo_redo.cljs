@@ -79,10 +79,16 @@
 
 ;; TODO need to find a way for async actions like go-to-slide and back-to-slide
 (defmethod execute :go-to-slide [{{:keys [to items]} :params}]
-  (dispatch [::events/go-to-slide (.indexOf items to)]))
+  (let [index (.indexOf items to)]
+    (dispatch [::events/go-to-slide index])
+    ;; to be able to force animations to be executed
+    (js/setTimeout #(dispatch [::events/go-to-slide index]) 10)))
 
 (defmethod execute :back-to-slide [{{:keys [from items]} :params}]
-  (dispatch [::events/go-to-slide (.indexOf items from)]))
+  (let [index (.indexOf items from)]
+    (dispatch [::events/go-to-slide index])
+    ;; to be able to force animations to be executed
+    (js/setTimeout #(dispatch [::events/go-to-slide index]) 10)))
 
 (defmethod execute :default [name]
   (println "default execute!"))
