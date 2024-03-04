@@ -37,10 +37,14 @@
                                  :transparent? (api.core/get-node-attr mesh :transparent?)
                                  :face-to-screen? (api.core/get-node-attr mesh :face-to-screen?)})]))))
 
-(defn notify-ui-selected-mesh [mesh]
-  (let [name (j/get mesh :immersa-id)
-        type (api.core/get-object-type-by-name name)]
-    (update-ui-by-selected-mesh-type name type mesh)))
+(defn notify-ui-selected-mesh
+  ([]
+   (notify-ui-selected-mesh (api.core/selected-mesh)))
+  ([mesh]
+   (when mesh
+     (let [name (api.core/get-object-name mesh)
+           type (api.core/get-object-type-by-name name)]
+       (update-ui-by-selected-mesh-type name type mesh)))))
 
 (defn notify-ui-selected-mesh-rotation-axis [axis value]
   (dispatch [::events/update-selected-mesh-rotation-axis axis (-> value
@@ -60,6 +64,9 @@
 
 (defn notify-ground-state [enabled?]
   (dispatch [::editor.events/notify-ground-state enabled?]))
+
+(defn notify-undo-redo-state [state]
+  (dispatch [::editor.events/notify-undo-redo-state state]))
 
 (comment
   (j/assoc! (first (api.core/get-objects-by-type "image")) [:material :alpha] 0.1)

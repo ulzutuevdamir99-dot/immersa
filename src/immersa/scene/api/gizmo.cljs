@@ -8,6 +8,7 @@
     [immersa.scene.macros :as m]
     [immersa.scene.slide :as slide]
     [immersa.scene.ui-notifier :as ui.notifier]
+    [immersa.scene.undo-redo :as undo.redo]
     [immersa.scene.utils :as utils]
     [immersa.ui.editor.events :as events]
     [re-frame.core :refer [dispatch]]))
@@ -89,7 +90,8 @@
             (j/assoc-in! (api.core/get-bb-renderer) [:frontColor] outline-color-linked))
           (j/assoc! mesh :showBoundingBox true))
         (render-outline-selected-mesh mesh linked-type))
-      (ui.notifier/notify-ui-selected-mesh (j/assoc! mesh :linked-type linked-type))))
+      (j/assoc! mesh :linked-type linked-type)
+      (ui.notifier/notify-ui-selected-mesh)))
   (when-not mesh
     (dispatch [::events/remove-selected-mesh])))
 
@@ -144,7 +146,7 @@
           (j/assoc-in! mesh [:rotation axis1] (j/get-in mesh [:initial-rotation axis1]))
           (j/assoc-in! mesh [:rotation axis2] (j/get-in mesh [:initial-rotation axis2])))
       (j/assoc-in! mesh [:initial-rotation axis] (j/get-in mesh [:rotation axis]))
-      (ui.notifier/notify-ui-selected-mesh mesh)
+      (ui.notifier/notify-ui-selected-mesh)
       (slide/update-slide-data mesh :rotation (api.core/v3->v (j/get mesh :rotation))))))
 
 (defn- create-rotation-gizmo-drag-observables [gizmo-manager]
@@ -169,23 +171,30 @@
   (j/call-in gizmo-manager [:gizmos :rotationGizmo :zGizmo :dragBehavior :onDragEndObservable :add]
              (create-rotation-gizmo-on-drag-end :z)))
 
-(defn- notify-ui-selected-mesh []
-  (some-> (api.core/selected-mesh) ui.notifier/notify-ui-selected-mesh))
-
 (defn- update-slide-data-for-position []
   (let [mesh (api.core/selected-mesh)]
-    (notify-ui-selected-mesh)
+    (ui.notifier/notify-ui-selected-mesh)
     (some-> mesh (slide/update-slide-data :position (api.core/v3->v (j/get mesh :position))))))
 
 (defn- add-drag-observables [gizmo-manager]
-  (let [f (fn []
+  (let [init-pos (atom nil)
+        f (fn []
             (set-distance-of-mesh-and-camera)
-            (notify-ui-selected-mesh))]
+            (ui.notifier/notify-ui-selected-mesh))]
+    (j/call-in gizmo-manager [:gizmos :positionGizmo :onDragStartObservable :add]
+               (fn []
+                 (when-let [mesh (api.core/selected-mesh)]
+                   (reset! init-pos (api.core/clone (j/get mesh :position))))))
     (j/call-in gizmo-manager [:gizmos :positionGizmo :onDragObservable :add] f)
     (j/call-in gizmo-manager [:gizmos :positionGizmo :onDragEndObservable :add]
                (fn []
                  (f)
-                 (update-slide-data-for-position)))
+                 (update-slide-data-for-position)
+                 (when-let [mesh (api.core/selected-mesh)]
+                   (undo.redo/create-action {:type :update-position
+                                             :id (api.core/get-object-name mesh)
+                                             :params {:from @init-pos
+                                                      :to (api.core/clone (j/get mesh :position))}}))))
     (j/call-in gizmo-manager [:gizmos :scaleGizmo :onDragObservable :add] f)
     (j/call-in gizmo-manager [:gizmos :scaleGizmo :onDragEndObservable :add]
                (fn []
@@ -223,13 +232,25 @@
 (defn- init-pointer-drag-behaviour []
   (let [pdb (j/assoc! (PointerDragBehavior. #js {:moveAttached false})
                       :useObjectOrientationForDragging false
-                      :updateDragPlane false)]
-    (j/call-in pdb [:onDragStartObservable :add] set-distance-of-mesh-and-camera)
-    (j/call-in pdb [:onDragObservable :add] notify-ui-selected-mesh)
-    (j/call-in pdb [:onDragEndObservable :add] (fn []
-                                                 (adjust-distance-to-camera (api.core/selected-mesh) distance)
-                                                 (notify-ui-selected-mesh)
-                                                 (update-slide-data-for-position)))
+                      :updateDragPlane false)
+        init-pos (atom nil)]
+    (j/call-in pdb [:onDragStartObservable :add] (fn []
+                                                   (set-distance-of-mesh-and-camera)
+                                                   (when-let [mesh (api.core/selected-mesh)]
+                                                     (reset! init-pos (api.core/clone (j/get mesh :position))))))
+    (j/call-in pdb [:onDragObservable :add] (fn []
+                                              (ui.notifier/notify-ui-selected-mesh)))
+    (j/call-in pdb [:onDragEndObservable :add]
+               (fn []
+                 (adjust-distance-to-camera (api.core/selected-mesh) distance)
+                 (ui.notifier/notify-ui-selected-mesh)
+                 (update-slide-data-for-position)
+                 (when-let [mesh (api.core/selected-mesh)]
+                   (when (> (api.core/distance @init-pos (j/get mesh :position)) 0)
+                     (undo.redo/create-action {:type :update-position
+                                               :id (api.core/get-object-name mesh)
+                                               :params {:from @init-pos
+                                                        :to (api.core/clone (j/get mesh :position))}})))))
     pdb))
 
 (defn init-gizmo-manager []

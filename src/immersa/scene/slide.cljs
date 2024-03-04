@@ -212,7 +212,7 @@
                        (assoc m :color (mapv #(* % (calculate-brightness-factor (:brightness m))) (:color m))))]
     (sp/transform [sp/ALL :data :skybox :background] adjust-color slides)))
 
-(defn- parse-slides [slides]
+(defn parse-slides [slides]
   (walk/prewalk
     (fn [form]
       (->> form
@@ -666,6 +666,15 @@
   (let [index @current-slide-index]
     (sp/setval [sp/ATOM index :data (api.core/get-object-name obj)] params all-slides)
     (sp/setval [sp/ATOM (api.core/get-object-name obj)] params prev-slide)))
+
+(defn delete-slide-data [obj-or-name]
+  (let [id (if (string? obj-or-name)
+             obj-or-name
+             (api.core/get-object-name obj-or-name))
+        current-index @current-slide-index]
+    (api.core/clear-selected-mesh)
+    (sp/setval [sp/ATOM current-index :data id] sp/NONE all-slides)
+    (sp/setval [sp/ATOM id] sp/NONE prev-slide)))
 
 (defn update-slide-data [obj k v]
   (let [index @current-slide-index

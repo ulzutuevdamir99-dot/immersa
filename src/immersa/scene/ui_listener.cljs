@@ -13,6 +13,7 @@
     [immersa.scene.api.mesh :as api.mesh]
     [immersa.scene.slide :as slide]
     [immersa.scene.ui-notifier :as ui.notifier]
+    [immersa.scene.undo-redo :as undo.redo]
     [immersa.ui.editor.events :as editor.events]
     [immersa.ui.present.events :as present.events]
     [re-frame.core :refer [dispatch]])
@@ -174,14 +175,14 @@
     (when (api.core/get-node-attr mesh :face-to-screen?)
       (j/assoc! (api.core/gizmo-manager) :rotationGizmoEnabled false)
       (ui.notifier/notify-gizmo-state :rotation false))
-    (ui.notifier/notify-ui-selected-mesh mesh)))
+    (ui.notifier/notify-ui-selected-mesh)))
 
 (defmethod handle-ui-update :update-selected-image-mesh-transparent? [{{:keys [value]} :data}]
   (when-let [mesh (api.core/selected-mesh)]
     (j/assoc-in! mesh [:material :diffuseTexture :hasAlpha] value)
     (slide/update-slide-data mesh :transparent? value)
     (api.core/update-node-attr mesh :transparent? value)
-    (ui.notifier/notify-ui-selected-mesh mesh)))
+    (ui.notifier/notify-ui-selected-mesh)))
 
 (defmethod handle-ui-update :update-gizmo-visibility [{{:keys [update value]} :data}]
   (case update
@@ -240,6 +241,7 @@
 
 (defmethod handle-ui-update :add-text-mesh [_]
   (let [new-pos (get-pos-from-camera-dir)
+        uuid (str (random-uuid))
         params {:type :text3D
                 :text "Text"
                 :face-to-screen? true
@@ -253,21 +255,16 @@
                 :depth 0.01
                 :size 1.0
                 :color (api.const/color-black)}
-        mesh (api.mesh/text (str (random-uuid)) params)
-        #_#_direction (-> (j/get mesh :position)
-                          (j/call :subtract (j/get camera :position))
-                          (j/call :normalize))
-        #_#_target-position (-> (j/get mesh :position)
-                                (j/call :add direction))]
-    ;; (j/call mesh :lookAt target-position)
-    ;; (j/assoc-in! mesh [:rotation :x] 0)
-    ;; (j/assoc-in! mesh [:rotation :z] 0)
-    (slide/add-slide-data mesh (-> params
-                                   (update :position api.core/v3->v)
-                                   ;; (assoc :rotation (api.core/v3->v (j/get mesh :rotation))
-                                   (update :rotation api.core/v3->v)
-                                   (update :scale api.core/v3->v)
-                                   (update :color api.core/color->v)))
+        mesh (api.mesh/text uuid params)
+        params (-> params
+                   (update :position api.core/v3->v)
+                   (update :rotation api.core/v3->v)
+                   (update :scale api.core/v3->v)
+                   (update :color api.core/color->v))]
+    (slide/add-slide-data mesh params)
+    (undo.redo/create-action {:type :create-text
+                              :id uuid
+                              :params params})
     (j/call-in api.core/db [:gizmo :manager :attachToMesh] mesh)))
 
 (defmethod handle-ui-update :add-image [{{:keys [value]} :data}]

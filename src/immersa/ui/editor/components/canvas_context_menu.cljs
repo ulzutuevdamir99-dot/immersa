@@ -31,6 +31,25 @@
                          :shortcut (shortcut/get-shortcut-key-labels :paste)}]
      :on-select #(shortcut/call-shortcut-action :paste)}]])
 
+(defn- undo-redo-options []
+  [:div {:style {:display "flex"
+                 :flex-direction "column"
+                 :gap gap}}
+   [dropdown-item
+    {:item [option-text {:label "Undo"
+                         :icon [icon/undo {:size 16
+                                           :color colors/text-primary}]
+                         :shortcut (shortcut/get-shortcut-key-labels :undo)}]
+     :on-select #(shortcut/call-shortcut-action :undo)
+     :disabled? (not @(subscribe [::subs/undo?]))}]
+   [dropdown-item
+    {:item [option-text {:label "Redo"
+                         :icon [icon/redo {:size 16
+                                           :color colors/text-primary}]
+                         :shortcut (shortcut/get-shortcut-key-labels :redo)}]
+     :on-select #(shortcut/call-shortcut-action :redo)
+     :disabled? (not @(subscribe [::subs/redo?]))}]])
+
 (defn- selected-object-options []
   [:div {:style {:display "flex"
                  :flex-direction "column"
@@ -136,5 +155,7 @@
                    (if @(subscribe [::subs/selected-mesh])
                      [selected-object-options]
                      [main-options])
+                   [dropdown-separator]
+                   [undo-redo-options]
                    [dropdown-separator]
                    [camera-options]]}])))

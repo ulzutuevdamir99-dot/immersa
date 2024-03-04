@@ -12,7 +12,8 @@
     [immersa.scene.api.gizmo :as api.gizmo]
     [immersa.scene.slide :as slide]
     [immersa.scene.ui-listener :as ui-listener]
-    [immersa.scene.ui-notifier :as ui.notifier]))
+    [immersa.scene.ui-notifier :as ui.notifier]
+    [immersa.scene.undo-redo :as undo.redo]))
 
 (defn- mac? []
   device/isMacOs)
@@ -88,6 +89,19 @@
           :pred (fn [info key]
                   (and (cmd? info) (= key "c") (api.core/selected-mesh)))
           :action #(common.utils/copy-to-clipboard (get-selected-object-data))}
+   :undo {:label "Undo"
+          :shortcut ["⌘" "z"]
+          :ui-only? true
+          :pred (fn [info key]
+                  (and (cmd? info) (= key "z")))
+          :action undo.redo/undo}
+   :redo {:label "Redo"
+          :shortcut ["⌘" "y"]
+          :ui-only? true
+          :pred (fn [info key]
+                  (or (and (cmd? info) (= key "y"))
+                      (and (cmd? info) (= key "z") (shift? info))))
+          :action undo.redo/redo}
    :paste {:label "Paste"
            :shortcut ["⌘" "v"]
            :pred (fn [info key]
@@ -171,7 +185,7 @@
                     :action (fn []
                               (let [mesh (api.core/selected-mesh)]
                                 (reset-position mesh)
-                                (ui.notifier/notify-ui-selected-mesh mesh)))}
+                                (ui.notifier/notify-ui-selected-mesh)))}
    :reset-rotation {:label "Reset rotation"
                     :shortcut ["shift" "r"]
                     :pred (fn [info key]
@@ -179,7 +193,7 @@
                     :action (fn []
                               (let [mesh (api.core/selected-mesh)]
                                 (reset-rotation mesh)
-                                (ui.notifier/notify-ui-selected-mesh mesh)))}
+                                (ui.notifier/notify-ui-selected-mesh)))}
    :reset-scale {:label "Reset scale"
                  :shortcut ["shift" "s"]
                  :pred (fn [info key]
@@ -187,7 +201,7 @@
                  :action (fn []
                            (let [mesh (api.core/selected-mesh)]
                              (reset-scale mesh)
-                             (ui.notifier/notify-ui-selected-mesh mesh)))}
+                             (ui.notifier/notify-ui-selected-mesh)))}
    :reset-initials {:label "Reset initials"
                     :shortcut ["shift" "i"]
                     :pred (fn [info key]
@@ -198,7 +212,7 @@
                                 (reset-rotation mesh)
                                 (when-not (= "text3D" (api.core/selected-mesh-type))
                                   (reset-scale mesh))
-                                (ui.notifier/notify-ui-selected-mesh mesh)))}
+                                (ui.notifier/notify-ui-selected-mesh)))}
    :toggle-camera-lock {:label "Toggle camera lock"
                         :shortcut ["shift" "l"]
                         :pred (fn [info key]

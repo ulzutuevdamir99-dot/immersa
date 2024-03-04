@@ -210,3 +210,13 @@
   ::scene-ready?
   (fn [db]
     (-> db :editor :scene-ready?)))
+
+(reg-sub
+  ::undo?
+  (fn [db]
+    (-> db :editor :undo?)))
+
+(reg-sub
+  ::redo?
+  (fn [db]
+    (-> db :editor :redo?)))

@@ -1,6 +1,8 @@
 (ns immersa.ui.icons
   (:require
     ["@phosphor-icons/react/dist/csr/ArrowArcLeft" :refer [ArrowArcLeft]]
+    ["@phosphor-icons/react/dist/csr/ArrowClockwise" :refer [ArrowClockwise]]
+    ["@phosphor-icons/react/dist/csr/ArrowCounterClockwise" :refer [ArrowCounterClockwise]]
     ["@phosphor-icons/react/dist/csr/ArrowFatLeft" :refer [ArrowFatLeft]]
     ["@phosphor-icons/react/dist/csr/ArrowFatRight" :refer [ArrowFatRight]]
     ["@phosphor-icons/react/dist/csr/ArrowUUpLeft" :refer [ArrowUUpLeft]]
@@ -74,3 +76,5 @@
 (def reset-rot (r/adapt-react-class ArrowsClockwise))
 (def reset-sca (r/adapt-react-class ArrowsOutSimple))
 (def reset-cam (r/adapt-react-class ArrowArcLeft))
+(def undo (r/adapt-react-class ArrowCounterClockwise))
+(def redo (r/adapt-react-class ArrowClockwise))

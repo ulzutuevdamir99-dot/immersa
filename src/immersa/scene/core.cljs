@@ -23,6 +23,7 @@
     [immersa.scene.api.mesh :as api.mesh]
     [immersa.scene.slide :as slide]
     [immersa.scene.ui-listener :as ui-listener]
+    [immersa.scene.undo-redo :as undo.redo]
     [immersa.scene.utils :as utils]
     [immersa.ui.editor.events :as editor.events]
     [immersa.ui.events :as main.events]
@@ -146,7 +147,7 @@
 (defn- update-bounding-box-renderer [scene]
   (j/assoc! (api.core/get-bb-renderer) :showBackLines false))
 
-(defn when-scene-ready [engine scene mode slides thumbnails]
+(defn when-scene-ready [engine scene mode slides thumbnails present-state]
   (api.core/clear-scene-color (api.const/color-white))
   (j/assoc-in! (api.core/get-object-by-name "sky-box") [:rotation :y] js/Math.PI)
   (api.gui/advanced-dynamic-texture)
@@ -160,7 +161,8 @@
               (update-bounding-box-renderer scene)
               (slide/start-slide-show {:mode mode
                                        :slides slides
-                                       :thumbnails thumbnails}))
+                                       :thumbnails thumbnails})
+              (undo.redo/init present-state))
     :present (do
                (slide/start-slide-show {:mode mode
                                         :slides slides})
@@ -173,6 +175,7 @@
                     :wasmBinaryFile "js/draco/draco_decoder_gltf.js"}))
 
 (defn start-scene [canvas & {:keys [start-slide-show?
+                                    present-state
                                     mode
                                     dev?
                                     slides
@@ -226,7 +229,7 @@
       (j/call free-camera :setTarget (v3))
       (j/call free-camera :attachControl canvas false)
       (j/call engine :runRenderLoop #(j/call scene :render))
-      (j/call scene :executeWhenReady #(when-scene-ready engine scene mode slides thumbnails)))))
+      (j/call scene :executeWhenReady #(when-scene-ready engine scene mode slides thumbnails present-state)))))
 
 (defn restart-engine [& {:keys [start-slide-show?
                                 dev?]

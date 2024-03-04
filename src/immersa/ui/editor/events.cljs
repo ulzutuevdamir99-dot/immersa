@@ -329,3 +329,8 @@
   ::remove-listeners-for-present-mode
   (fn []
     {:scene {:type :remove-listeners-for-present-mode}}))
+
+(reg-event-db
+  ::notify-undo-redo-state
+  (fn [db [_ state]]
+    (update db :editor merge state)))

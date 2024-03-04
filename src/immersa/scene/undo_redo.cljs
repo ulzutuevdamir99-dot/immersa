@@ -1,0 +1,113 @@
+(ns immersa.scene.undo-redo
+  (:require
+    [applied-science.js-interop :as j]
+    [clojure.string :as str]
+    [immersa.common.utils :as common.utils]
+    [immersa.scene.api.core :as api.core]
+    [immersa.scene.api.mesh :as api.mesh]
+    [immersa.scene.slide :as slide]
+    [immersa.scene.ui-notifier :as ui.notifier]))
+
+(defonce undo-stack #js [])
+(defonce redo-stack #js [])
+
+(defonce order (atom 0))
+(def capacity 50)
+
+(def blocked-fields #{"INPUT" "TEXTAREA"})
+
+(def action->reverse-action
+  {:create-text :dispose-text
+   :update-position :revert-position})
+
+(defmulti execute :type)
+
+(defmethod execute :create-text [{:keys [id params]}]
+  (let [mesh (api.mesh/text id (slide/parse-slides params))]
+    (slide/add-slide-data mesh params)))
+
+(defmethod execute :dispose-text [{:keys [id]}]
+  (slide/delete-slide-data id)
+  (api.core/dispose id))
+
+(defmethod execute :update-position [{:keys [id params]}]
+  (let [to (:to params)
+        mesh (api.core/get-object-by-name id)]
+    (j/assoc! mesh :position (api.core/clone to))
+    (some-> mesh (slide/update-slide-data :position (api.core/v3->v (j/get mesh :position))))
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :revert-position [{:keys [id params]}]
+  (let [from (:from params)
+        mesh (api.core/get-object-by-name id)]
+    (j/assoc! mesh :position (api.core/clone from))
+    (some-> mesh (slide/update-slide-data :position (api.core/v3->v (j/get mesh :position))))
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :default [name]
+  (println "name: " name)
+  (println "default execute!"))
+
+(defn- notify-ui []
+  (ui.notifier/notify-undo-redo-state {:undo? (> (count undo-stack) 0)
+                                       :redo? (> (count redo-stack) 0)}))
+
+(defn create-action [action]
+  (j/call undo-stack :push (assoc action :order (swap! order inc)))
+  (when (> (j/get undo-stack :length) capacity)
+    (j/call undo-stack :shift))
+  (j/assoc! redo-stack :length 0)
+  (notify-ui)
+  undo-stack)
+
+(defn undo []
+  (println "undo called")
+  (let [action (j/call undo-stack :pop)]
+    (when action
+      (execute (update action :type action->reverse-action))
+      (j/call redo-stack :push action))
+    (notify-ui)))
+
+(defn redo []
+  (let [action (j/call redo-stack :pop)]
+    (when action
+      (execute action)
+      (j/call undo-stack :push action))
+    (notify-ui)))
+
+(defn init [present-state]
+  (common.utils/register-event-listener
+    js/window
+    "keydown"
+    (fn [e]
+      (when (and (not @present-state)
+                 (not (j/get e :repeat))
+                 (not (blocked-fields (j/get-in js/document [:activeElement :tagName]))))
+        (when (and (or (j/get e :metaKey)
+                       (j/get e :ctrlKey))
+                   (not (j/get e :shiftKey))
+                   (= (some-> (j/get e :key) str/lower-case) "z"))
+          (.preventDefault e)
+          (undo))
+        (when (or (and (or (j/get e :metaKey)
+                           (j/get e :ctrlKey))
+                       (= (some-> (j/get e :key) str/lower-case) "y"))
+                  (and (or (j/get e :metaKey)
+                           (j/get e :ctrlKey))
+                       (j/get e :shiftKey)
+                       (= (some-> (j/get e :key) str/lower-case) "z")))
+          (.preventDefault e)
+          (redo))))))
+
+(comment
+
+  (undo)
+  (redo)
+
+  undo-stack
+  redo-stack
+
+  (j/assoc! undo-stack :length 0)
+  (j/call undo-stack :push "a")
+  (j/call undo-stack :pop)
+  )

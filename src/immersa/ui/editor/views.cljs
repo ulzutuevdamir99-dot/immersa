@@ -55,6 +55,7 @@
                                 (j/call canvas :addEventListener "blur" #(dispatch [::events/update-thumbnail]))
                                 (scene.core/start-scene canvas
                                                         {:mode :editor
+                                                         :present-state present?
                                                          :slides @(subscribe [::subs/slides-all])
                                                          :thumbnails @(subscribe [::subs/slides-thumbnails])}))
                               (when @canvas-started?
