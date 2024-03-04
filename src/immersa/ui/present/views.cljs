@@ -74,45 +74,15 @@
                                                              :borderRadius "3px"}})]
                (dispatch [::events/add-progress-bar bar]))))}])
 
-(defn- enable-wait-list [waitlist]
-  (j/assoc-in! waitlist [:style :z-index] "1")
-  (j/assoc-in! waitlist [:style :opacity] "1"))
-
-(defn- disable-wait-list [waitlist]
-  (j/assoc-in! waitlist [:style :z-index] "-1")
-  (j/assoc-in! waitlist [:style :opacity] "0"))
-
-(defn- wait-list-button []
-  (let [init? (atom false)]
-    (r/create-class
-      {:component-did-mount
-       (fn []
-         (common.utils/register-event-listener
-           js/window
-           "keydown"
-           (fn [e]
-             (when (= (j/get e :keyCode) 27)
-               (some-> (js/document.getElementById "getWaitlistContainer") disable-wait-list)))))
-       :reagent-render
-       (fn []
-         [:button
-          {:on-click (fn []
-                       (when-let [waitlist (js/document.getElementById "getWaitlistContainer")]
-                         (when-not @init?
-                           (reset! init? true)
-                           (js/setTimeout
-                             (fn []
-                               (some-> (js/document.getElementById "primaryCTA")
-                                       (common.utils/register-event-listener "click" #(disable-wait-list waitlist))))
-                             1000))
-                         (let [opacity (j/get-in waitlist [:style :opacity])]
-                           (if (= opacity "0")
-                             (enable-wait-list waitlist)
-                             (disable-wait-list waitlist)))))
-           :class [(styles/wait-list-button)
-                   (styles/wait-list-button-glow)
-                   (styles/wait-list-button-gradient-border)]}
-          "Join Waitlist"])})))
+(defn- immersa-home-page-button []
+  [:button
+   {:on-click #(js/window.open "https://immersa.app" "_blank")
+    :class [(styles/immersa-button)
+            (styles/immersa-button-glow)
+            (styles/immersa-button-gradient-border)]}
+   [:img {:src "img/logo_white.png"
+          :style {:width "70px"
+                  :padding "3px"}}]])
 
 (defn present-panel [& {:keys [mode]}]
   [:div
@@ -146,13 +116,10 @@
                   :cursor "pointer"}]]
      [:div {:id "right-controls"
             :class (styles/right-controls)}
-      [wait-list-button]
+      [immersa-home-page-button]
       [icon/control {:size 24
                      :color "white"
                      :cursor "pointer"}]
-      [icon/smiley {:size 24
-                    :color "white"
-                    :cursor "pointer"}]
       [icon/chat {:size 24
                   :color "white"
                   :cursor "pointer"}]

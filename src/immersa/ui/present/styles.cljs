@@ -95,22 +95,23 @@
    :user-select :none
    :z-index 5})
 
-(defclass wait-list-button []
-  {:font-family "'Open Sans', sans-serif"
-   :user-select :none
-   :font-size "16px"
+(defclass immersa-button []
+  {:user-select :none
    :cursor :pointer
    :transition "all 0.3s ease"
    :width "120px"
    :height "100%"
    :border-radius "50px"
-   :outline :none}
+   :outline :none
+   :display :flex
+   :align-items :center
+   :justify-content :center}
   [:&:hover {:transition "all 0.3s ease"}])
 
-(defclass wait-list-button-glow []
+(defclass immersa-button-glow []
   [:&:hover {:box-shadow "rgba(111, 76, 255, 0.5) 0px 0px 20px 0px"}])
 
-(defclass wait-list-button-gradient-border []
+(defclass immersa-button-gradient-border []
   {:color "rgba(256, 256, 256)"
    :border "2px double transparent"
    :background-image "linear-gradient(rgb(13, 14, 33), rgb(13, 14, 33)), radial-gradient(circle at left top, rgb(1, 110, 218), rgb(217, 0, 192))"
