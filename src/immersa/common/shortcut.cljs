@@ -154,7 +154,8 @@
                :ui-only? true
                :pred (fn [info key]
                        (and (cmd? info) (= key "d")))
-               :action #(ui-listener/handle-ui-update {:type :add-slide})}
+               :action #(ui-listener/handle-ui-update {:type :add-slide
+                                                       :index %})}
    :blank-slide {:label "Blank slide"
                  :shortcut ["shift" "n"]
                  :prevent-default? true

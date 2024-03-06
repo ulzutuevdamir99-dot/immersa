@@ -198,8 +198,8 @@
   (api.core/clear-selected-mesh)
   (slide/go-to-slide index))
 
-(defmethod handle-ui-update :add-slide [_]
-  (let [[index slide] (slide/add-slide)]
+(defmethod handle-ui-update :add-slide [{:keys [index]}]
+  (let [[index slide] (slide/add-slide index)]
     (undo.redo/create-action {:type :duplicate-slide
                               :params {:index index
                                        :slide slide}})))
@@ -221,14 +221,11 @@
                                        :slide slide}})))
 
 (defmethod handle-ui-update :re-order-slides [{{:keys [value]} :data}]
-  (let [[old-index new-index] value
-        old-index-slide (get @slide/all-slides old-index)
-        selected-slide-id (get-in @slide/all-slides [@slide/current-slide-index :id])
-        _ (sp/setval [sp/ATOM old-index] sp/NONE slide/all-slides)
-        _ (sp/transform sp/ATOM #(utils/vec-insert % old-index-slide new-index) slide/all-slides)
-        current-index (first (sp/select-one [sp/INDEXED-VALS #(= selected-slide-id (:id (second %)))] @slide/all-slides))]
-    (reset! slide/current-slide-index current-index)
-    (ui.notifier/sync-slides-info @slide/current-slide-index @slide/all-slides)))
+  (let [[old-index new-index] value]
+    (slide/re-order-slides old-index new-index)
+    (undo.redo/create-action {:type :re-order-slides
+                              :params {:old-index old-index
+                                       :new-index new-index}})))
 
 (defmethod handle-ui-update :create-slide-thumbnail [_]
   (slide/update-thumbnail))

@@ -89,7 +89,7 @@
                                      :icon [icon/copy {:size 16
                                                        :color colors/text-primary}]
                                      :shortcut (shortcut/get-shortcut-key-labels :add-slide)
-                                     :on-select #(shortcut/call-shortcut-action :add-slide)}]
+                                     :on-select #(shortcut/call-shortcut-action :add-slide index)}]
                  [context-menu-item {:label "Delete"
                                      :icon [icon/trash {:size 16
                                                         :color colors/warning}]

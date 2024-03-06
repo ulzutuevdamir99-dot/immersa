@@ -28,7 +28,8 @@
    :go-to-slide :back-to-slide
    :duplicate-slide :revert-duplicate-slide
    :delete-slide :revert-delete-slide
-   :blank-slide :revert-blank-slide})
+   :blank-slide :revert-blank-slide
+   :re-order-slides :revert-re-order-slides})
 
 (defmulti execute :type)
 
@@ -129,6 +130,12 @@
   (swap! slide/current-slide-index dec)
   (slide/go-to-slide @slide/current-slide-index)
   (ui.notifier/sync-slides-info @slide/current-slide-index @slide/all-slides))
+
+(defmethod execute :re-order-slides [{{:keys [old-index new-index]} :params}]
+  (slide/re-order-slides old-index new-index))
+
+(defmethod execute :revert-re-order-slides [{{:keys [old-index new-index]} :params}]
+  (slide/re-order-slides new-index old-index))
 
 (defmethod execute :default [name]
   (println "default execute!"))

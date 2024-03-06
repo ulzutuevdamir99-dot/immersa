@@ -548,9 +548,13 @@
                               :slide-in-progress? slide-in-progress?
                               :current-running-anims current-running-anims}))
 
-(comment
-  (a/put! command-ch 11)
-  )
+(defn get-slide-id-by-index [index]
+  (get-in @all-slides [index :id]))
+
+(defn get-slide-index-by-id [id]
+  (->> @all-slides
+       (sp/select-one [sp/INDEXED-VALS #(= id (:id (second %)))])
+       first))
 
 (defn duplicate-slide-data [[id params]]
   (let [mesh (api.core/get-object-by-name id)
@@ -603,11 +607,13 @@
                (conj path k))]
     (get-in @all-slides path)))
 
-(defn add-slide []
-  (let [index @current-slide-index
+(defn add-slide [index*]
+  (let [index (or index* @current-slide-index)
+        same-slide? (nil? index*)
         uuid (str (random-uuid))
         position (get-slide-data :camera :position)
-        rotation (get-slide-data :camera :rotation)]
+        rotation (get-slide-data :camera :rotation)
+        selected-slide-id (get-slide-id-by-index @current-slide-index)]
     (api.core/clear-selected-mesh)
     (swap! all-slides (fn [slides]
                         (let [duplicated-slide (-> (get slides index)
@@ -624,7 +630,9 @@
                                                      form))
                                                  duplicated-slide)]
                           (utils/vec-insert slides (assoc duplicated-slide :id uuid) (inc index)))))
-    (swap! current-slide-index inc)
+    (reset! current-slide-index (get-slide-index-by-id selected-slide-id))
+    (when same-slide?
+      (go-to-slide (inc @current-slide-index)))
     (ui.notifier/sync-slides-info @current-slide-index @all-slides)
     (update-thumbnail)
     [(inc index) (get @all-slides (inc index))]))
@@ -655,9 +663,7 @@
     (if (and index (not= index @current-slide-index))
       (let [current-selected-slide-id (get-in @all-slides [@current-slide-index :id])
             _ (sp/setval [sp/ATOM index] sp/NONE all-slides)
-            new-current-index (->> @all-slides
-                                   (sp/select-one [sp/INDEXED-VALS #(= current-selected-slide-id (:id (second %)))])
-                                   first)]
+            new-current-index (get-slide-index-by-id current-selected-slide-id)]
         (reset! current-slide-index new-current-index)
         (ui.notifier/sync-slides-info @current-slide-index @all-slides))
       (let [index @current-slide-index]
@@ -668,6 +674,15 @@
         (when-not (= index 0)
           (swap! current-slide-index dec))
         (ui.notifier/sync-slides-info @current-slide-index @all-slides)))))
+
+(defn re-order-slides [old-index new-index]
+  (let [current-selected-slide-id (get-in @all-slides [@current-slide-index :id])
+        old-index-slide (get @all-slides old-index)
+        _ (sp/setval [sp/ATOM old-index] sp/NONE all-slides)
+        _ (sp/transform sp/ATOM #(utils/vec-insert % old-index-slide new-index) all-slides)
+        current-index (get-slide-index-by-id current-selected-slide-id)]
+    (reset! current-slide-index current-index)
+    (ui.notifier/sync-slides-info @current-slide-index @all-slides)))
 
 (defn add-slide-data [obj params]
   (let [index @current-slide-index]
