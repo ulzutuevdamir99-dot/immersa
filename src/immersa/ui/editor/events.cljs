@@ -334,3 +334,14 @@
   ::notify-undo-redo-state
   (fn [db [_ state]]
     (update db :editor merge state)))
+
+(reg-event-db
+  ::save-started-index
+  (fn [db]
+    (assoc-in db [:editor :present :started-index] (-> db :editor :slides :current-index))))
+
+(reg-event-fx
+  ::go-to-started-index
+  (fn [{:keys [db]}]
+    {:scene {:type :go-to-slide
+             :data {:index (-> db :editor :present :started-index)}}}))

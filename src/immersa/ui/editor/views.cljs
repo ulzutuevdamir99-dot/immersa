@@ -371,6 +371,7 @@
                             (dispatch [::events/clear-selected-mesh])
                             (dispatch [::events/update-slide-info])
                             (dispatch [::events/add-listeners-for-present-mode])
+                            (dispatch [::events/save-started-index])
                             (let [canvas (js/document.getElementById "renderCanvas")
                                   app (js/document.getElementById "app")]
                               (j/assoc! canvas :className (styles/canvas :present))
@@ -380,6 +381,7 @@
                                    (j/call (js/document.getElementById "canvas-present-origin") :append))
                               (js/setTimeout #(dispatch [::events/resize-scene]) 200)))
      :component-will-unmount (fn []
+                               (dispatch [::events/go-to-started-index])
                                (dispatch [::events/remove-listeners-for-present-mode])
                                (let [canvas (js/document.getElementById "renderCanvas")]
                                  (->> canvas

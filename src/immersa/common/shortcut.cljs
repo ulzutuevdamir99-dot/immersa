@@ -67,11 +67,14 @@
             :action (fn []
                       (let [obj (api.core/selected-mesh)
                             id (api.core/get-object-name obj)
-                            current-index @slide/current-slide-index]
-                        (api.core/clear-selected-mesh)
-                        (sp/setval [sp/ATOM current-index :data id] sp/NONE slide/all-slides)
-                        (sp/setval [sp/ATOM id] sp/NONE slide/prev-slide)
-                        (api.core/set-enabled obj false)))}
+                            current-index @slide/current-slide-index
+                            slide-params (get-in @slide/all-slides [current-index :data id])]
+                        (slide/delete-slide-data obj)
+                        (api.core/set-enabled obj false)
+                        (undo.redo/create-action {:type :delete-object
+                                                  :id id
+                                                  :params {:slide-index current-index
+                                                           :slide-params slide-params}})))}
    :duplicate {:label "Duplicate"
                :shortcut ["⌘" "d"]
                :prevent-default? true

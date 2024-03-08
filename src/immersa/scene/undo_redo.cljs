@@ -31,7 +31,10 @@
    :delete-slide :revert-delete-slide
    :blank-slide :revert-blank-slide
    :re-order-slides :revert-re-order-slides
-   :update-text-content :revert-text-content})
+   :update-text-content :revert-text-content
+   :update-text-size :revert-text-size
+   :update-text-depth :revert-text-depth
+   :delete-object :revert-delete-object})
 
 (defmulti execute :type)
 
@@ -154,6 +157,49 @@
     (slide/update-text-mesh-with-debounce {:mesh mesh
                                            :text from})
     (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :update-text-size [{{:keys [to]} :params
+                                       id :id}]
+  (let [mesh (api.core/get-object-by-name id)]
+    (some-> mesh (slide/update-slide-data :size to))
+    (slide/update-text-mesh {:mesh mesh
+                             :size to})
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :revert-text-size [{{:keys [from]} :params
+                                       id :id}]
+  (let [mesh (api.core/get-object-by-name id)]
+    (some-> mesh (slide/update-slide-data :size from))
+    (slide/update-text-mesh {:mesh mesh
+                             :size from})
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :update-text-depth [{{:keys [to]} :params
+                                        id :id}]
+  (let [mesh (api.core/get-object-by-name id)]
+    (some-> mesh (slide/update-slide-data :depth to))
+    (slide/update-text-mesh {:mesh mesh
+                             :depth to})
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :revert-text-depth [{{:keys [from]} :params
+                                        id :id}]
+  (let [mesh (api.core/get-object-by-name id)]
+    (some-> mesh (slide/update-slide-data :depth from))
+    (slide/update-text-mesh {:mesh mesh
+                             :depth from})
+    (ui.notifier/notify-ui-selected-mesh mesh)))
+
+(defmethod execute :delete-object [{:keys [id]}]
+  (let [mesh (api.core/get-object-by-name id)]
+    (slide/delete-slide-data mesh)
+    (api.core/set-enabled mesh false)))
+
+(defmethod execute :revert-delete-object [{{:keys [slide-index slide-params]} :params
+                                           id :id}]
+  (let [mesh (api.core/get-object-by-name id)]
+    (slide/add-slide-data slide-index mesh slide-params)
+    (api.core/set-enabled mesh true)))
 
 (defmethod execute :default [name]
   (println "default execute!"))

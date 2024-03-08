@@ -222,6 +222,7 @@
    [color-picker {:text "Color"
                   :sub-key ::subs/selected-mesh-color
                   :event-key ::events/update-selected-mesh-main-color}]
+   [opacity]
    [:div {:style {:display "flex"
                   :flex-direction "column"
                   :gap "8px"}}
@@ -232,7 +233,6 @@
      [text {:weight :light} (str @(subscribe [::subs/selected-mesh-emissive-intensity]) "%")]]
     [slider {:value @(subscribe [::subs/selected-mesh-emissive-intensity])
              :on-change #(dispatch [::events/update-selected-mesh-slider-value :emissive-intensity %])}]]
-   [opacity]
    [:div {:style {:display "flex"
                   :flex-direction "column"
                   :gap "8px"}}

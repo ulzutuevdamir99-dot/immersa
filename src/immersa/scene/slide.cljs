@@ -684,10 +684,12 @@
     (reset! current-slide-index current-index)
     (ui.notifier/sync-slides-info @current-slide-index @all-slides)))
 
-(defn add-slide-data [obj params]
-  (let [index @current-slide-index]
-    (sp/setval [sp/ATOM index :data (api.core/get-object-name obj)] params all-slides)
-    (sp/setval [sp/ATOM (api.core/get-object-name obj)] params prev-slide)))
+(defn add-slide-data
+  ([obj params]
+   (add-slide-data @current-slide-index obj params))
+  ([index obj params]
+   (sp/setval [sp/ATOM index :data (api.core/get-object-name obj)] params all-slides)
+   (sp/setval [sp/ATOM (api.core/get-object-name obj)] params prev-slide)))
 
 (defn delete-slide-data [obj-or-name]
   (let [id (if (string? obj-or-name)

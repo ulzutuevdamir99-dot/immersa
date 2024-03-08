@@ -119,7 +119,11 @@
 
 (defmethod handle-ui-update :update-selected-mesh-text-depth-or-size [{{:keys [update value]} :data}]
   (let [mesh (api.core/selected-mesh)]
-    (slide/update-text-mesh (hash-map update value :mesh mesh))))
+    (slide/update-text-mesh (hash-map update value :mesh mesh))
+    (undo.redo/create-action {:type (if (= update :size) :update-text-size :update-text-depth)
+                              :id (api.core/get-object-name mesh)
+                              :params {:from (api.core/get-node-attr mesh (if (= update :size) :size :depth))
+                                       :to value}})))
 
 (defmethod handle-ui-update :update-selected-mesh-face-to-screen? [{{:keys [value]} :data}]
   (when-let [mesh (api.core/selected-mesh)]
