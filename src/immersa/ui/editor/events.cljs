@@ -1,5 +1,6 @@
 (ns immersa.ui.editor.events
   (:require
+    [applied-science.js-interop :as j]
     [clojure.string :as str]
     [immersa.common.communication :refer [fire]]
     [immersa.ui.crisp-chat :as crisp-chat]
@@ -301,7 +302,8 @@
              (assoc-in [:editor :slides :all] slides)
              (assoc-in [:editor :slides :thumbnails] thumbnails)
              (assoc-in [:editor :slides :present-state] present-state))
-     ::start-scene opts}))
+     ::start-scene opts
+     ::set-title title}))
 
 (reg-fx
   ::start-scene
@@ -311,6 +313,11 @@
                   :present-state present-state
                   :slides slides
                   :thumbnails thumbnails})))
+
+(reg-fx
+  ::set-title
+  (fn [title]
+    (j/assoc! js/document :title (str title " - Immersa"))))
 
 (reg-event-db
   ::add-thumbnail

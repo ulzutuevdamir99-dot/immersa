@@ -161,6 +161,11 @@
     (-> db :editor :slides :current-index)))
 
 (reg-sub
+  ::slides-title
+  (fn [db]
+    (-> db :editor :slides :title)))
+
+(reg-sub
   ::slides-all
   (fn [db]
     (-> db :editor :slides :all)))

@@ -100,6 +100,7 @@
    :font-weight typography/medium
    :color colors/text-primary
    :user-select :none
+   :cursor :text
    :text-overflow :ellipsis
    :white-space :nowrap
    :margin-right "4px"})

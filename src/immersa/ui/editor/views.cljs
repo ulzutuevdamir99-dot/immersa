@@ -112,7 +112,7 @@
                      :color colors/text-primary}]]
    [:div (styles/title-bar-full-width)
     [:div (styles/title-container)
-     [:span (styles/title-label) "My 3D Presentation"]
+     [:span (styles/title-label) @(subscribe [::subs/slides-title])]
      [:div (styles/private-badge)
       [icon/lock {:size 12}]
       [tooltip
