@@ -424,23 +424,23 @@
               :thumbnails thumbnails
               :present-state present?}]))
 
-#_(defn- upload-first-slide-and-thumbnail [{:keys [user-id presentation-id email full-name object]}]
-    (m/js-await [_ (firebase/upload-presentation {:user-id user-id
-                                                  :presentation-id presentation-id
-                                                  :presentation-data slides})]
-                (m/js-await [_ (firebase/upload-thumbnail {:user-id user-id
-                                                           :presentation-id presentation-id
-                                                           :slide-id "14e4ee76-bb27-4904-9d30-360a40d8abb7"
-                                                           :thumbnail (get thumbnails "14e4ee76-bb27-4904-9d30-360a40d8abb7")})]
-                            (init-app {:slides slides
-                                       :thumbnails thumbnails
-                                       :user-id user-id
-                                       :presentation-id presentation-id
-                                       :email email
-                                       :full-name full-name
-                                       :object object})
-                            (catch fail-upload-thumbnail))
-                (catch fail-upload-presentation)))
+(defn- upload-first-slide-and-thumbnail [{:keys [title user-id presentation-id email full-name]}]
+  (m/js-await [_ (firebase/upload-presentation {:user-id user-id
+                                                :presentation-id presentation-id
+                                                :presentation-data slides})]
+    (m/js-await [_ (firebase/upload-thumbnail {:user-id user-id
+                                               :presentation-id presentation-id
+                                               :slide-id "14e4ee76-bb27-4904-9d30-360a40d8abb7"
+                                               :thumbnail (get thumbnails "14e4ee76-bb27-4904-9d30-360a40d8abb7")})]
+      (init-app {:title title
+                 :slides slides
+                 :thumbnails thumbnails
+                 :user-id user-id
+                 :presentation-id presentation-id
+                 :email email
+                 :full-name full-name})
+      (catch fail-upload-thumbnail))
+    (catch fail-upload-presentation)))
 
 (defn- init-thumbnails [{:keys [user-id presentation-id]}]
   (firebase/get-thumbnails {:user-id user-id
@@ -493,13 +493,13 @@
                                                            :title "Untitled"
                                                            :created_at (-> (js/Date.)
                                                                            (j/call :toISOString))}})]
-                            (init-app {:slides slides
-                                       :thumbnails thumbnails
-                                       :user-id user-id
-                                       :title "Untitled"
-                                       :presentation-id presentation-id
-                                       :email email
-                                       :full-name full-name})
+                            (upload-first-slide-and-thumbnail {:slides slides
+                                                               :thumbnails thumbnails
+                                                               :user-id user-id
+                                                               :title "Untitled"
+                                                               :presentation-id presentation-id
+                                                               :email email
+                                                               :full-name full-name})
                             (catch fail-init-user-data
                                    (println "Failed")))))
                       (catch fail-get-user
