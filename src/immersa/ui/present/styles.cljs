@@ -2,13 +2,14 @@
   (:require
     [spade.core :refer [defglobal defclass defattrs]]))
 
-(defclass content-container []
+(defclass content-container [editor-mode?]
   {:width "100%"
-   :height "calc(100vh - 64px)"
+   :height (if editor-mode? "calc(100vh - 119px)" "calc(100vh - 64px)")
    :margin 0
    :padding 0
    :box-sizing "border-box"
    :display "flex"
+   :flex-direction "column"
    :justify-content "center"
    :align-items "center"
    :background "radial-gradient(rgb(0,0,0), rgb(0,0,0))"

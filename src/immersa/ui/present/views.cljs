@@ -4,6 +4,8 @@
     [applied-science.js-interop :as j]
     [immersa.common.utils :as common.utils]
     [immersa.scene.core :as scene.core]
+    [immersa.ui.editor.components.button :refer [button]]
+    [immersa.ui.editor.components.text :refer [text]]
     [immersa.ui.editor.subs :as editor.subs]
     [immersa.ui.icons :as icon]
     [immersa.ui.loading-screen :refer [loading-screen]]
@@ -30,7 +32,9 @@
                  :height "100%"}}])
 
 (defn- canvas-container [mode]
-  (let [{:keys [width height]} @(subscribe [::subs/calculated-canvas-dimensions])]
+  (let [{:keys [width height]} (if (= mode :editor)
+                                 @(subscribe [::subs/calculated-present-mode-canvas-dimensions])
+                                 @(subscribe [::subs/calculated-canvas-dimensions]))]
     (when (and (> width 0) (> height 0))
       [:div
        {:id "canvas-container"
@@ -84,46 +88,71 @@
           :style {:width "70px"
                   :padding "3px"}}]])
 
-(defn present-panel [& {:keys [mode]}]
+(defn- title-bar [title present-state]
   [:div
-   {:id "content-container"
-    :class (styles/content-container)
-    :style {:background @(subscribe [::subs/background-color])}}
-   (if (= mode :editor)
-     [canvas-container mode]
-     [canvas-container])
+   {:style {:width "100%"
+            :height "55px"
+            :display "flex"
+            :justify-content "space-between"
+            :align-items "center"
+            :background "#2a2c37"}}
+   [text {:style {:padding "0 16px"}
+          :size :xl
+          :weight :medium
+          :color "#fff"} title]
+   [button {:text "Exit present mode"
+            :on-click #(reset! present-state false)
+            :type :outline
+            :style {:color "#fff"
+                    :cursor "pointer"
+                    :border-color "#fff"
+                    :margin-right "16px"
+                    :background "transparent"}
+            :icon-left [icon/x {:size 16
+                                :weight "bold"
+                                :color "#fff"}]}]])
+
+(defn present-panel [& {:keys [mode title present-state]}]
+  [:<>
+   (when (= mode :editor)
+     [title-bar title present-state])
    [:div
-    {:id "progress-bar"
-     :class (styles/progress-bar)}
-    [progress-bar-line]
+    {:id "content-container"
+     :class (styles/content-container (= mode :editor))
+     :style {:background @(subscribe [::subs/background-color])}}
+    [canvas-container mode]
     [:div
-     {:id "progress-controls"
-      :class (styles/progress-controls)}
+     {:id "progress-bar"
+      :class (styles/progress-bar)}
+     [progress-bar-line]
      [:div
-      {:id "slide-controls"
-       :class (styles/slide-controls)}
-      [icon/prev {:size 24
-                  :color "white"
-                  :weight "bold"
-                  :cursor "pointer"}]
-      [:span {:id "slide-indicator"
-              :class (styles/current-slide-indicator)}
-       (let [{:keys [current-slide-index slide-count]} @(subscribe [::subs/slide-info])]
-         (str current-slide-index " / " slide-count))]
-      [icon/next {:size 24
-                  :color "white"
-                  :weight "bold"
-                  :cursor "pointer"}]]
-     [:div {:id "right-controls"
-            :class (styles/right-controls)}
-      [immersa-home-page-button]
-      [icon/control {:size 24
+      {:id "progress-controls"
+       :class (styles/progress-controls)}
+      [:div
+       {:id "slide-controls"
+        :class (styles/slide-controls)}
+       [icon/prev {:size 24
+                   :color "white"
+                   :weight "bold"
+                   :cursor "pointer"}]
+       [:span {:id "slide-indicator"
+               :class (styles/current-slide-indicator)}
+        (let [{:keys [current-slide-index slide-count]} @(subscribe [::subs/slide-info])]
+          (str current-slide-index " / " slide-count))]
+       [icon/next {:size 24
+                   :color "white"
+                   :weight "bold"
+                   :cursor "pointer"}]]
+      [:div {:id "right-controls"
+             :class (styles/right-controls)}
+       [immersa-home-page-button]
+       #_[icon/control {:size 24
+                        :color "white"
+                        :cursor "pointer"}]
+       #_[icon/chat {:size 24
                      :color "white"
                      :cursor "pointer"}]
-      [icon/chat {:size 24
-                  :color "white"
-                  :cursor "pointer"}]
-      [icon/dots {:size 24
-                  :color "white"
-                  :weight "bold"
-                  :cursor "pointer"}]]]]])
+       #_[icon/dots {:size 24
+                     :color "white"
+                     :weight "bold"
+                     :cursor "pointer"}]]]]]])

@@ -129,6 +129,7 @@
     [:div (styles/title-container)
      [:span {:class (styles/title-label)
              :content-editable true
+             :suppressContentEditableWarning true
              :on-key-down (fn [e]
                             (when (= (j/get e :key) "Enter")
                               (.preventDefault e)
@@ -417,7 +418,9 @@
                                  (->> canvas
                                       (j/call js/document.body :append))))
      :reagent-render (fn []
-                       [present.views/present-panel {:mode :editor}])}))
+                       [present.views/present-panel {:mode :editor
+                                                     :title @(subscribe [::subs/slides-title])
+                                                     :present-state present?}])}))
 
 (defn- init-crisp-chat
   ([email full-name]

@@ -18,9 +18,11 @@
         {:width height-based-width :height max-height}))))
 
 (reg-sub
-  ::calculated-dimensions
-  (fn [_ [_ screen-width screen-height]]
-    (let [max-height (- screen-height 64)
+  ::calculated-present-mode-canvas-dimensions
+  :<- [::bp/screen-width]
+  :<- [::bp/screen-height]
+  (fn [[screen-width screen-height]]
+    (let [max-height (- screen-height 119)
           aspect-ratio (/ 16 9)
           max-width screen-width
           height-based-width (* max-height aspect-ratio)
