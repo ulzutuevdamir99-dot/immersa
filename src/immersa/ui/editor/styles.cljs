@@ -96,6 +96,8 @@
 
 (defclass title-label []
   {:overflow :hidden
+   :outline :none
+   :min-width "5px"
    :font-size typography/l
    :font-weight typography/medium
    :color colors/text-primary
