@@ -116,8 +116,7 @@
                                (-> (getDownloadURL item)
                                    (j/call :then (fn [url]
                                                    (let [[slide-id] (str/split (j/get item :name) #"\.webp")]
-                                                     (when on-complete (on-complete slide-id url))
-                                                     (println "Thumbnail URL: " url))))
+                                                     (when on-complete (on-complete slide-id url)))))
                                    (j/call :catch (fn [e]
                                                     (println "Firebase download URL error")
                                                     (js/console.error e))))))))))

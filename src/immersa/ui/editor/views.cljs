@@ -58,7 +58,8 @@
                               (j/assoc-in! canvas [:style :pointer-events] "auto")
                               (when-not @canvas-started?
                                 (reset! canvas-started? true)
-                                (j/call canvas :addEventListener "blur" #(dispatch [::events/update-thumbnail])))
+                                (j/call canvas :addEventListener "mouseenter" #(dispatch [::events/update-thumbnail]))
+                                (j/call canvas :addEventListener "mouseleave" #(dispatch [::events/update-thumbnail])))
                               (when @canvas-started?
                                 (js/setTimeout #(dispatch [::events/resize-scene]) 200))))
      :component-will-unmount (fn []
