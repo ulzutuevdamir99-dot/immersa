@@ -6,6 +6,7 @@
     [clojure.walk :as walk]
     [com.rpl.specter :as sp]
     [goog.functions :as functions]
+    [immersa.common.firebase :as firebase]
     [immersa.common.utils :as common.utils]
     [immersa.presentations.intro-immersa :refer [immersa-intro-slides]]
     [immersa.scene.api.animation :as api.animation]
@@ -766,6 +767,12 @@
   (add-watch all-slides :slide-update
              (fn [_ _ old-val new-val]
                (when-not (= old-val new-val)
+                 (let [user-id (j/get-in api.core/db [:user :id])
+                       presentation-id (j/get-in api.core/db [:presentation :id])]
+                   (when (and user-id presentation-id)
+                     (firebase/upload-presentation {:user-id user-id
+                                                    :presentation-id presentation-id
+                                                    :presentation-data new-val})))
                  (swap! thumbnails assoc :last-time-slide-updated (js/Date.now))))))
 
 (defn- next-prev-slide-event-listener [e]

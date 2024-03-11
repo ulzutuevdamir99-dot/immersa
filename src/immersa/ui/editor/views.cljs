@@ -561,7 +561,7 @@
 
 (comment
   @(subscribe [::subs/slides-thumbnails])
-  (firebase/set-presentation {:id (nano-id 10)
+  (firebase/set-presentation-info {:id (nano-id 10)
                               :user_id "user_2c20lPttd6jIbGObJJhbKwN3tLh"
                               :title "Untitled"
                               :created_at (-> (js/Date.)

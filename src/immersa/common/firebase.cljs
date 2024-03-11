@@ -132,7 +132,7 @@
   (let [ref (doc db "users" (:id user))]
     (setDoc ref (clj->js user) #js{:merge true})))
 
-(defn set-presentation [data]
+(defn set-presentation-info [data]
   (let [ref (doc db "presentations" (:id data))]
     (setDoc ref (clj->js data) #js{:merge true})))
 
@@ -147,9 +147,9 @@
         (js/Promise.resolve)))))
 
 (defn update-presentation-title [{:keys [user-id presentation-id title]}]
-  (set-presentation {:id presentation-id
-                     :title title
-                     :user_id user-id}))
+  (set-presentation-info {:id presentation-id
+                          :title title
+                          :user_id user-id}))
 
 (comment
   (j/call (get-user "!23")

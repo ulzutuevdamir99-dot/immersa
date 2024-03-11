@@ -338,6 +338,12 @@
 (defmethod handle-ui-update :remove-listeners-for-present-mode [_]
   (common.utils/remove-element-listener js/window "keydown" slide/next-prev-slide-event-listener))
 
+(defmethod handle-ui-update :set-presentation-id [{{:keys [id]} :data}]
+  (j/assoc-in! api.core/db [:presentation :id] id))
+
+(defmethod handle-ui-update :set-user-id [{{:keys [id]} :data}]
+  (j/assoc-in! api.core/db [:user :id] id))
+
 (defn init-ui-update-listener []
   (go-loop-sub event-bus-pub :get-ui-update [_ data]
     (handle-ui-update data)))

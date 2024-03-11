@@ -335,10 +335,24 @@
   (fn [db [_ model]]
     (update-in db [:user :models] (fnil conj []) model)))
 
-(reg-event-db
+(reg-event-fx
+  ::set-user-id
+  (fn [{:keys [db]}]
+    {:scene {:type :set-user-id
+             :data {:id (-> db :user :id)}}}))
+
+(reg-event-fx
+  ::set-presentation-id
+  (fn [{:keys [db]}]
+    {:scene {:type :set-presentation-id
+             :data {:id (-> db :editor :slides :id)}}}))
+
+(reg-event-fx
   ::scene-ready
-  (fn [db]
-    (assoc-in db [:editor :scene-ready?] true)))
+  (fn [{:keys [db]}]
+    {:db (assoc-in db [:editor :scene-ready?] true)
+     :dispatch-n [[::set-user-id]
+                  [::set-presentation-id]]}))
 
 (reg-event-fx
   ::attach-camera-controls
