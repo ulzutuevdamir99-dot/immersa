@@ -368,6 +368,7 @@
                                     :weight "fill"
                                     :color colors/button-outline-text}]}]
     [button {:text "Share"
+             :disabled? (not @(subscribe [::subs/scene-ready?]))
              :type :regular
              :class (styles/present-share-width)
              :icon-right [icon/share {:size 18

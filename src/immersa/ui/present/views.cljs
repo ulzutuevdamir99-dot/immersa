@@ -114,7 +114,7 @@
                     :border-color "#fff"
                     :margin-right "16px"
                     :background "transparent"}
-            :icon-left [icon/x {:size 16
+            :icon-left [icon/x {:size 14
                                 :weight "bold"
                                 :color "#fff"}]}]])
 
