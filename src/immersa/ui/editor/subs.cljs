@@ -231,8 +231,13 @@
   ::share-link
   (fn [db]
     (let [slide-id (-> db :editor :slides :id)
-          slide-title (-> db :editor :slides :title)
-          slide-title (str/join (re-seq #"[A-Za-z0-9\s]+" slide-title))
-          slide-title (str/replace slide-title #"\s+" "-")
-          slide-title (str/lower-case slide-title)]
+          slide-title (some-> db
+                              :editor
+                              :slides
+                              :title
+                              (#(re-seq #"[A-Za-z0-9\s]+" %))
+                              str/join
+                              (str/replace #"\s+" "-")
+                              str/lower-case)
+          slide-title (if (str/blank? slide-title) "Untitled" slide-title)]
       (str "https://present.immersa.app/" slide-title "-" slide-id))))
