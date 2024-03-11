@@ -28,7 +28,7 @@
   [":root"
    [:body body]
    [:div#app (merge defaults app)]
-
+   [:a {:font-family typography/font}]
    [:h1 {:font-family typography/font}]
    [:h2 {:font-family typography/font}]
    [:h3 {:font-family typography/font}]

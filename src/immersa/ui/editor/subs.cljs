@@ -1,5 +1,6 @@
 (ns immersa.ui.editor.subs
   (:require
+    [clojure.string :as str]
     [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
@@ -225,3 +226,13 @@
   ::redo?
   (fn [db]
     (-> db :editor :redo?)))
+
+(reg-sub
+  ::share-link
+  (fn [db]
+    (let [slide-id (-> db :editor :slides :id)
+          slide-title (-> db :editor :slides :title)
+          slide-title (str/join (re-seq #"[A-Za-z0-9\s]+" slide-title))
+          slide-title (str/replace slide-title #"\s+" "-")
+          slide-title (str/lower-case slide-title)]
+      (str "https://present.immersa.app/" slide-title "-" slide-id))))

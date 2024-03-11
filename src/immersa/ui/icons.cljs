@@ -25,10 +25,12 @@
     ["@phosphor-icons/react/dist/csr/Image" :refer [Image]]
     ["@phosphor-icons/react/dist/csr/Info" :refer [Info]]
     ["@phosphor-icons/react/dist/csr/Lightbulb" :refer [Lightbulb]]
+    ["@phosphor-icons/react/dist/csr/Link" :refer [Link]]
     ["@phosphor-icons/react/dist/csr/List" :refer [List]]
     ["@phosphor-icons/react/dist/csr/LockSimple" :refer [LockSimple]]
     ["@phosphor-icons/react/dist/csr/LockSimpleOpen" :refer [LockSimpleOpen]]
     ["@phosphor-icons/react/dist/csr/MapPin" :refer [MapPin]]
+    ["@phosphor-icons/react/dist/csr/PaperPlaneTilt" :refer [PaperPlaneTilt]]
     ["@phosphor-icons/react/dist/csr/Play" :refer [Play]]
     ["@phosphor-icons/react/dist/csr/PlusCircle" :refer [PlusCircle]]
     ["@phosphor-icons/react/dist/csr/Presentation" :refer [Presentation]]
@@ -82,3 +84,5 @@
 (def redo (r/adapt-react-class ArrowClockwise))
 (def sign-out (r/adapt-react-class SignOut))
 (def presentation (r/adapt-react-class Presentation))
+(def paper-plane (r/adapt-react-class PaperPlaneTilt))
+(def link (r/adapt-react-class Link))

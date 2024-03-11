@@ -21,6 +21,7 @@
                                                    dropdown-separator
                                                    dropdown-context-menu
                                                    option-text]]
+    [immersa.ui.editor.components.popup :refer [popup]]
     [immersa.ui.editor.components.progress :refer [progress]]
     [immersa.ui.editor.components.text :refer [text]]
     [immersa.ui.editor.components.tooltip :refer [tooltip]]
@@ -376,13 +377,42 @@
              :icon-left [icon/play {:size 18
                                     :weight "fill"
                                     :color colors/button-outline-text}]}]
-    [button {:text "Share"
-             :disabled? (not @(subscribe [::subs/scene-ready?]))
-             :type :regular
-             :class (styles/present-share-width)
-             :icon-right [icon/share {:size 18
-                                      :weight "fill"
-                                      :color colors/button-text}]}]]])
+    [popup {:trigger [button {:text "Share"
+                              :disabled? (not @(subscribe [::subs/scene-ready?]))
+                              :type :regular
+                              :class (styles/present-share-width)
+                              :icon-right [icon/share {:size 18
+                                                       :weight "fill"
+                                                       :color colors/button-text}]}]
+            :content (let [url @(subscribe [::subs/share-link])]
+                       [:div
+                        {:style {:display "flex"
+                                 :flex-direction "column"
+                                 :gap "12px"}}
+                        [:div {:style {:display "flex"
+                                       :gap "4px"}}
+                         [text {:size :l} "Share presentation"]
+                         [icon/paper-plane {:size 16}]]
+                        [:a {:href url
+                             :target "_blank"
+                             :style {:padding "5px"
+                                     :font-size "14px"
+                                     :user-select "auto"
+                                     :color colors/button-outline-text
+                                     :border (str "1px solid " colors/active-bg)
+                                     :border-radius "5px"}}
+                         url]
+                        [:div {:style {:display "flex"
+                                       :flex-direction "row"
+                                       :justify-content "flex-end"
+                                       :width "100%"
+                                       :margin-top "10px"
+                                       :gap "8px"}}
+                         [button {:text "Copy link"
+                                  :on-click #(common.utils/copy-to-clipboard url)
+                                  :style {:font-weight 400}
+                                  :icon-left [icon/link {:size 16
+                                                         :color colors/text-primary}]}]]])}]]])
 
 (defn- header []
   [:div (styles/header-container)
