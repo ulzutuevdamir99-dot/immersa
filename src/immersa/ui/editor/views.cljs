@@ -118,6 +118,14 @@
                                                 :color colors/text-primary}]}]
       :on-select signOut}]))
 
+(defn- feedback []
+  [dropdown-item
+   {:item [option-text {:label "Feedback & help"
+                        :size :l
+                        :icon [icon/chats-circle {:size 16
+                                                  :color colors/text-primary}]}]
+    :on-select #(dispatch [::events/open-crisp-chat])}])
+
 (defn- header-left-panel []
   [:div (styles/title-bar)
    [:div (styles/menubar-list-icon)
@@ -125,6 +133,7 @@
      {:trigger [icon/list-menu {:size 24
                                 :color colors/text-primary}]
       :children [:<>
+                 [feedback]
                  [:f> sign-out]]}]]
    [:div (styles/title-bar-full-width)
     [:div (styles/title-container)
@@ -564,10 +573,10 @@
 (comment
   @(subscribe [::subs/slides-thumbnails])
   (firebase/set-presentation-info {:id (nano-id 10)
-                              :user_id "user_2c20lPttd6jIbGObJJhbKwN3tLh"
-                              :title "Untitled"
-                              :created_at (-> (js/Date.)
-                                              (j/call :toISOString))})
+                                   :user_id "user_2c20lPttd6jIbGObJJhbKwN3tLh"
+                                   :title "Untitled"
+                                   :created_at (-> (js/Date.)
+                                                   (j/call :toISOString))})
 
   (->> (js/document.getElementById "canvas-wrapper")
        (j/call (js/document.getElementById "temp") :append))
