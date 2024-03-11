@@ -110,11 +110,14 @@
             :on-click #(reset! present-state false)
             :type :outline
             :style {:color "#fff"
+                    :display "flex"
+                    :align-items "flex-end"
+                    :font-size "15px"
                     :cursor "pointer"
                     :border-color "#fff"
                     :margin-right "16px"
                     :background "transparent"}
-            :icon-left [icon/x {:size 14
+            :icon-left [icon/x {:size 16
                                 :weight "bold"
                                 :color "#fff"}]}]])
 
