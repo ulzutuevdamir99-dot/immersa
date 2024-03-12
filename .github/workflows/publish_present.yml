@@ -44,7 +44,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ff2ff2769c72a0ad2a2bab364aa064dd
-          projectName: immersa-app
+          projectName: immersa-present
           directory: resources/public
 #          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           branch: master
