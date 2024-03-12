@@ -32,7 +32,7 @@
                          :shortcut (shortcut/get-shortcut-key-labels :paste)}]
      :on-select #(shortcut/call-shortcut-action :paste)}]])
 
-(defn- undo-redo-options []
+(defn undo-redo-options []
   [:div {:style {:display "flex"
                  :flex-direction "column"
                  :gap gap}}

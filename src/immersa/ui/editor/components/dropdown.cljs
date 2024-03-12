@@ -113,7 +113,7 @@
 
 (defclass context-menu-content-style []
   {:width "225px"
-   :z-index "5000"
+   :z-index 5000
    :background-color "white"
    :border-radius "6px"
    :border "1px solid rgba(22, 23, 24, 0.15)"

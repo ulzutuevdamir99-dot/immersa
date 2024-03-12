@@ -10,7 +10,8 @@
 
 (defclass popover-content []
   {:z-index 6000
-   :margin-right "8px"
+   :margin-right "24px"
+   :border "1px solid rgba(22, 23, 24, 0.15)"
    :border-radius "4px"
    :outline :none
    :padding "20px"
@@ -37,7 +38,7 @@
    :font-weight :bold
    :position :absolute
    :top "5px"
-   :right "13px"}
+   :right "29px"}
   [:&:hover
    {:background-color colors/hover-bg
     :border-radius "50%"}])

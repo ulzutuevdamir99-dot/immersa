@@ -15,7 +15,7 @@
     [immersa.ui.crisp-chat :as crisp-chat]
     [immersa.ui.editor.components.alert-dialog :refer [alert-dialog]]
     [immersa.ui.editor.components.button :refer [button]]
-    [immersa.ui.editor.components.canvas-context-menu :refer [canvas-context-menu]]
+    [immersa.ui.editor.components.canvas-context-menu :refer [canvas-context-menu undo-redo-options]]
     [immersa.ui.editor.components.dropdown :refer [dropdown
                                                    dropdown-item
                                                    dropdown-separator
@@ -131,9 +131,13 @@
   [:div (styles/title-bar)
    [:div (styles/menubar-list-icon)
     [dropdown
-     {:trigger [icon/list-menu {:size 24
+     {:style {:margin-left "28px"
+              :margin-top "5px"}
+      :trigger [icon/list-menu {:size 24
                                 :color colors/text-primary}]
       :children [:<>
+                 [undo-redo-options]
+                 [dropdown-separator]
                  [feedback]
                  [:f> sign-out]]}]]
    [:div (styles/title-bar-full-width)
