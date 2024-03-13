@@ -12,7 +12,9 @@
         (.track js/mixpanel event (clj->js data))))
     1000))
 
-(defn init [user-id]
+(defn init [user-id email full-name]
   (j/call js/mixpanel :init "968a825c18a21c0c27a40ae963f148a4" #js {:track_pageview true
                                                                     :persistence "localStorage"})
-  (j/call js/mixpanel :identify user-id))
+  (j/call js/mixpanel :identify user-id)
+  (.set js/mixpanel.people (clj->js #js {:Email email
+                                         :Name full-name})))

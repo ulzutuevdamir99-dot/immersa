@@ -562,7 +562,7 @@
                     full-name (j/get user :fullName)
                     _ (firebase/init-app)
                     auth (getAuth)]
-                (mixpanel/init user-id)
+                (mixpanel/init user-id email full-name)
                 (m/js-await [token (getToken #js {:template "integration_firebase"})]
                   (m/js-await [userCredentials (signInWithCustomToken auth token)]
                     (init-crisp-chat email full-name)
