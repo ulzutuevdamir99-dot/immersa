@@ -18,6 +18,7 @@
     ["@phosphor-icons/react/dist/csr/Command" :refer [Command]]
     ["@phosphor-icons/react/dist/csr/Copy" :refer [Copy]]
     ["@phosphor-icons/react/dist/csr/CopySimple" :refer [CopySimple]]
+    ["@phosphor-icons/react/dist/csr/CornersIn" :refer [CornersIn]]
     ["@phosphor-icons/react/dist/csr/CornersOut" :refer [CornersOut]]
     ["@phosphor-icons/react/dist/csr/Cube" :refer [Cube]]
     ["@phosphor-icons/react/dist/csr/CubeFocus" :refer [CubeFocus]]
@@ -88,3 +89,4 @@
 (def paper-plane (r/adapt-react-class PaperPlaneTilt))
 (def link (r/adapt-react-class Link))
 (def full-screen (r/adapt-react-class CornersOut))
+(def exit-full-screen (r/adapt-react-class CornersIn))

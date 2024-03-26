@@ -20,6 +20,8 @@
   (:require-macros
     [immersa.common.macros :as m]))
 
+(def full-screen? (r/atom false))
+
 (defn- canvas-editor [mode]
   (r/create-class
     {:component-did-mount (fn []
@@ -171,13 +173,23 @@
                      :cursor "pointer"}]]
         [:div {:id "right-controls"
                :class (styles/right-controls)}
-         [tooltip
-          {:trigger [icon/full-screen {:size 24
-                                       :color "white"
-                                       :on-click #(when (j/get js/document :fullscreenEnabled)
-                                                    (j/call-in js/document [:documentElement :requestFullscreen]))
-                                       :cursor "pointer"}]
-           :content "Full screen"}]
+         (if @full-screen?
+           [tooltip
+            {:trigger [icon/exit-full-screen {:size 24
+                                              :color "white"
+                                              :on-click #(when (j/get js/document :fullscreenEnabled)
+                                                           (-> (j/call js/document :exitFullscreen)
+                                                               (j/call :then (fn [] (reset! full-screen? false)))))
+                                              :cursor "pointer"}]
+             :content "Exit full screen"}]
+           [tooltip
+            {:trigger [icon/full-screen {:size 24
+                                         :color "white"
+                                         :on-click #(when (j/get js/document :fullscreenEnabled)
+                                                      (-> (j/call-in js/document [:documentElement :requestFullscreen])
+                                                          (j/call :then (fn [] (reset! full-screen? true)))))
+                                         :cursor "pointer"}]
+             :content "Full screen"}])
          [immersa-home-page-button]
          #_[icon/chat {:size 24
                        :color "white"
