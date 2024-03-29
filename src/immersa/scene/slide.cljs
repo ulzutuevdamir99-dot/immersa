@@ -329,7 +329,21 @@
   (disable-mesh-component-via-visibility name))
 
 (defmethod disable-component :glb [name]
-  (api.core/set-enabled (api.core/get-object-by-name name) false))
+  (let [mesh (api.core/get-object-by-name name)]
+    (when-let [child-meshes (j/call mesh :getChildMeshes)]
+      (j/call child-meshes :forEach
+              #(let [c-mesh %
+                     visibility (j/get c-mesh :visibility)
+                     duration 0.5
+                     to (* 30 duration)]
+                 (api.animation/begin-direct-animation
+                   :target c-mesh
+                   :animations (api.animation/create-visibility-animation {:start visibility
+                                                                           :end 0
+                                                                           :duration duration})
+                   :to to
+                   :on-animation-end (fn []
+                                       (api.core/set-enabled mesh false))))))))
 
 (defmethod disable-component :sphere-mat [name]
   (api.core/set-enabled (api.core/get-object-by-name name) false))
@@ -418,7 +432,20 @@
   (enable-mesh-component name))
 
 (defmethod enable-component :glb [name _]
-  (enable-mesh-component name))
+  (enable-mesh-component name)
+  (let [mesh (api.core/get-object-by-name name)]
+    (when-let [child-meshes (j/call mesh :getChildMeshes)]
+      (j/call child-meshes :forEach
+              #(let [c-mesh %
+                     visibility (j/get c-mesh :visibility)
+                     duration 0.5
+                     to (* 30 duration)]
+                 (api.animation/begin-direct-animation
+                   :target c-mesh
+                   :animations (api.animation/create-visibility-animation {:start visibility
+                                                                           :end 1
+                                                                           :duration duration})
+                   :to to))))))
 
 (defmethod enable-component :sphere-mat [name _]
   (enable-mesh-component name))
