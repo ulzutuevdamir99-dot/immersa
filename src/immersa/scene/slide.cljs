@@ -6,9 +6,8 @@
     [clojure.walk :as walk]
     [com.rpl.specter :as sp]
     [goog.functions :as functions]
-    [immersa.common.firebase :as firebase]
+    [immersa.common.locals :as locals]
     [immersa.common.utils :as common.utils]
-    [immersa.presentations.intro-immersa :refer [immersa-intro-slides]]
     [immersa.scene.api.animation :as api.animation]
     [immersa.scene.api.camera :as api.camera]
     [immersa.scene.api.component :as api.component]
@@ -619,7 +618,7 @@
         (sp/setval [sp/ATOM :thumbnails id] base64 thumbnails)
         (dispatch [::editor.events/sync-thumbnails (:thumbnails @thumbnails)])
         ;; Save thumbnail to local storage
-        (firebase/upload-thumbnail {:slide-id id
+        (locals/upload-thumbnail {:slide-id id
                                     :presentation-id (j/get-in api.core/db [:presentation :id])
                                     :thumbnail base64}))
       (swap! thumbnails assoc :last-time-thumbnail-updated (js/Date.now)))))
@@ -800,7 +799,7 @@
   (get-slide-data :camera :locked?))
 
 (defn- capture-thumbnail-changes []
-  (let [upload-presentation-with-debounce (functions/debounce firebase/upload-presentation 2000)]
+  (let [upload-presentation-with-debounce (functions/debounce locals/upload-presentation 2000)]
     (add-watch all-slides :slide-update
                (fn [_ _ old-val new-val]
                  (when-not (= old-val new-val)

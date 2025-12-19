@@ -3,7 +3,7 @@
     [applied-science.js-interop :as j]
     [clojure.string :as str]
     [immersa.common.communication :refer [fire]]
-    [immersa.common.firebase :as firebase]
+    [immersa.common.locals :as locals]
     [immersa.ui.events]
     [medley.core :refer [dissoc-in]]
     [re-frame.core :refer [reg-event-db reg-event-fx reg-fx]]))
@@ -410,7 +410,7 @@
 (reg-fx
   :update-presentation-title
   (fn [opts]
-    (firebase/update-presentation-title opts)))
+    (locals/update-presentation-title opts)))
 
 (reg-event-fx
   ::open-tutorial

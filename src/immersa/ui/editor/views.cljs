@@ -5,8 +5,7 @@
     [applied-science.js-interop :as j]
     [clojure.string :as str]
     [goog.functions :as functions]
-    [immersa.common.firebase :as firebase]
-    [immersa.common.local-storage :as ls]
+    [immersa.common.locals :as locals]
     [immersa.common.shortcut :as shortcut]
     [immersa.common.utils :as common.utils]
     [immersa.presentations.init :refer [slides thumbnails]]
@@ -214,7 +213,7 @@
                           (reset! limit-exceeded? false)
                           (reset! progress* 0)
                           (if (< (j/get file :size) (* 1024 1024 max-size))
-                            (firebase/upload-file
+                            (locals/upload-file
                               {:file file
                                :type type
                                :on-progress (fn [percentage]
@@ -443,10 +442,10 @@
                                                          :present-state present?}])}))
 
 (defn init-app [{:keys [title slides thumbnails presentation-id]}]
-  (firebase/get-last-uploaded-files
+  (locals/get-last-uploaded-files
     {:type :image
      :on-complete #(dispatch [::events/add-uploaded-image %])})
-  (firebase/get-last-uploaded-files
+  (locals/get-last-uploaded-files
     {:type :model
      :on-complete #(dispatch [::events/add-uploaded-model %])})
   (dispatch [::events/init-user
@@ -461,9 +460,9 @@
               :present-state present?}]))
 
 (defn- upload-first-slide-and-thumbnail [{:keys [title presentation-id]}]
-  (m/js-await [_ (firebase/upload-presentation {:presentation-id presentation-id
+  (m/js-await [_ (locals/upload-presentation {:presentation-id presentation-id
                                                 :presentation-data slides})]
-    (m/js-await [_ (firebase/upload-thumbnail {:presentation-id presentation-id
+    (m/js-await [_ (locals/upload-thumbnail {:presentation-id presentation-id
                                                :slide-id "14e4ee76-bb27-4904-9d30-360a40d8abb7"
                                                :thumbnail (get thumbnails "14e4ee76-bb27-4904-9d30-360a40d8abb7")})]
       (init-app {:title title
@@ -474,17 +473,17 @@
     (catch fail-upload-presentation)))
 
 (defn- init-thumbnails [{:keys [presentation-id]}]
-  (firebase/get-thumbnails {:presentation-id presentation-id
+  (locals/get-thumbnails {:presentation-id presentation-id
                             :on-complete (fn [slide-id url]
                                            (dispatch [::events/add-thumbnail slide-id url]))}))
 
 (defn- get-presentation-and-start []
-  (m/js-await [q (firebase/get-presentation-info "local-user")]
+  (m/js-await [q (locals/get-presentation-info "local-user")]
     (let [docs (j/get q :docs)]
       (if (and docs (> (j/get docs :length) 0))
         ;; Load existing presentation
         (let [{:keys [id title]} (j/lookup (j/call-in q [:docs 0 :data]))]
-          (m/js-await [presentation-url (firebase/get-presentation id "local-user")]
+          (m/js-await [presentation-url (locals/get-presentation id "local-user")]
             (m/js-await [response (js/fetch presentation-url)]
               (m/js-await [presentation (j/call response :text)]
                 (init-app {:title title
@@ -494,7 +493,7 @@
                 (init-thumbnails {:presentation-id id})))))
         ;; Create new presentation
         (let [presentation-id (nano-id 10)]
-          (m/js-await [_ (firebase/init-user-and-presentation
+          (m/js-await [_ (locals/init-user-and-presentation
                            {:user {:id "local-user"}
                             :presentation {:id presentation-id
                                            :title "Untitled"
@@ -516,7 +515,7 @@
                   (j/assoc-in! [:style :border] main.styles/app-border))
               (set! events/start-scene scene.core/start-scene)
               ;; Initialize local storage and load presentation
-              (firebase/init-app)
+              (locals/init-app)
               (js/setTimeout get-presentation-and-start 100)
               (register-global-events))
             #js[])]

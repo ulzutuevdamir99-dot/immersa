@@ -4,7 +4,7 @@
     ["react" :as react]
     [applied-science.js-interop :as j]
     [clojure.string :as str]
-    [immersa.common.firebase :as firebase]
+    [immersa.common.locals :as locals]
     [immersa.scene.core :as scene.core]
     [immersa.ui.editor.components.button :refer [button]]
     [immersa.ui.editor.components.text :refer [text]]
@@ -125,14 +125,14 @@
             (react/useEffect
               (fn []
                 (set! events/start-scene scene.core/start-scene)
-                (let [_ (firebase/init-app)
+                (let [_ (locals/init-app)
                       path (j/get js/location :pathname)
                       slide-id (last (str/split path #"-+"))]
-                  (m/js-await [q (firebase/get-presentation-info-by-id slide-id)]
+                  (m/js-await [q (locals/get-presentation-info-by-id slide-id)]
                     (let [docs (j/get q :docs)]
                       (when (and docs (> (j/get docs :length) 0))
                         (let [{:keys [id user_id title]} (j/lookup (j/call-in q [:docs 0 :data]))]
-                          (m/js-await [presentation-url (firebase/get-presentation id user_id)]
+                          (m/js-await [presentation-url (locals/get-presentation id user_id)]
                             (m/js-await [response (js/fetch presentation-url)]
                               (m/js-await [presentation (j/call response :text)]
                                 (init-app {:title title

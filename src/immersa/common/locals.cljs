@@ -1,4 +1,4 @@
-(ns immersa.common.firebase
+(ns immersa.common.locals
   "Local storage adapter - replaces Firebase with local IndexedDB storage.
    Maintains the same API for backwards compatibility."
   (:refer-clojure :exclude [list])
