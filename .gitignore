@@ -15,3 +15,24 @@
 /.shadow-cljs/
 .idea/
 pom.xml
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
+# Local IndexedDB data (if you add export functionality)
+*.idb
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Build artifacts
+/resources/public/js/compiled/
+/resources/public/cljs-runtime/
