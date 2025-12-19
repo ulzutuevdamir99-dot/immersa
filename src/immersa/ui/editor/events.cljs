@@ -167,9 +167,9 @@
 
 (reg-event-fx
   ::add-model
-  (fn [_ [_ url]]
+  (fn [_ [_ value]]
     {:scene {:type :add-model
-             :data {:value url}}
+             :data {:value value}}
      :analytics {:event "model-add"}}))
 
 (reg-event-fx

@@ -1,10 +1,13 @@
 (ns immersa.scene.ui-listener
   (:require
     ["@babylonjs/core/Maths/math" :refer [Vector3]]
+    ["@babylonjs/core/Loading/sceneLoader" :refer [SceneLoader]]
     [applied-science.js-interop :as j]
     [com.rpl.specter :as sp]
+    [clojure.string :as str]
     [goog.functions :as functions]
     [immersa.common.communication :refer [event-bus-pub]]
+    [immersa.common.local-storage :as local-storage]
     [immersa.common.utils :as common.utils]
     [immersa.scene.api.camera :as api.camera]
     [immersa.scene.api.component :as api.component]
@@ -44,16 +47,18 @@
         :position (j/assoc! camera :position (api.core/v->v3 value))
         :rotation (j/assoc! camera :rotation (api.core/v->v3 (mapv api.core/to-rad value))))
       (some-> @lock-fn-id js/clearTimeout)
-      (reset! lock-fn-id (js/setTimeout
-                           (fn []
-                             (reset! lock-fn-id nil)
-                             (j/assoc! api.core/db :lock-view-matrix-change? false))
-                           100)))))
+      (reset! lock-fn-id
+              (js/setTimeout
+                (fn []
+                  (reset! lock-fn-id nil)
+                  (j/assoc! api.core/db :lock-view-matrix-change? false))
+                100)))))
 
 (defmethod handle-ui-update :update-background-color [{{:keys [value]} :data}]
   (let [skybox-material (j/get-in api.core/db [:environment-helper :skybox :material])
         ground-material (j/get-in api.core/db [:environment-helper :ground :material])
-        brightness (slide/calculate-brightness-factor (slide/get-slide-data :skybox [:background :brightness]))
+        brightness (slide/calculate-brightness-factor
+                     (slide/get-slide-data :skybox [:background :brightness]))
         new-color (apply api.core/color-rgb (map (partial * brightness) value))]
     (j/assoc! skybox-material :primaryColor new-color)
     (j/assoc! ground-material :primaryColor new-color)
@@ -98,32 +103,32 @@
 ;; Info text pseudo code
 ;;
 ;; bb (j/get (j/call mesh :getBoundingInfo) :boundingBox)
-;;              center (j/get bb :center)
-;;              scale-factor 1.2
-;;              width (* scale-factor (- (j/get-in bb [:maximum :x]) (j/get-in bb [:minimum :x])))
-;;              height (* scale-factor (- (j/get-in bb [:maximum :y]) (j/get-in bb [:minimum :y])))
-;;              plane (api.mesh/plane-rounded "p" {:radius 0.1
-;;                                       :width width
-;;                                       :height height
-;;                                       :position center})
+;; center (j/get bb :center)
+;; scale-factor 1.2
+;; width (* scale-factor (- (j/get-in bb [:maximum :x]) (j/get-in bb [:minimum :x])))
+;; height (* scale-factor (- (j/get-in bb [:maximum :y]) (j/get-in bb [:minimum :y])))
+;; plane (api.mesh/plane-rounded "p" {:radius 0.1
+;;                                   :width width
+;;                                   :height height
+;;                                   :position center})
 
 (defmethod handle-ui-update :update-selected-mesh-text-content [{{:keys [value]} :data}]
   (let [mesh (api.core/selected-mesh)
         current-text (api.core/get-node-attr mesh :text)]
     (slide/update-text-mesh-with-debounce {:text value
-                                           :mesh mesh})
+                                          :mesh mesh})
     (undo.redo/create-action-with-debounce {:type :update-text-content
-                                            :id (api.core/get-object-name mesh)
-                                            :params {:from current-text
-                                                     :to value}})))
+                                           :id (api.core/get-object-name mesh)
+                                           :params {:from current-text
+                                                    :to value}})))
 
 (defmethod handle-ui-update :update-selected-mesh-text-depth-or-size [{{:keys [update value]} :data}]
   (let [mesh (api.core/selected-mesh)]
     (slide/update-text-mesh (hash-map update value :mesh mesh))
     (undo.redo/create-action {:type (if (= update :size) :update-text-size :update-text-depth)
-                              :id (api.core/get-object-name mesh)
-                              :params {:from (api.core/get-node-attr mesh (if (= update :size) :size :depth))
-                                       :to value}})))
+                             :id (api.core/get-object-name mesh)
+                             :params {:from (api.core/get-node-attr mesh (if (= update :size) :size :depth))
+                                      :to value}})))
 
 (defmethod handle-ui-update :update-selected-mesh-face-to-screen? [{{:keys [value]} :data}]
   (when-let [mesh (api.core/selected-mesh)]
@@ -164,14 +169,14 @@
 (defmethod handle-ui-update :add-slide [{:keys [index]}]
   (let [[index slide] (slide/add-slide index)]
     (undo.redo/create-action {:type :duplicate-slide
-                              :params {:index index
-                                       :slide slide}})))
+                             :params {:index index
+                                      :slide slide}})))
 
 (defmethod handle-ui-update :blank-slide [_]
   (let [[index slide] (slide/blank-slide)]
     (undo.redo/create-action {:type :blank-slide
-                              :params {:index index
-                                       :slide slide}})))
+                             :params {:index index
+                                      :slide slide}})))
 
 (defmethod handle-ui-update :delete-slide [{:keys [index]}]
   (let [current-index @slide/current-slide-index
@@ -179,16 +184,16 @@
         slide (get @slide/all-slides index)]
     (slide/delete-slide index)
     (undo.redo/create-action {:type :delete-slide
-                              :params {:index index
-                                       :selected-index-before current-index
-                                       :slide slide}})))
+                             :params {:index index
+                                      :selected-index-before current-index
+                                      :slide slide}})))
 
 (defmethod handle-ui-update :re-order-slides [{{:keys [value]} :data}]
   (let [[old-index new-index] value]
     (slide/re-order-slides old-index new-index)
     (undo.redo/create-action {:type :re-order-slides
-                              :params {:old-index old-index
-                                       :new-index new-index}})))
+                             :params {:old-index old-index
+                                      :new-index new-index}})))
 
 (defmethod handle-ui-update :create-slide-thumbnail [_]
   (slide/update-thumbnail))
@@ -237,33 +242,42 @@
                    (update :color api.core/color->v))]
     (slide/add-slide-data mesh params)
     (undo.redo/create-action {:type :create-text
-                              :id uuid
-                              :params params})
+                             :id uuid
+                             :params params})
     (api.core/attach-to-mesh mesh)))
 
 (defmethod handle-ui-update :add-image [{{:keys [value]} :data}]
-  (let [uuid (str (random-uuid))
-        texture (api.core/texture value)]
-    (j/call-in texture [:onLoadObservable :add]
-               (fn [texture]
-                 (let [new-pos (get-pos-from-camera-dir)
-                       params {:type :image
-                               :texture texture
-                               :path value
-                               :face-to-screen? true
-                               :position new-pos
-                               :rotation (v3)
-                               :scale (v3 1)
-                               :visibility 1.0
-                               :transparent? true}
-                       mesh (api.component/image uuid params)]
-                   (slide/add-slide-data mesh (-> params
-                                                  (dissoc :texture)
-                                                  (assoc :asset-type :texture)
-                                                  (update :position api.core/v3->v)
-                                                  (update :rotation api.core/v3->v)
-                                                  (update :scale api.core/v3->v)))
-                   (api.core/attach-to-mesh mesh))))))
+  (let [uuid (str (random-uuid))]
+    (-> (local-storage/resolve-local-file-url value)
+        (j/call :then
+                (fn [resolved-url]
+                  (let [texture (api.core/texture resolved-url)]
+                    (j/call-in texture [:onLoadObservable :add]
+                               (fn [_texture]
+                                 (let [new-pos (get-pos-from-camera-dir)
+                                       params {:type :image
+                                               :texture texture
+                                               ;; Persist the original value (may be local-file://)
+                                               :path value
+                                               :face-to-screen? true
+                                               :position new-pos
+                                               :rotation (v3)
+                                               :scale (v3 1)
+                                               :visibility 1.0
+                                               :transparent? true}
+                                       mesh (api.component/image uuid params)]
+                                   (slide/add-slide-data
+                                     mesh
+                                     (-> params
+                                         (dissoc :texture)
+                                         (assoc :asset-type :texture)
+                                         (update :position api.core/v3->v)
+                                         (update :rotation api.core/v3->v)
+                                         (update :scale api.core/v3->v)))
+                                   (api.core/attach-to-mesh mesh)))))))
+        (j/call :catch
+                (fn [err]
+                  (js/console.error "Failed to resolve image url:" value err))))))
 
 (defn- minimize [total-x bounding-info]
   (j/call Vector3 :Minimize total-x (j/get-in bounding-info [:boundingBox :minimumWorld])))
@@ -272,7 +286,17 @@
   (j/call Vector3 :Maximize total-x (j/get-in bounding-info [:boundingBox :maximumWorld])))
 
 (defmethod handle-ui-update :add-model [{{:keys [value]} :data}]
-  (let [uuid (str (random-uuid))
+  (let [{:keys [url name]}
+        (if (map? value)
+          value
+          {:url value})
+        ;; If it's a blob/local-file URL (no extension), force GLB loader using the original filename when available.
+        plugin-ext (when (or (and (string? name)
+                                  (str/ends-with? (str/lower-case name) ".glb"))
+                             (and (string? url)
+                                  (str/includes? (str/lower-case url) ".glb")))
+                     ".glb")
+        uuid (str (random-uuid))
         on-complete (fn [root-mesh]
                       (j/call root-mesh :computeWorldMatrix true)
                       (let [total-min (atom (v3 js/Number.POSITIVE_INFINITY))
@@ -291,28 +315,64 @@
                             target-size 5
                             scale (/ target-size model-max-dimension)
                             params {:type :glb
-                                    :path value
+                                    :path url
                                     :position (j/update! (get-pos-from-camera-dir) :y #(- % 2))
                                     :rotation (v3)
-                                    :scale (v3 scale)
-                                    ;; :visibility 1.0, maybe we need it
-                                    }
+                                    :scale (v3 scale)}
                             mesh (api.mesh/glb->mesh uuid params)]
-                        (slide/add-slide-data mesh (-> params
-                                                       (assoc :asset-type :model)
-                                                       (update :position api.core/v3->v)
-                                                       (update :rotation api.core/v3->v)
-                                                       (update :scale api.core/v3->v)))
+                        (slide/add-slide-data
+                          mesh
+                          (-> params
+                              (assoc :asset-type :model)
+                              (update :position api.core/v3->v)
+                              (update :rotation api.core/v3->v)
+                              (update :scale api.core/v3->v)))
                         (api.core/attach-to-mesh mesh)))
-        prev-mesh (j/get-in api.core/db [:models value])]
+        prev-mesh (j/get-in api.core/db [:models url])]
     (if prev-mesh
       (on-complete prev-mesh)
-      (let [task (api.core/add-mesh-task
-                   {:name (str uuid "-mesh-task")
-                    :meshes-name ""
-                    :url value
-                    :on-complete on-complete})]
-        (j/call task :run (api.core/get-scene) (fn []))))))
+      (if (and (string? url) (str/starts-with? url "local-file://"))
+        ;; Resolve to a File so Babylon can detect the loader plugin via filename extension.
+        (-> (local-storage/resolve-local-file->file url)
+            (j/call :then
+                    (fn [file]
+                      (if file
+                        (j/call SceneLoader
+                                :ImportMesh
+                                ""
+                                ""
+                                file
+                                (api.core/get-scene)
+                                (fn [loaded-meshes & _]
+                                  (let [root-mesh (j/get loaded-meshes 0)]
+                                    (api.core/set-enabled root-mesh false)
+                                    (j/assoc-in! api.core/db [:models url] root-mesh)
+                                    (on-complete root-mesh)))
+                                nil
+                                (fn [_scene message exception]
+                                  (js/console.error "Failed to load local-file model:" url message exception))
+                                ".glb")
+                        (js/console.error "Could not resolve local-file model:" url))))
+            (j/call :catch
+                    (fn [err]
+                      (js/console.error "Failed to resolve local-file model:" url err))))
+        ;; Load via SceneLoader directly so we can force the plugin for blob URLs.
+        (j/call SceneLoader
+                :ImportMesh
+                ""
+                ""
+                url
+                (api.core/get-scene)
+                (fn [loaded-meshes & _]
+                  (let [root-mesh (j/get loaded-meshes 0)]
+                    ;; Cache the root mesh (disabled) so `glb->mesh` can clone it.
+                    (api.core/set-enabled root-mesh false)
+                    (j/assoc-in! api.core/db [:models url] root-mesh)
+                    (on-complete root-mesh)))
+                nil
+                (fn [_scene message exception]
+                  (js/console.error "Failed to load model:" url message exception))
+                plugin-ext)))))
 
 (defmethod handle-ui-update :attach-camera-controls [_]
   (let [free-camera (api.core/get-object-by-name "free-camera")
@@ -330,7 +390,9 @@
   (api.core/clear-selected-mesh))
 
 (defmethod handle-ui-update :update-slide-info [_]
-  (dispatch [::present.events/update-slide-info @slide/current-slide-index (count @slide/all-slides)]))
+  (dispatch [::present.events/update-slide-info
+             @slide/current-slide-index
+             (count @slide/all-slides)]))
 
 (defmethod handle-ui-update :add-listeners-for-present-mode [_]
   (slide/add-listeners-for-present-mode))
@@ -347,8 +409,8 @@
 (defmethod handle-ui-update :create-go-to-slide-action [{{:keys [from to]} :data}]
   (when (not= from to)
     (undo.redo/create-action {:type :go-to-slide
-                              :params {:from from
-                                       :to to}})))
+                             :params {:from from
+                                      :to to}})))
 
 (defmethod handle-ui-update :update-present-mode [{{:keys [enabled]} :data}]
   (j/assoc! api.core/db :present? enabled)

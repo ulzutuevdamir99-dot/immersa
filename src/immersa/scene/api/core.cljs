@@ -31,7 +31,9 @@
     ["p5" :as p5]
     [applied-science.js-interop :as j]
     [cljs.core.async :as a]
+    [clojure.string :as str]
     [clojure.walk :as walk]
+    [immersa.common.local-storage :as local-storage]
     [immersa.scene.api.assets :refer [assets]])
   (:require-macros
     [immersa.scene.macros :as m]))
@@ -412,7 +414,16 @@
     (j/assoc! task :onSuccess #(j/assoc-in! db [:assets-manager :texts url] (j/get % :text)))))
 
 (defn add-mesh-task [{:keys [name meshes-names url on-complete]}]
-  (let [task (j/call-in db [:assets-manager :addMeshTask] name meshes-names url)]
+  ;; Babylon expects (taskName, meshesNames, rootUrl, sceneFilename).
+  ;; We accept a full `url` like "model/foo.glb" and split it into rootUrl + filename.
+  (let [[root-url scene-filename]
+        (if (string? url)
+          (let [idx (str/last-index-of url "/")]
+            (if (and idx (>= idx 0))
+              [(subs url 0 (inc idx)) (subs url (inc idx))]
+              ["" url]))
+          ["" url])
+        task (j/call-in db [:assets-manager :addMeshTask] name meshes-names root-url scene-filename)]
     (j/assoc! task
               :onSuccess (fn [task]
                            (let [root-mesh (j/get-in task [:loadedMeshes 0])]
@@ -438,15 +449,62 @@
             form)
           form))
       slides)
-    (doseq [[index {:keys [asset-type path]}] (map-indexed vector (distinct @assets))]
-      (case asset-type
-        :text (add-text-task (str "text-" index) path)
-        :texture (add-texture-task (str "texture-" index) path)
-        :cube-texture (add-cube-texture-task (str "cube-texture-" index) path)
-        :model (add-mesh-task {:name (str "mesh-" index)
-                               :meshes-names ""
-                               :url path})))
-    (j/call (j/call-in db [:assets-manager :loadAsync]) :then #(a/put! p true))
+    (let [distinct-assets (distinct @assets)
+          ;; Resolve local-file:// URLs for textures (data URL works fine for TextureTask)
+          resolve-texture-asset
+          (fn [{:keys [asset-type path] :as asset}]
+            (if (and (= asset-type :texture) (string? path) (str/starts-with? path "local-file://"))
+              (-> (local-storage/resolve-local-file-url path)
+                  (j/call :then (fn [resolved] (assoc asset :path resolved))))
+              (js/Promise.resolve asset)))]
+      (-> (js/Promise.all (clj->js (map resolve-texture-asset distinct-assets)))
+          (j/call :then
+                  (fn [resolved-assets]
+                    (let [manual-model-loads (atom [])]
+                      (doseq [[index {:keys [asset-type path]}] (map-indexed vector (js->clj resolved-assets :keywordize-keys true))]
+                        (case asset-type
+                          :text (add-text-task (str "text-" index) path)
+                          :texture (add-texture-task (str "texture-" index) path)
+                          :cube-texture (add-cube-texture-task (str "cube-texture-" index) path)
+                          :model (if (and (string? path) (str/starts-with? path "local-file://"))
+                                   ;; Manual load via SceneLoader using a File so plugin detection works.
+                                   (swap! manual-model-loads conj
+                                          (-> (local-storage/resolve-local-file->file path)
+                                              (j/call :then
+                                                      (fn [file]
+                                                        (js/Promise.
+                                                          (fn [resolve reject]
+                                                            (if-not file
+                                                              (reject (js/Error. (str "Could not resolve " path)))
+                                                              (j/call SceneLoader
+                                                                      :ImportMesh
+                                                                      ""
+                                                                      ""
+                                                                      file
+                                                                      (get-scene)
+                                                                      (fn [loaded-meshes & _]
+                                                                        (let [root-mesh (j/get loaded-meshes 0)]
+                                                                          (set-enabled root-mesh false)
+                                                                          (j/assoc-in! db [:models path] root-mesh)
+                                                                          (resolve true)))
+                                                                      nil
+                                                                      (fn [_scene message exception]
+                                                                        (reject (or exception message)))
+                                                                      ".glb"))))))))
+                                   (add-mesh-task {:name (str "mesh-" index)
+                                                  :meshes-names ""
+                                                  :url path}))))
+                      (let [am-promise (j/call-in db [:assets-manager :loadAsync])
+                            all-promises (cond-> [am-promise]
+                                           (seq @manual-model-loads) (into @manual-model-loads))]
+                        (-> (js/Promise.all (clj->js all-promises))
+                            (j/call :then (fn [_] (a/put! p true)))
+                            (j/call :catch (fn [err]
+                                             (js/console.error "Asset preload failed:" err)
+                                             (a/put! p true))))))))
+          (j/call :catch (fn [err]
+                           (js/console.error "Asset resolution failed:" err)
+                           (a/put! p true)))))
     p))
 
 (defn hide-loading-ui []

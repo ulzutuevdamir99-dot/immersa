@@ -171,37 +171,46 @@
 
 (defn save-file
   "Save a file (image or model) to IndexedDB.
-   Returns a local blob URL that can be used to reference the file."
+   Returns a stable local-file:// URL that can be resolved later."
   [{:keys [file type on-progress on-complete on-error]}]
-  (let [reader (js/FileReader.)
-        file-id (str (random-uuid))
-        file-name (j/get file :name)]
-    (j/assoc! reader :onload
-              (fn [event]
-                (let [data (j/get-in event [:target :result])]
-                  (when on-progress (on-progress 50))
-                  (when-let [db (get-db)]
-                    (let [tx (j/call db :transaction #js [files-store] "readwrite")
-                          store (j/call tx :objectStore files-store)
-                          record #js {:id file-id
-                                      :name file-name
-                                      :type (name type)
-                                      :mime_type (j/get file :type)
-                                      :data data
-                                      :created_at (-> (js/Date.) (j/call :toISOString))}
-                          request (j/call store :put record)]
-                      (j/assoc! request :onsuccess
-                                (fn [_]
-                                  (when on-progress (on-progress 100))
-                                  ;; Return the file ID as reference
-                                  (when on-complete
-                                    (on-complete (str "local-file://" file-id)))))
-                      (j/assoc! request :onerror
+  (let [file-id (str (random-uuid))
+        file-name (j/get file :name)
+        mime-type (j/get file :type)]
+    (when on-progress (on-progress 10))
+    ;; Read file as ArrayBuffer for proper blob handling
+    (let [reader (js/FileReader.)]
+      (j/assoc! reader :onload
+                (fn [event]
+                  (let [array-buffer (j/get-in event [:target :result])
+                        blob (js/Blob. #js [array-buffer] #js {:type mime-type})]
+                    (when on-progress (on-progress 50))
+                    ;; Also store in IndexedDB for persistence (as base64 for storage)
+                    (let [base64-reader (js/FileReader.)]
+                      (j/assoc! base64-reader :onload
                                 (fn [e]
-                                  (when on-error (on-error e)))))))))
-    (j/assoc! reader :onerror #(when on-error (on-error %)))
-    (j/call reader :readAsDataURL file)
-    (when on-progress (on-progress 10))))
+                                  (let [data-url (j/get-in e [:target :result])]
+                                    (when-let [db (get-db)]
+                                      (let [tx (j/call db :transaction #js [files-store] "readwrite")
+                                            store (j/call tx :objectStore files-store)
+                                            record #js {:id file-id
+                                                        :name file-name
+                                                        :type (name type)
+                                                        :mime_type mime-type
+                                                        :data data-url
+                                                        :created_at (-> (js/Date.) (j/call :toISOString))}
+                                            request (j/call store :put record)]
+                                        (j/assoc! request :onsuccess
+                                                  (fn [_]
+                                                    (when on-progress (on-progress 100))
+                                                    ;; Return a stable URL for persistence
+                                                    (when on-complete
+                                                      (on-complete (str "local-file://" file-id)))))
+                                        (j/assoc! request :onerror
+                                                  (fn [e]
+                                                    (when on-error (on-error e)))))))))
+                      (j/call base64-reader :readAsDataURL blob)))))
+      (j/assoc! reader :onerror #(when on-error (on-error %)))
+      (j/call reader :readAsArrayBuffer file))))
 
 (defn get-file
   "Get file data by ID."
@@ -219,6 +228,7 @@
                                    {:id (j/get result :id)
                                     :name (j/get result :name)
                                     :type (j/get result :type)
+                                    :mime_type (j/get result :mime_type)
                                     :data (j/get result :data)})))))
           (j/assoc! request :onerror #(reject %)))))))
 
@@ -251,6 +261,24 @@
                               (resolve (or (:data file) url))))
               (j/call :catch (fn [_] (resolve url)))))))
     (js/Promise.resolve url)))
+
+(defn resolve-local-file->file
+  "Resolve a local-file:// URL to a js/File (preserves original filename/extension).
+   If not local-file://, resolves to nil."
+  [url]
+  (if (and url (str/starts-with? url "local-file://"))
+    (let [file-id (subs url 13)]
+      (-> (get-file file-id)
+          (j/call :then
+                  (fn [{:keys [data name mime_type]}]
+                    (if (and data name)
+                      (-> (js/fetch data)
+                          (j/call :then (fn [resp] (j/call resp :blob)))
+                          (j/call :then (fn [blob]
+                                          (js/File. #js [blob] name #js {:type (or mime_type (j/get blob :type))}))))
+                      nil)))
+          (j/call :catch (fn [_] nil))))
+    (js/Promise.resolve nil)))
 
 ;; ============ Settings ============
 

@@ -243,7 +243,8 @@
     :max-size 50
     :title "Saving 3D model"
     :on-complete (fn [file url]
-                   (dispatch [::events/add-model url])
+                   ;; Keep the original filename so Babylon can pick the right loader (or we can force it).
+                   (dispatch [::events/add-model {:url url :name (j/get file :name)}])
                    (dispatch [::events/add-uploaded-model {:name (j/get file :name)
                                                           :url url}]))}])
 
@@ -310,7 +311,7 @@
                                                     :overflow "hidden"
                                                     :text-overflow "ellipsis"
                                                     :width "175px"}} name]
-                               :on-select #(dispatch [::events/add-model url])}]]]
+                               :on-select #(dispatch [::events/add-model {:url url :name name}])}]]]
                    (if (> (count name) 21)
                      ^{:key url}
                      [tooltip
