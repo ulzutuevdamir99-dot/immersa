@@ -45,7 +45,6 @@ This means if a car model is on the left in slide 1 and on the right in slide 2,
 - **Local Storage**: All data stored locally in your browser (IndexedDB)
 - **Undo/Redo**: Full undo/redo support
 - **Keyboard Shortcuts**: Quick access to common actions
-- **Beautiful UI**: Modern, dark-themed interface
 
 ## Getting Started
 
@@ -86,35 +85,6 @@ The production build will be in `resources/public/js/compiled/`.
 
 ## Usage Guide
 
-### Editor Interface
-
-The editor is divided into several panels:
-
-- **Left Panel**: Slide thumbnails - click to navigate, drag to reorder
-- **Center**: 3D viewport - interact with your scene
-- **Right Panel**: Object properties - modify selected objects
-- **Top Bar**: Tools and actions
-
-### Adding Content
-
-1. **Add 3D Model**: Click "3D Model" → "Add 3D model (.glb)" → Select your file
-2. **Add Image**: Click "Image" → "Add image" → Select your file
-3. **Add Text**: Click "Text" or press `T` to add 3D text
-
-### Manipulating Objects
-
-- **Select**: Click on any object in the viewport
-- **Move**: Use the position gizmo or input values in the right panel
-- **Rotate**: Use the rotation gizmo or input rotation values
-- **Scale**: Use the scale gizmo or input scale values
-
-### Working with Slides
-
-- **Add Slide**: Press `D` or use the "+" button to duplicate current slide
-- **Blank Slide**: Press `B` to add a blank slide
-- **Delete Slide**: Right-click on slide thumbnail → Delete
-- **Navigate**: Click thumbnails or use arrow keys in present mode
-
 ### Keyboard Shortcuts
 
 | Shortcut | Action |
@@ -128,11 +98,6 @@ The editor is divided into several panels:
 | `Escape` | Exit present mode |
 | `Arrow Keys` | Navigate slides (in present mode) |
 
-### Presenting
-
-1. Click **"Present"** button to enter presentation mode
-2. Use **arrow keys** or **on-screen controls** to navigate
-3. Press **Escape** or click **"Exit present mode"** to return to editor
 
 ### Exporting
 
