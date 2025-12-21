@@ -153,14 +153,6 @@ Data persists across sessions. Clear browser data to reset.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
-
-- [Babylon.js](https://www.babylonjs.com/) - Powerful 3D rendering engine
-- [Reagent](https://reagent-project.github.io/) - Minimalistic React interface for ClojureScript
-- [Re-frame](https://day8.github.io/re-frame/) - A pattern for writing SPAs in ClojureScript
-- [Radix UI](https://www.radix-ui.com/) - Unstyled, accessible components
-- [Phosphor Icons](https://phosphoricons.com/) - Beautiful icon set
-
 ---
 
 <p align="center">
